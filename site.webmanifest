@@ -1,7 +1,10 @@
 {
+  "id": "/",
   "name": "Prep — Behind The Data Academy",
   "short_name": "Prep",
   "description": "A voice mock interview simulator for data and analytics roles.",
+  "lang": "en",
+  "dir": "ltr",
   "start_url": "/app.html",
   "scope": "/",
   "display": "standalone",

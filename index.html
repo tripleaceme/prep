@@ -38,6 +38,12 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 
+<!-- Installable on iOS, which ignores the manifest's display/name fields -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prep">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -137,6 +143,23 @@
     transition:border-color .15s ease, color .15s ease;
   }
   .lang-select:hover{ border-color:var(--technical); color:var(--text); }
+
+  /* Install prompt. The button stays hidden until the browser says the app is
+     installable, or the visitor is on iOS where that signal never arrives. */
+  .install-hint{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index:60;
+    max-width:420px; margin:0 auto;
+    background:var(--surface); border:1px solid var(--technical);
+    border-radius:var(--radius-m); padding:18px 20px;
+    box-shadow:0 12px 40px rgba(0,0,0,.45);
+  }
+  .install-hint strong{ display:block; font-size:15.5px; margin-bottom:6px; }
+  .install-hint p{ font-size:14px; color:var(--text-muted); margin-bottom:14px; }
+  .install-hint-close{
+    font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    background:var(--technical); color:#08201C; border:none;
+    border-radius:var(--radius-s); padding:9px 16px;
+  }
 
   .btn{
     display:inline-flex;
@@ -725,14 +748,6 @@
             "@type": "Answer",
             "text": "Prep is designed so that your CV, job descriptions and previous sessions stay in your browser rather than being stored on a Prep server. However, information used to generate an interview is sent to the AI provider you configure. Check the provider's current terms and privacy policy before using sensitive information."
           }
-        },
-        {
-          "@type": "Question",
-          "name": "Can I contribute?",
-          "acceptedAnswer": {
-            "@type": "Answer",
-            "text": "Yes. Prep is open source. You can contribute code, suggest improvements or help add translations for languages that aren't supported yet."
-          }
         }
       ]
     }
@@ -766,7 +781,6 @@
       <a href="#hero">How it works</a>
       <a href="#tracks">Tracks</a>
       <a href="#why">Why Prep</a>
-      <a href="#oss">Open source</a>
       <a href="#faq">FAQ</a>
     </nav>
     <div class="nav-actions">
@@ -775,6 +789,7 @@
         <option value="fr">Français</option>
         <option value="de">Deutsch</option>
       </select>
+      <button class="btn btn-ghost" id="installBtn" type="button" hidden>Install app</button>
       <a href="app.html" class="btn btn-primary">Start a Mock Interview</a>
     </div>
   </div>
@@ -782,7 +797,7 @@
 
 <section class="hero wrap" id="hero">
   <div>
-    <div class="eyebrow">Free · Open source · English, French, German</div>
+    <div class="eyebrow">Free · English, French, German</div>
     <h1>Practice the interview before it costs you the offer.</h1>
     <p class="lede">A realistic voice interview simulator for data and analytics roles. Paste the job description, answer questions out loud, and find out what you actually know before the interviewer does.</p>
     <div class="hero-actions">
@@ -978,37 +993,6 @@
   </div>
 </section>
 
-<section class="section" id="privacy">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">Private by design</div>
-      <h2>Your interview preparation should stay yours.</h2>
-      <p>Job descriptions, CVs and interview practice can contain information you don't want sitting in another database. Prep is designed to keep your session data in your browser rather than storing it on a Prep server. You control your Gemini API key, and there is no Prep account or subscription required.</p>
-    </div>
-    <ul class="trust-list">
-      <li>Your job descriptions stay in your browser</li>
-      <li>Your CV stays in your browser</li>
-      <li>Your previous sessions stay in your browser</li>
-      <li>No Prep account required</li>
-    </ul>
-  </div>
-</section>
-
-<section class="section" id="oss">
-  <div class="wrap">
-    <div class="section-head">
-      <div class="eyebrow">Built in the open</div>
-      <h2>Free to use. Open source. Built for the data community.</h2>
-      <p>Prep is open source because tools for learning and career development shouldn't have to be black boxes. You can inspect the code, suggest improvements, contribute features or help bring Prep to more languages.</p>
-      <div class="oss-actions">
-        <a href="https://github.com/tripleaceme/prep" class="btn btn-primary" target="_blank" rel="noopener">View on GitHub</a>
-        <a href="https://github.com/tripleaceme/prep/issues/new?labels=translation&amp;title=Translation%3A+%5Blanguage%5D" class="btn btn-ghost" target="_blank" rel="noopener">Contribute a translation</a>
-      </div>
-      <div class="oss-note">Currently available in English, French and German. More languages can come from the community.</div>
-    </div>
-  </div>
-</section>
-
 <section class="section" id="get-started">
   <div class="wrap">
     <div class="section-head">
@@ -1079,22 +1063,10 @@
         <p>Prep is designed so that your CV, job descriptions and previous sessions stay in your browser rather than being stored on a Prep server.</p>
         <p>However, information used to generate an interview is sent to the AI provider you configure. Check the provider's current terms and privacy policy before using sensitive information.</p>
       </details>
-      <details class="faq-item">
-        <summary>Can I contribute?</summary>
-        <p>Yes. Prep is open source. You can contribute code, suggest improvements or help add translations for languages that aren't supported yet.</p>
-      </details>
     </div>
   </div>
 </section>
 
-<section class="final-cta wrap">
-  <h2>Know what you can explain before the interviewer asks.</h2>
-  <p>Paste the job. Pick the track. Start talking. Then use the feedback to close your gaps before the real interview.</p>
-  <div class="hero-actions">
-    <a href="app.html" class="btn btn-primary">Start a Mock Interview</a>
-  </div>
-  <div class="final-note">Free · Open source · No account required</div>
-</section>
 
 <footer>
   <div class="wrap foot-row">
@@ -1119,6 +1091,7 @@
 </button>
 
 <script src="i18n.js"></script>
+<script src="pwa.js" defer></script>
 <script>
 (function(){
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.walk-tab'));

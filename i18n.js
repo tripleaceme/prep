@@ -30,6 +30,7 @@
   DICT.fr["FAQ"] = "FAQ";
   DICT.fr["Start a Mock Interview"] = "Commencer un entretien blanc";
   DICT.fr["Free · Open source · English, French, German"] = "Gratuit · Open source · Anglais, français, allemand";
+  DICT.fr["Free · English, French, German"] = "Gratuit · Anglais, français, allemand";
   DICT.fr["Practice the interview before it costs you the offer."] = "Entraînez-vous à l'entretien avant qu'il ne vous coûte le poste.";
   DICT.fr["A realistic voice interview simulator for data and analytics roles. Paste the job description, answer questions out loud, and find out what you actually know before the interviewer does."] = "Un simulateur d'entretien vocal réaliste pour les métiers de la data et de l'analytics. Collez l'offre d'emploi, répondez aux questions à voix haute et découvrez ce que vous maîtrisez vraiment avant que le recruteur ne le fasse.";
   DICT.fr["No subscription. No account required. Bring your own Gemini API key."] = "Sans abonnement. Sans compte. Utilisez votre propre clé API Gemini.";
@@ -162,6 +163,7 @@
   DICT.de["FAQ"] = "FAQ";
   DICT.de["Start a Mock Interview"] = "Übungsgespräch starten";
   DICT.de["Free · Open source · English, French, German"] = "Kostenlos · Open Source · Englisch, Französisch, Deutsch";
+  DICT.de["Free · English, French, German"] = "Kostenlos · Englisch, Französisch, Deutsch";
   DICT.de["Practice the interview before it costs you the offer."] = "Üben Sie das Gespräch, bevor es Sie die Stelle kostet.";
   DICT.de["A realistic voice interview simulator for data and analytics roles. Paste the job description, answer questions out loud, and find out what you actually know before the interviewer does."] = "Ein realistischer Sprach-Interviewsimulator für Daten- und Analytics-Rollen. Fügen Sie die Stellenbeschreibung ein, beantworten Sie Fragen laut und finden Sie heraus, was Sie wirklich können – bevor es die Interviewerin oder der Interviewer tut.";
   DICT.de["No subscription. No account required. Bring your own Gemini API key."] = "Kein Abo. Kein Konto nötig. Nutzen Sie Ihren eigenen Gemini-API-Schlüssel.";
@@ -299,6 +301,10 @@
   DICT.fr["API key"] = "Clé API";
   DICT.fr["Language"] = "Langue";
   DICT.fr["Clear history"] = "Effacer l'historique";
+  DICT.fr["Install app"] = "Installer l'app";
+  DICT.fr["Add Prep to your home screen"] = "Ajoutez Prep à votre écran d'accueil";
+  DICT.fr["Tap the Share button in Safari, then choose Add to Home Screen."] = "Appuyez sur le bouton Partager dans Safari, puis choisissez « Sur l'écran d'accueil ».";
+  DICT.fr["Got it"] = "J'ai compris";
   DICT.fr["Interface and interview language"] = "Langue de l'interface et de l'entretien";
   DICT.fr["Prep switches the whole app, the interviewer's questions and your feedback into the language you choose."] = "Prep bascule toute l'application, les questions du recruteur et vos retours dans la langue choisie.";
   DICT.fr["No sessions yet. Your first practice interview will show up here."] = "Aucune session pour l'instant. Votre premier entretien d'entraînement apparaîtra ici.";
@@ -383,6 +389,10 @@
   DICT.de["API key"] = "API-Schlüssel";
   DICT.de["Language"] = "Sprache";
   DICT.de["Clear history"] = "Verlauf löschen";
+  DICT.de["Install app"] = "App installieren";
+  DICT.de["Add Prep to your home screen"] = "Prep zum Startbildschirm hinzufügen";
+  DICT.de["Tap the Share button in Safari, then choose Add to Home Screen."] = "Tippen Sie in Safari auf „Teilen“ und wählen Sie „Zum Home-Bildschirm“.";
+  DICT.de["Got it"] = "Verstanden";
   DICT.de["Interface and interview language"] = "Sprache für Oberfläche und Gespräch";
   DICT.de["Prep switches the whole app, the interviewer's questions and your feedback into the language you choose."] = "Prep stellt die gesamte App, die Fragen im Gespräch und Ihre Rückmeldung auf die gewählte Sprache um.";
   DICT.de["No sessions yet. Your first practice interview will show up here."] = "Noch keine Sitzungen. Ihr erstes Übungsgespräch erscheint hier.";

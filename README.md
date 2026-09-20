@@ -59,6 +59,19 @@ Prep is bring-your-own-key and talks to the Gemini API directly from the browser
 
 Because the key lives client-side, use a key you're comfortable having in the browser and set usage limits on it.
 
+## Installing it as an app
+
+Prep is a PWA, so it can be added to a phone's home screen and opens without browser chrome.
+
+- **Android / Chrome / Edge** — an **Install app** button appears in the landing page header and the app sidebar once the browser reports the app as installable. It stays hidden otherwise, and disappears once installed.
+- **iOS / Safari** — Safari never fires `beforeinstallprompt` and has no programmatic install, so the same button is shown immediately and explains the Share → *Add to Home Screen* route instead.
+
+`sw.js` precaches the shell so the app opens offline. It deliberately handles **only same-origin GET** requests: the Gemini calls are POSTs and one is an SSE stream, and intercepting those is the usual way a service worker breaks a working app. Anything else falls through to the browser untouched.
+
+HTML is network-first so a deploy is picked up rather than pinned, with the cache as the offline fallback. Other assets are stale-while-revalidate.
+
+**When you change a shell file, bump `CACHE_VERSION` in `sw.js`.** Otherwise installed users keep the old cached copy until it happens to revalidate.
+
 ## Languages
 
 Prep runs in English, French and German. The choice is made in the app's sidebar (**Language**, above the API key) or from the selector in the landing page header, and it is stored per browser and shared by both pages.

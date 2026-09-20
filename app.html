@@ -37,6 +37,12 @@
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="manifest" href="site.webmanifest">
 
+<!-- Installable on iOS, which ignores the manifest's display/name fields -->
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Prep">
+
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -111,6 +117,23 @@
   .lang-endonym{ font-weight:600; }
   .lang-tick{ color:var(--technical); opacity:0; }
   .lang-option[aria-checked="true"] .lang-tick{ opacity:1; }
+
+  /* Install prompt, shown only when the browser reports the app as installable
+     (or on iOS, where that signal never arrives and we explain the manual route). */
+  .install-hint{
+    position:fixed; left:16px; right:16px; bottom:16px; z-index:60;
+    max-width:420px; margin:0 auto;
+    background:var(--surface); border:1px solid var(--technical);
+    border-radius:var(--radius-m); padding:18px 20px;
+    box-shadow:0 12px 40px rgba(0,0,0,.45);
+  }
+  .install-hint strong{ display:block; font-size:15.5px; margin-bottom:6px; }
+  .install-hint p{ font-size:14px; color:var(--text-muted); margin-bottom:14px; }
+  .install-hint-close{
+    font-family:inherit; font-size:14px; font-weight:600; cursor:pointer;
+    background:var(--technical); color:#08201C; border:none;
+    border-radius:var(--radius-s); padding:9px 16px;
+  }
 
   /* ---------- History sidebar (sticky column, not a blocking overlay) ---------- */
   .page-shell{ display:flex; align-items:flex-start; min-height:100vh; }
@@ -377,6 +400,7 @@
       <button class="icon-btn" id="closeSidebarBtn" type="button" aria-label="Collapse">✕</button>
     </div>
     <div class="history-list" id="historyList"></div>
+    <button class="btn btn-ghost history-clear" id="installBtn" type="button" hidden>Install app</button>
     <button class="btn btn-ghost history-clear" id="changeLangBtn" type="button">Language</button>
     <button class="btn btn-ghost history-clear" id="changeKeyBtn" type="button">API key</button>
     <button class="btn btn-ghost history-clear" id="clearHistoryBtn" type="button">Clear history</button>
@@ -565,6 +589,7 @@
 </div>
 
 <script src="i18n.js"></script>
+<script src="pwa.js" defer></script>
 <script>
 (function(){
   "use strict";
