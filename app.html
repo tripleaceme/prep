@@ -65,10 +65,9 @@
   button, input, select, textarea{ font-family:inherit; color:inherit; }
   :focus-visible{ outline:2px solid var(--technical); outline-offset:2px; }
 
-  /* Left-aligned against the sidebar with a responsive gutter. "margin:0 auto"
-     here would centre the column in whatever space is left over next to the
-     280px rail, which on a wide screen pushes the content far off to the right. */
-  .app{ max-width:720px; margin:0 auto 0 clamp(20px, 3vw, 56px); padding:0 24px 80px; }
+  /* Centred on the viewport, not on the space beside the sidebar, so the column
+     sits in the same place whether the sidebar is open or closed. */
+  .app{ max-width:720px; margin:0 auto; padding:0 24px 80px; }
 
   /* ---------- Top bar ---------- */
   .topbar{
@@ -160,19 +159,20 @@
     .install-row, .install-help{ padding-left:20px; padding-right:20px; }
   }
 
-  /* ---------- History sidebar (sticky column, not a blocking overlay) ---------- */
-  .page-shell{ display:flex; align-items:flex-start; min-height:100vh; }
+  /* ---------- History sidebar (overlay at every width) ----------
+     The sidebar slides over the page instead of occupying a column in it, so
+     the content keeps exactly the same position whether it is open or closed.
+     As a flex column it pushed the content sideways on every toggle, and
+     collapsing its width dragged the whole column left. */
+  .page-shell{ display:block; min-height:100vh; }
   .history-sidebar{
-    position:sticky; top:0; align-self:flex-start;
-    width:280px; min-height:100vh; flex-shrink:0; max-height:100vh; overflow-y:auto;
+    position:fixed; top:0; left:0; bottom:0; z-index:41;
+    width:280px; max-width:85vw; overflow-y:auto;
     background:var(--surface); border-right:1px solid var(--line);
     padding:16px; display:flex; flex-direction:column;
-    transition:width .2s ease, padding .2s ease, opacity .2s ease;
+    transform:translateX(0); transition:transform .2s ease;
   }
-  .history-sidebar.closed{
-    width:0; padding-left:0; padding-right:0; opacity:0;
-    border-right:none; overflow:hidden;
-  }
+  .history-sidebar.closed{ transform:translateX(-100%); }
   .history-sidebar-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
   .history-sidebar-head h3{ font-size:17px; white-space:nowrap; }
   .icon-btn{
@@ -191,18 +191,6 @@
   .history-item .hi-date{ font-size:12px; color:var(--text-muted); margin-bottom:4px; }
   .history-item .hi-role{ font-size:14px; font-weight:600; margin-bottom:6px; }
   .history-clear{ margin-top:16px; width:100%; }
-  .app{ flex:1; min-width:0; }
-
-  @media (max-width:860px){
-    .page-shell{ display:block; }
-    /* Sidebar becomes an overlay here, so the content centres again. */
-    .app{ margin:0 auto; }
-    .history-sidebar{
-      position:fixed; top:0; left:0; bottom:0; z-index:41; max-width:85vw;
-      transform:translateX(0); transition:transform .2s ease;
-    }
-    .history-sidebar.closed{ width:280px; padding:16px; opacity:1; border-right:1px solid var(--line); transform:translateX(-100%); }
-  }
 
   /* ---------- Screens ---------- */
   .screen{ display:none; animation:rise .35s ease both; }
@@ -1691,6 +1679,14 @@
     }
   });
   document.getElementById("closeSidebarBtn").addEventListener("click", closeSidebar);
+
+  // The sidebar floats over the page so the content never shifts, which means a
+  // narrow window would open with it sitting on top of the content. The column
+  // is 720px centred, so it only clears a 280px sidebar from 1280px up; below
+  // that, start collapsed. Only on load — resizing should not close it under you.
+  if(window.innerWidth < 1280){
+    closeSidebar();
+  }
   document.getElementById("clearHistoryBtn").addEventListener("click", function(){
     if(window.confirm("Clear all saved session history? This can't be undone.")){
       saveHistory([]);

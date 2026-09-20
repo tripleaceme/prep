@@ -77,7 +77,7 @@ Dismissal is remembered in `localStorage` under `prep.install-dismissed`, and th
 
 HTML is network-first so a deploy is picked up rather than pinned, with the cache as the offline fallback. Other assets are stale-while-revalidate.
 
-**When you change a shell file, bump `CACHE_VERSION` in `sw.js`.** Otherwise installed users keep the old cached copy until it happens to revalidate.
+`CACHE_VERSION` in `sw.js` stays `prep-v1`. It does not need bumping on every change: HTML is network-first and the other assets revalidate in the background, so a deploy reaches people on their next load either way. Change it only if you ever need to force every installed client to throw its cache away at once.
 
 ## Languages
 
