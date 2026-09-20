@@ -17,12 +17,30 @@ Instead of a score, a session ends with the concepts you struggled to explain an
 
 ## Project structure
 
-```
-index.html   Landing page — what Prep is, who it's for, how it works
-app.html     The interview simulator itself
+```text
+index.html            Landing page — what Prep is, who it's for, how it works
+app.html              The interview simulator itself
+
+favicon.svg           Logo mark, vector
+favicon.ico           16/32/48 raster fallback for older browsers
+apple-touch-icon.png  180px, iOS home screen
+icon-192.png          PWA icon
+icon-512.png          PWA icon / Organization logo
+og-image.png          1200×630 social share card
+site.webmanifest      Install metadata
+robots.txt            Crawl rules
+sitemap.xml           Search engine sitemap
 ```
 
-Two standalone HTML files. No build step, no bundler, no dependencies to install — all styles and scripts are inline, with fonts loaded from Google Fonts.
+Two standalone HTML pages. No build step, no bundler, no dependencies to install — all styles and scripts are inline, with fonts loaded from Google Fonts.
+
+### SEO notes
+
+`index.html` is the indexable entry point and carries the full set of meta, Open Graph and Twitter tags plus JSON-LD structured data (`Organization`, `WebSite`, `SoftwareApplication` and `FAQPage`). The FAQ structured data mirrors the visible FAQ copy exactly — if you edit one, edit the other, or the rich result becomes ineligible.
+
+`app.html` is set to `noindex, follow`. It's an app shell with almost no crawlable copy, so the landing page carries the ranking while links from the app still pass crawl equity back. It is deliberately *not* blocked in `robots.txt`, because a crawler has to be able to fetch the page to read the `noindex` tag.
+
+Absolute URLs in the canonical, Open Graph and manifest entries point at `https://prep.behindthedata.tech/`. If the domain changes, update them in both HTML files, `site.webmanifest`, `robots.txt` and `sitemap.xml`.
 
 ## Running it locally
 

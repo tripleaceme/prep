@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Note: /app.html is intentionally NOT disallowed here. It carries a "noindex, follow"
+# meta tag, and a crawler has to be allowed to fetch the page in order to read that tag.
+# Blocking it here instead would risk a URL-only listing in search results.
+
+Sitemap: https://prep.behindthedata.tech/sitemap.xml
