@@ -8,7 +8,7 @@
  *
  * Bump CACHE_VERSION when the shell changes so old caches are discarded.
  */
-var CACHE_VERSION = "prep-v1";
+var CACHE_VERSION = "prep-v2";
 
 var SHELL = [
   "./",

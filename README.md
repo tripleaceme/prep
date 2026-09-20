@@ -63,8 +63,15 @@ Because the key lives client-side, use a key you're comfortable having in the br
 
 Prep is a PWA, so it can be added to a phone's home screen and opens without browser chrome.
 
-- **Android / Chrome / Edge** — an **Install app** button appears in the landing page header and the app sidebar once the browser reports the app as installable. It stays hidden otherwise, and disappears once installed.
-- **iOS / Safari** — Safari never fires `beforeinstallprompt` and has no programmatic install, so the same button is shown immediately and explains the Share → *Add to Home Screen* route instead.
+The offer is a slim dismissible strip under the header — the same pattern as the install banner in `session-companion` — rather than a permanent button in the menu, so it costs nothing once someone has installed or said no. `pwa.js` renders it into `#installSlot` on both pages.
+
+It appears only when there is something to offer:
+
+- **Chromium (Android, Chrome, Edge)** — the browser fires `beforeinstallprompt`, so the strip offers a real **Install** button.
+- **iOS / Safari** — never fires that event and cannot install programmatically, so the strip offers **How**, which expands to name the two taps it actually takes.
+- **Anything else** — a desktop browser that neither fires the event nor has a manual route gets no strip at all.
+
+Dismissal is remembered in `localStorage` under `prep.install-dismissed`, and the strip disappears for good once the app is installed or launched standalone.
 
 `sw.js` precaches the shell so the app opens offline. It deliberately handles **only same-origin GET** requests: the Gemini calls are POSTs and one is an SSE stream, and intercepting those is the usual way a service worker breaks a working app. Anything else falls through to the browser untouched.
 
