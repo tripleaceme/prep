@@ -291,7 +291,12 @@
     border-color:var(--technical);
   }
 
-  .walk-caption{ margin-top:20px; }
+  /* Same grid-stacking trick as the preview: captions differ in length, so the
+     block is sized by the longest one. This also survives translation, where a
+     hardcoded min-height would break as soon as the copy gets longer. */
+  .walk-caption{ margin-top:20px; display:grid; align-items:start; }
+  .walk-cap{ grid-area:1 / 1; }
+  .walk-cap[hidden]{ display:block; visibility:hidden; }
   .walk-caption h3{ font-size:17px; margin-bottom:6px; font-family:'IBM Plex Sans', sans-serif; font-weight:600; }
   .walk-caption p{ font-size:14px; color:var(--text-muted); }
 
@@ -408,14 +413,20 @@
   .steps-note{ font-size:13.5px; color:var(--text-muted); }
 
   /* ---------- Hero walkthrough preview + mock elements ---------- */
+  /* All four frames share one grid cell, so the card is always as tall as the
+     tallest step and never resizes as the walkthrough advances. Inactive frames
+     keep their space (visibility, not display) instead of dropping out of flow. */
   .walk-preview{
     background:var(--surface-2);
     border:1px solid var(--line);
     border-radius:var(--radius-s);
     padding:24px;
     min-height:190px;
+    display:grid;
+    align-items:start;
   }
-  .walk-frame{ animation:rise .35s ease both; }
+  .walk-frame{ grid-area:1 / 1; animation:rise .35s ease both; }
+  .walk-frame[hidden]{ display:block; visibility:hidden; }
   .walk-preview .mock-box,
   .walk-preview .mock-btn,
   .walk-preview .mock-track,
@@ -827,8 +838,10 @@
     </div>
 
     <div class="walk-caption">
-      <h3 id="walkTitle">Choose the job</h3>
-      <p id="walkDesc">Paste the real job description you're applying for, or create a practice role from a title, company and industry.</p>
+      <div class="walk-cap">
+        <h3 id="walkTitle">Choose the job</h3>
+        <p id="walkDesc">Paste the real job description you're applying for, or create a practice role from a title, company and industry.</p>
+      </div>
     </div>
   </div>
 </section>
@@ -1088,8 +1101,24 @@
 (function(){
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.walk-tab'));
   var frames = Array.prototype.slice.call(document.querySelectorAll('.walk-frame'));
-  var titleEl = document.getElementById('walkTitle');
-  var descEl = document.getElementById('walkDesc');
+
+  /* Build one caption panel per step from the tabs' data attributes, so all four
+     stack in the same grid cell and the block never changes height. The markup
+     ships with the first panel only, which is what no-JS visitors see. */
+  var captionWrap = document.querySelector('.walk-caption');
+  var caps = [captionWrap.querySelector('.walk-cap')];
+  for(var c = 1; c < tabs.length; c++){
+    var clone = caps[0].cloneNode(true);
+    clone.querySelector('h3').removeAttribute('id');
+    clone.querySelector('p').removeAttribute('id');
+    clone.hidden = true;
+    captionWrap.appendChild(clone);
+    caps.push(clone);
+  }
+  caps.forEach(function(cap, i){
+    cap.querySelector('h3').textContent = tabs[i].getAttribute('data-title');
+    cap.querySelector('p').textContent = tabs[i].getAttribute('data-desc');
+  });
   var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   var current = 0;
   var timer = null;
@@ -1112,11 +1141,8 @@
       var active = i === index;
       tab.classList.toggle('active', active);
       tab.setAttribute('aria-selected', active ? 'true' : 'false');
-      if(active){
-        titleEl.textContent = tab.getAttribute('data-title');
-        descEl.textContent = tab.getAttribute('data-desc');
-      }
     });
+    caps.forEach(function(cap, i){ cap.hidden = i !== index; });
     frames.forEach(function(frame, i){
       var active = i === index;
       frame.hidden = !active;

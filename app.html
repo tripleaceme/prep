@@ -59,7 +59,10 @@
   button, input, select, textarea{ font-family:inherit; color:inherit; }
   :focus-visible{ outline:2px solid var(--technical); outline-offset:2px; }
 
-  .app{ max-width:720px; margin:0 auto; padding:0 24px 80px; }
+  /* Left-aligned against the sidebar with a responsive gutter. "margin:0 auto"
+     here would centre the column in whatever space is left over next to the
+     280px rail, which on a wide screen pushes the content far off to the right. */
+  .app{ max-width:720px; margin:0 auto 0 clamp(20px, 3vw, 56px); padding:0 24px 80px; }
 
   /* ---------- Top bar ---------- */
   .topbar{
@@ -128,6 +131,8 @@
 
   @media (max-width:860px){
     .page-shell{ display:block; }
+    /* Sidebar becomes an overlay here, so the content centres again. */
+    .app{ margin:0 auto; }
     .history-sidebar{
       position:fixed; top:0; left:0; bottom:0; z-index:41; max-width:85vw;
       transform:translateX(0); transition:transform .2s ease;
