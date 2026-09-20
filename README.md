@@ -59,6 +59,21 @@ Prep is bring-your-own-key and talks to the Gemini API directly from the browser
 
 Because the key lives client-side, use a key you're comfortable having in the browser and set usage limits on it.
 
+## Deployment
+
+Deployed on Vercel as a static site at **[prep.behindthedata.tech](https://prep.behindthedata.tech)**. There is no build step — Vercel serves the files as they are, so the Build Command stays empty and the Output Directory is the repository root.
+
+DNS: point `prep` at Vercel with a CNAME to `cname.vercel-dns.com`, then add the domain in the Vercel project settings.
+
+`vercel.json` holds the response headers:
+
+- **Content-Security-Policy** — locked down to what the app actually uses: inline styles and scripts, Google Fonts, `blob:` audio for the interviewer's voice, and `connect-src` limited to the Gemini API. Nothing else can be loaded or called.
+- **Permissions-Policy** — `microphone=(self)`, with camera, geolocation, payment and USB switched off.
+- Caching: HTML always revalidates so edits appear immediately; icons and images are cached for a day with a week of stale-while-revalidate.
+- `/index.html` permanently redirects to `/` so the canonical URL is the only indexed one.
+
+If you change what the app loads — a new font host, an analytics script, a different model endpoint — update the CSP or the browser will silently block it.
+
 ## Status
 
-Active development. Deployment target and domain aren't fixed yet.
+Active development.
