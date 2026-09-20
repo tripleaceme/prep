@@ -1,0 +1,1524 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prep — Mock Interview</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E1418; --surface:#161F25; --surface-2:#1D2830; --line:#2A363F;
+    --text:#EDEEE7; --text-muted:#93A1AA;
+    --technical:#49C6B6; --technical-soft:#16302D;
+    --business:#E7A94C; --business-soft:#332614;
+    --danger:#E76A5C; --danger-soft:#331A17;
+    --radius-s:6px; --radius-m:12px;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  body{
+    background:var(--ink); color:var(--text); font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55; -webkit-font-smoothing:antialiased; min-height:100vh;
+  }
+  h1,h2,h3{ font-family:'Fraunces', serif; font-weight:500; letter-spacing:-0.01em; }
+  a{ color:inherit; }
+  button, input, select, textarea{ font-family:inherit; color:inherit; }
+  :focus-visible{ outline:2px solid var(--technical); outline-offset:2px; }
+
+  .app{ max-width:720px; margin:0 auto; padding:0 24px 80px; }
+
+  /* ---------- Top bar ---------- */
+  .topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:22px 0; border-bottom:1px solid var(--line); margin-bottom:36px;
+  }
+  .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-size:18px; text-decoration:none; cursor:pointer; }
+  .logo-icon{ width:24px; height:24px; flex-shrink:0; }
+  .steps-track{ display:flex; gap:6px; }
+  .history-toggle{
+    width:34px; height:34px; border-radius:var(--radius-s); border:1px solid var(--line);
+    background:var(--surface); color:var(--text-muted); cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+  }
+  .history-toggle svg{ width:18px; height:18px; }
+  .history-toggle:hover{ color:var(--text); border-color:var(--technical); }
+  .steps-track .dot{
+    width:22px; height:4px; border-radius:2px; background:var(--line); transition:background .2s ease;
+  }
+  .steps-track .dot.done{ background:var(--technical); }
+  .steps-track .dot.current{ background:var(--business); }
+
+  /* ---------- API key modal (one-time gate, not a step) ---------- */
+  .modal-backdrop{
+    position:fixed; inset:0; background:rgba(0,0,0,.6); z-index:50;
+    display:none; align-items:center; justify-content:center; padding:24px;
+  }
+  .modal-backdrop.visible{ display:flex; }
+  .modal-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m);
+    padding:32px; max-width:440px; width:100%;
+  }
+
+  /* ---------- History sidebar (sticky column, not a blocking overlay) ---------- */
+  .page-shell{ display:flex; align-items:flex-start; min-height:100vh; }
+  .history-sidebar{
+    position:sticky; top:0; align-self:flex-start;
+    width:280px; min-height:100vh; flex-shrink:0; max-height:100vh; overflow-y:auto;
+    background:var(--surface); border-right:1px solid var(--line);
+    padding:16px; display:flex; flex-direction:column;
+    transition:width .2s ease, padding .2s ease, opacity .2s ease;
+  }
+  .history-sidebar.closed{
+    width:0; padding-left:0; padding-right:0; opacity:0;
+    border-right:none; overflow:hidden;
+  }
+  .history-sidebar-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .history-sidebar-head h3{ font-size:17px; white-space:nowrap; }
+  .icon-btn{
+    width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:transparent;
+    color:var(--text-muted); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .icon-btn:hover{ color:var(--text); border-color:var(--technical); }
+  .history-list{ flex:1; overflow-y:auto; display:flex; flex-direction:column; gap:6px; white-space:nowrap; }
+  .history-empty{ font-size:13.5px; color:var(--text-muted); padding:12px 0; white-space:normal; }
+  .history-item{
+    text-align:left; width:100%; padding:10px; border-radius:var(--radius-s); border:1px solid var(--line);
+    background:var(--surface-2); cursor:pointer; color:var(--text); white-space:normal;
+  }
+  .history-item:hover{ border-color:var(--technical); }
+  .history-item .hi-date{ font-size:12px; color:var(--text-muted); margin-bottom:4px; }
+  .history-item .hi-role{ font-size:14px; font-weight:600; margin-bottom:6px; }
+  .history-clear{ margin-top:16px; width:100%; }
+  .app{ flex:1; min-width:0; }
+
+  @media (max-width:860px){
+    .page-shell{ display:block; }
+    .history-sidebar{
+      position:fixed; top:0; left:0; bottom:0; z-index:41; max-width:85vw;
+      transform:translateX(0); transition:transform .2s ease;
+    }
+    .history-sidebar.closed{ width:280px; padding:16px; opacity:1; border-right:1px solid var(--line); transform:translateX(-100%); }
+  }
+
+  /* ---------- Screens ---------- */
+  .screen{ display:none; animation:rise .35s ease both; }
+  .screen.active{ display:block; }
+  @keyframes rise{ from{opacity:0; transform:translateY(8px);} to{opacity:1; transform:translateY(0);} }
+
+  .eyebrow{ color:var(--technical); font-size:13.5px; font-weight:600; margin-bottom:12px; }
+  h2.screen-title{ font-size:clamp(24px, 4vw, 32px); margin-bottom:10px; }
+  .screen-sub{ color:var(--text-muted); font-size:15.5px; margin-bottom:32px; }
+
+  /* ---------- Form elements ---------- */
+  label{ display:block; font-size:13.5px; font-weight:600; margin-bottom:8px; color:var(--text); }
+  .field{ margin-bottom:22px; }
+  .hint{ font-size:13px; color:var(--text-muted); margin-top:6px; }
+  input[type=text], input[type=password], textarea, select{
+    width:100%; background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-s);
+    padding:12px 14px; font-size:14.5px; color:var(--text);
+  }
+  textarea{ resize:vertical; min-height:110px; line-height:1.5; }
+  input::placeholder, textarea::placeholder{ color:#5A6870; }
+  .key-row{ display:flex; gap:10px; }
+  .key-row input{ flex:1; }
+
+  .btn{
+    display:inline-flex; align-items:center; justify-content:center; gap:8px;
+    border-radius:var(--radius-s); padding:12px 22px; font-size:14.5px; font-weight:600; line-height:1;
+    text-decoration:none; border:1px solid transparent; cursor:pointer;
+    transition:transform .15s ease, background .15s ease, border-color .15s ease, opacity .15s ease;
+  }
+  .btn:hover{ transform:translateY(-1px); }
+  .btn:disabled{ opacity:.5; cursor:not-allowed; transform:none; }
+  .btn-primary{ background:var(--technical); color:#08201C; }
+  .btn-primary:hover{ background:#5ED4C5; }
+  .btn-ghost{ border-color:var(--line); color:var(--text); background:transparent; }
+  .btn-ghost:hover{ border-color:var(--technical); }
+  .btn-danger{ border-color:var(--danger); color:var(--danger); background:transparent; }
+  .btn-danger:hover{ background:var(--danger-soft); }
+  .btn-row{ display:flex; gap:12px; margin-top:28px; flex-wrap:wrap; }
+
+  .faq-link{ color:var(--technical); text-decoration:underline; text-underline-offset:2px; }
+
+  /* ---------- Toggle / chips ---------- */
+  .toggle-row{ display:flex; gap:10px; margin-bottom:22px; }
+  .toggle-opt{
+    flex:1; text-align:center; padding:14px; border-radius:var(--radius-s);
+    border:1px solid var(--line); background:var(--surface); cursor:pointer; font-weight:600; font-size:14.5px;
+    color:var(--text-muted); transition:border-color .15s ease, background .15s ease, color .15s ease;
+  }
+  .toggle-opt.selected.business{ border-color:var(--business); background:var(--business-soft); color:var(--business); }
+  .toggle-opt.selected.technical{ border-color:var(--technical); background:var(--technical-soft); color:var(--technical); }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; }
+  .chip{
+    padding:8px 14px; border-radius:999px; border:1px solid var(--line); background:var(--surface);
+    font-size:13.5px; color:var(--text-muted); cursor:pointer; transition:all .15s ease;
+  }
+  .chip.selected{ border-color:var(--technical); background:var(--technical-soft); color:var(--technical); }
+
+  .radio-row{ display:flex; flex-direction:column; gap:10px; }
+  .radio-opt{
+    display:flex; align-items:flex-start; gap:12px; padding:14px; border:1px solid var(--line);
+    border-radius:var(--radius-s); cursor:pointer; background:var(--surface);
+  }
+  .radio-opt.selected{ border-color:var(--technical); }
+  .radio-opt input{ width:auto; margin-top:3px; accent-color:var(--technical); }
+  .radio-opt .title{ font-weight:600; font-size:14.5px; }
+  .radio-opt .desc{ font-size:13px; color:var(--text-muted); margin-top:2px; }
+
+  /* ---------- Job description review (unboxed, like a real posting) ---------- */
+  .jd-title{ font-size:22px; margin-bottom:18px; }
+  .jd-content{ font-size:15px; color:var(--text); line-height:1.7; }
+  .jd-content h4{
+    font-family:'IBM Plex Sans', sans-serif; font-size:14.5px; font-weight:700;
+    text-transform:uppercase; letter-spacing:.03em; color:var(--technical);
+    margin:22px 0 10px;
+  }
+  .jd-content h4:first-child{ margin-top:0; }
+  .jd-content p{ margin-bottom:14px; }
+  .jd-content ul{ margin:0 0 14px 20px; }
+  .jd-content li{ margin-bottom:8px; }
+  .tab-row{ display:flex; gap:10px; margin-bottom:22px; }
+  .tab-opt{
+    padding:9px 16px; border-radius:999px; border:1px solid var(--line); background:transparent;
+    color:var(--text-muted); cursor:pointer; font-size:13.5px; font-weight:600;
+  }
+  .tab-opt.selected{ background:var(--technical-soft); color:var(--technical); border-color:var(--technical); }
+  .tab-panel{ display:none; }
+  .tab-panel.active{ display:block; }
+
+  /* ---------- Interview session ---------- */
+  .session-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:24px;
+  }
+  .session-top-minimal{ display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; padding-bottom:16px; border-bottom:1px solid var(--line); }
+  .session-timer{ font-size:13.5px; color:var(--text-muted); font-variant-numeric:tabular-nums; }
+  .session-timer.low{ color:var(--danger); }
+
+  .q-counter{ font-size:13.5px; font-weight:600; color:var(--text-muted); }
+  .current-message{
+    min-height:120px; display:flex; align-items:center;
+    font-size:17px; line-height:1.6; color:var(--text);
+    margin-bottom:22px; animation:rise .3s ease both;
+  }
+  .current-message.thinking{ color:var(--text-muted); font-style:italic; font-size:15px; }
+  .mic-toggle-recording{ background:var(--danger-soft); border-color:var(--danger); color:var(--danger); animation:pulse 1.2s ease-in-out infinite; }
+  @keyframes pulse{ 0%,100%{ box-shadow:0 0 0 0 rgba(231,106,92,.4);} 50%{ box-shadow:0 0 0 6px rgba(231,106,92,0);} }
+
+  .answer-actions{ display:flex; gap:12px; margin-top:12px; }
+  .answer-actions .btn{ flex:1; }
+  .answer-box textarea{ margin-bottom:0; }
+
+  /* ---------- Feedback screen ---------- */
+  .tier-badge{
+    display:inline-flex; align-items:center; gap:8px; padding:8px 16px; border-radius:999px;
+    font-weight:600; font-size:14.5px; margin-bottom:20px; border:1px solid var(--line);
+  }
+  .tier-badge.tier-strong{ color:var(--technical); border-color:var(--technical); background:var(--technical-soft); }
+  .tier-badge.tier-working{ color:var(--business); border-color:var(--business); background:var(--business-soft); }
+  .tier-badge.tier-surface{ color:var(--danger); border-color:var(--danger); background:var(--danger-soft); }
+
+  .qa-card{ background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-m); padding:20px; margin-bottom:14px; }
+  .qa-card .q{ font-size:14.5px; font-weight:600; margin-bottom:8px; }
+  .qa-card .note{ font-size:14px; color:var(--text-muted); }
+  .qa-tier{ display:inline-block; font-size:11.5px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; padding:3px 9px; border-radius:999px; margin-bottom:10px; }
+  .qa-tier.tier-strong{ color:var(--technical); background:var(--technical-soft); }
+  .qa-tier.tier-working{ color:var(--business); background:var(--business-soft); }
+  .qa-tier.tier-surface{ color:var(--danger); background:var(--danger-soft); }
+
+  .review-list{ list-style:none; margin-top:8px; }
+  .review-list li{ font-size:14.5px; padding:11px 0; border-top:1px solid var(--line); display:flex; gap:10px; }
+  .review-list li::before{ content:"→"; color:var(--technical); }
+
+  /* ---------- Error banner ---------- */
+  .error-banner{
+    display:none; background:var(--danger-soft); border:1px solid var(--danger); color:#F3B9B1;
+    padding:14px 16px; border-radius:var(--radius-s); font-size:13.5px; margin-bottom:20px;
+  }
+  .error-banner.visible{ display:block; }
+
+  .loading-line{ display:flex; align-items:center; gap:10px; color:var(--text-muted); font-size:14px; padding:14px 0; }
+  .spinner{
+    width:14px; height:14px; border-radius:50%; border:2px solid var(--line); border-top-color:var(--technical);
+    animation:spin .8s linear infinite;
+  }
+  @keyframes spin{ to{ transform:rotate(360deg); } }
+
+  @media (max-width:600px){
+    .toggle-row{ flex-direction:column; }
+    .steps-track .dot{ width:16px; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#49C6B6"/><stop offset="1" stop-color="#E7A94C"/>
+    </linearGradient>
+    <symbol id="logoMark" viewBox="0 0 32 32">
+      <rect width="32" height="32" rx="9" fill="url(#logoGrad)"/>
+      <rect x="8" y="17" width="3.4" height="8" rx="1.7" fill="#0E1418"/>
+      <rect x="14.3" y="11" width="3.4" height="14" rx="1.7" fill="#0E1418"/>
+      <rect x="20.6" y="7" width="3.4" height="18" rx="1.7" fill="#0E1418"/>
+    </symbol>
+    <symbol id="micIcon" viewBox="0 0 24 24">
+      <path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" fill="#08201C"/>
+      <path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="#08201C" stroke-width="1.6" stroke-linecap="round"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="modal-backdrop" id="apiKeyModalBackdrop">
+  <div class="modal-card">
+    <h2 class="screen-title">Bring your own Gemini API key.</h2>
+    <p class="screen-sub">Prep runs entirely in your browser. Your key is used to call Gemini directly and is saved only on this device — never sent anywhere else.</p>
+    <div class="field">
+      <label for="apiKeyInput">Gemini API key</label>
+      <div class="key-row">
+        <input type="password" id="apiKeyInput" placeholder="Paste your key here">
+        <button class="btn btn-ghost" id="toggleKeyVisibility" type="button">Show</button>
+      </div>
+      <div class="hint">Don't have one? Get a free key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener" class="faq-link">aistudio.google.com/apikey</a>.</div>
+      <div class="hint" id="apiKeyModalError" style="display:none; color:var(--danger);"></div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="keyContinueBtn">Get Started</button>
+    </div>
+  </div>
+</div>
+
+<div class="page-shell">
+  <aside class="history-sidebar" id="historySidebar">
+    <div class="history-sidebar-head">
+      <h3>Past sessions</h3>
+      <button class="icon-btn" id="closeSidebarBtn" type="button" aria-label="Collapse">✕</button>
+    </div>
+    <div class="history-list" id="historyList"></div>
+    <button class="btn btn-ghost history-clear" id="changeKeyBtn" type="button">API key</button>
+    <button class="btn btn-ghost history-clear" id="clearHistoryBtn" type="button">Clear history</button>
+  </aside>
+
+  <div class="app">
+    <div class="topbar">
+      <button class="history-toggle" id="historyToggleBtn" type="button" aria-label="Past sessions">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>
+      </button>
+      <a class="brand" href="index.html"><svg class="logo-icon"><use href="#logoMark"/></svg> Prep</a>
+      <div class="steps-track" id="stepsTrack">
+        <div class="dot" data-step="1"></div>
+        <div class="dot" data-step="2"></div>
+        <div class="dot" data-step="3"></div>
+        <div class="dot" data-step="4"></div>
+      </div>
+    </div>
+
+    <div class="error-banner" id="errorBanner"></div>
+
+  <!-- Screen 1: Job description -->
+  <section class="screen active" data-screen="1">
+    <div class="eyebrow">Step 1 of 4</div>
+    <h2 class="screen-title">What role are you preparing for?</h2>
+    <p class="screen-sub">Paste a real job posting, or simulate one and Prep will draft it for you.</p>
+
+    <div class="tab-row">
+      <button class="tab-opt selected" data-tab="paste" type="button">Paste your own</button>
+      <button class="tab-opt" data-tab="simulate" type="button">Simulate one</button>
+    </div>
+
+    <div class="tab-panel active" data-panel="paste">
+      <div class="field">
+        <label for="jdPaste">Job description</label>
+        <textarea id="jdPaste" placeholder="Paste the job description here…"></textarea>
+      </div>
+    </div>
+
+    <div class="tab-panel" data-panel="simulate">
+      <div id="jdSimForm">
+        <div class="field"><label for="simTitle">Job title</label><input type="text" id="simTitle" placeholder="e.g. Senior Analytics Engineer"></div>
+        <div class="field"><label for="simCompany">Company name (optional)</label><input type="text" id="simCompany" placeholder="Leave blank to let Prep invent one"></div>
+        <div class="field"><label for="simIndustry">Industry</label><input type="text" id="simIndustry" placeholder="e.g. Fintech, FMCG, e-commerce"></div>
+        <div class="field"><label for="simLocation">Location (optional)</label><input type="text" id="simLocation" placeholder="e.g. Lagos, Remote"></div>
+        <div class="field"><label for="simHint">Anything else? (optional)</label><textarea id="simHint" placeholder="Rough idea of responsibilities, seniority, tools…" style="min-height:70px"></textarea></div>
+        <button class="btn btn-ghost" id="simulateBtn" type="button">Simulate job description</button>
+      </div>
+
+      <div id="jdReviewWrap" style="display:none;">
+        <h3 class="jd-title" id="jdTitleDisplay"></h3>
+        <div class="jd-content" id="jdReviewBox"></div>
+        <div class="field" style="margin-top:24px;">
+          <input type="text" id="jdModifyInput" placeholder="Want changes? Describe them, e.g. 'more senior, add dbt'">
+        </div>
+        <div class="btn-row" style="margin-top:0;">
+          <button class="btn btn-ghost" id="jdModifyBtn" type="button">Modify</button>
+          <button class="btn btn-ghost" id="jdEditDetailsBtn" type="button">Edit details</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-primary" id="jdContinueBtn">Continue</button>
+    </div>
+  </section>
+
+  <!-- Screen 2: Track config -->
+  <section class="screen" data-screen="2">
+    <div class="eyebrow">Step 2 of 4</div>
+    <h2 class="screen-title">Configure the interview.</h2>
+    <p class="screen-sub">Business or technical, industry either way, plus level if it's technical.</p>
+
+    <div class="field">
+      <label>Track</label>
+      <div class="toggle-row">
+        <div class="toggle-opt business" data-track="business">Business</div>
+        <div class="toggle-opt technical selected" data-track="technical">Technical</div>
+      </div>
+    </div>
+
+    <div class="field" id="industryFieldWrap">
+      <label for="industryInput">Industry</label>
+      <input type="text" id="industryInput" placeholder="e.g. Fintech, FMCG, e-commerce, logistics">
+    </div>
+    <div class="field" id="industryLockedNote" style="display:none;">
+      <label>Industry</label>
+      <div class="chip" style="display:inline-block;" id="industryLockedChip"></div>
+      <div class="hint">Set from your job description.</div>
+    </div>
+
+    <div id="technicalFields">
+      <div class="field">
+        <label>Interview level</label>
+        <div class="chip-row" id="levelChips">
+          <div class="chip selected" data-level="Recruiter screen">Recruiter screen</div>
+          <div class="chip" data-level="Level 1">Level 1</div>
+          <div class="chip" data-level="Level 2">Level 2</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Difficulty</label>
+      <div class="chip-row" id="difficultyChips">
+        <div class="chip" data-difficulty="Easy">Easy</div>
+        <div class="chip selected" data-difficulty="Medium">Medium</div>
+        <div class="chip" data-difficulty="Hard">Hard</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label>Duration</label>
+      <div class="chip-row" id="durationChips">
+        <div class="chip" data-duration="15">15 min</div>
+        <div class="chip selected" data-duration="30">30 min</div>
+        <div class="chip" data-duration="45">45 min</div>
+        <div class="chip" data-duration="60">60 min</div>
+      </div>
+    </div>
+
+    <div class="field">
+      <label for="nameInput">What should the interviewer call you? (optional)</label>
+      <input type="text" id="nameInput" placeholder="Your name">
+    </div>
+
+    <div class="field">
+      <label>Feedback timing</label>
+      <div class="radio-row">
+        <label class="radio-opt selected">
+          <input type="radio" name="timing" value="immediate" checked>
+          <div><div class="title">Immediately after each answer</div><div class="desc">Spoken feedback, in the interviewer's voice, right after you answer.</div></div>
+        </label>
+        <label class="radio-opt">
+          <input type="radio" name="timing" value="end">
+          <div><div class="title">At the end of the session</div><div class="desc">A written report once the interview is over.</div></div>
+        </label>
+      </div>
+    </div>
+
+    <div class="btn-row">
+      <button class="btn btn-ghost" data-back="1">Back</button>
+      <button class="btn btn-primary" id="startInterviewBtn">Start Interview</button>
+    </div>
+  </section>
+
+  <!-- Screen 3: Session -->
+  <section class="screen" data-screen="3">
+    <div class="session-card">
+      <div class="session-top-minimal">
+        <span class="q-counter" id="qCounter">Question 1</span>
+        <div class="session-timer" id="sessionTimer">--:--</div>
+      </div>
+      <div class="current-message" id="currentMessage"></div>
+      <audio id="ttsPlayer" style="display:none;"></audio>
+
+      <div class="answer-box" id="answerBox" style="display:none;">
+        <textarea id="answerText" placeholder="Tap to speak, or type your answer…"></textarea>
+        <div class="answer-actions">
+          <button class="btn btn-ghost" id="micToggleBtn" type="button" style="display:none;">Tap to speak</button>
+          <button class="btn btn-primary" id="submitAnswerBtn" type="button">Submit answer</button>
+        </div>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-danger" id="endInterviewBtn" type="button">End Interview</button>
+    </div>
+  </section>
+
+  <!-- Screen 4: Feedback -->
+  <section class="screen" data-screen="4">
+    <div class="eyebrow">Session complete</div>
+    <h2 class="screen-title">Here's what to work on.</h2>
+    <div id="feedbackTierWrap"></div>
+    <p class="screen-sub" id="feedbackSummary"></p>
+    <div id="qaBreakdown"></div>
+    <div style="margin-top:8px;">
+      <label style="margin-bottom:10px;">Concepts to review</label>
+      <ul class="review-list" id="reviewList"></ul>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" id="restartBtn" type="button">Practice again</button>
+    </div>
+  </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  // Google retired generateContent's old client-key flow for new users in favor of the
+  // Interactions API. gemini-2.5-flash is no longer available to new keys. Using
+  // gemini-3.5-flash (previous-gen) here rather than the newest gemini-3.6-flash, since
+  // the newest model tends to hit capacity/demand limits first. If that changes, or if
+  // Google renames models again, this is the one constant to change.
+  var GEMINI_MODEL = "gemini-3.5-flash";
+  var INTERACTIONS_URL = "https://generativelanguage.googleapis.com/v1beta/interactions";
+
+  var state = {
+    apiKey: "",
+    jobDescription: "",
+    track: "technical",
+    industry: "",
+    industryLocked: false,
+    level: "Recruiter screen",
+    difficulty: "Medium",
+    duration: 30,
+    addressAs: "",
+    timing: "immediate",
+    lastInteractionId: null,   // chains the interview as one server-side conversation
+    questionCount: 0,
+    maxQuestions: 8,
+    timerRemaining: 0,
+    timerHandle: null,
+    recognizing: false
+  };
+
+  var personaNames = ["Sean","Amara","Priya","Derek","Nadia","Chidi"];
+  var personaVoices = {
+    // Documented gender per Google's Gemini TTS voice list
+    "Sean": "Charon",   // calm, professional male
+    "Derek": "Puck",    // upbeat, lively male
+    "Chidi": "Orus",    // male
+    "Amara": "Aoede",   // warm, melodic female
+    "Priya": "Leda",    // female
+    "Nadia": "Kore"     // strong, firm female
+  };
+  var personaRoles = { technical: "Senior Data Engineer", business: "Senior Product Manager" };
+
+  // ---------- Screen navigation ----------
+  function showScreen(i){
+    document.querySelectorAll(".screen").forEach(function(s){
+      s.classList.toggle("active", s.getAttribute("data-screen") == i);
+    });
+    document.querySelectorAll("#stepsTrack .dot").forEach(function(d){
+      var step = parseInt(d.getAttribute("data-step"), 10);
+      d.classList.toggle("done", step < i);
+      d.classList.toggle("current", step == i);
+    });
+    hideError();
+    window.scrollTo({top:0, behavior:"auto"});
+  }
+  document.querySelectorAll("[data-back]").forEach(function(btn){
+    btn.addEventListener("click", function(){ showScreen(btn.getAttribute("data-back")); });
+  });
+
+  function showError(msg){
+    var el = document.getElementById("errorBanner");
+    el.textContent = msg;
+    el.classList.add("visible");
+  }
+  function hideError(){
+    document.getElementById("errorBanner").classList.remove("visible");
+  }
+
+  // ---------- Gemini call (Interactions API) ----------
+  // input: a plain string. systemInstruction: optional string, must be re-sent on every
+  // call (it is not part of the persisted conversation). previousId: pass the last
+  // interaction's id to continue that conversation server-side; omit to start a new one.
+  // Note: deliberately NOT sending an "Api-Revision" header here. Some of Google's own
+  // docs show it, but generativelanguage.googleapis.com does not currently allow that
+  // custom header in its CORS preflight response, so sending it makes every browser
+  // request fail with "Failed to fetch" before it even reaches Google.
+  function callInteraction(input, systemInstruction, previousId){
+    var body = { model: GEMINI_MODEL, input: input };
+    if(systemInstruction) body.system_instruction = systemInstruction;
+    if(previousId) body.previous_interaction_id = previousId;
+
+    return fetch(INTERACTIONS_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": state.apiKey
+      },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.text().then(function(rawText){
+        var data = null;
+        try{ data = rawText ? JSON.parse(rawText) : null; } catch(e){ data = null; }
+        if(!res.ok){
+          var msg = extractErrorMessage(data) || (rawText ? rawText.slice(0, 300) : ("Gemini request failed (" + res.status + ")"));
+          throw new Error(msg);
+        }
+        return data;
+      });
+    }).then(function(data){
+      var text = extractInteractionText(data);
+      if(!text) throw new Error("Gemini returned an empty response.");
+      return { id: extractInteractionId(data), text: text.trim() };
+    });
+  }
+
+  // Google's error envelope is usually {error:{message}}, but be defensive since this
+  // is a newer API surface and the exact shape isn't fully consistent across their own docs.
+  function extractErrorMessage(data){
+    if(!data) return "";
+    if(data.error){
+      if(typeof data.error === "string") return data.error;
+      if(typeof data.error.message === "string") return data.error.message;
+    }
+    if(typeof data.message === "string") return data.message;
+    return "";
+  }
+
+  // Some Google API surfaces return the resource identifier as .id, others as a
+  // resource .name (e.g. "interactions/int_123"); handle both.
+  function extractInteractionId(data){
+    if(!data) return null;
+    if(typeof data.id === "string" && data.id) return data.id;
+    if(typeof data.name === "string" && data.name){
+      var parts = data.name.split("/");
+      return parts[parts.length - 1];
+    }
+    return null;
+  }
+
+  // The Interactions API response can surface text a few different ways depending on
+  // SDK vs raw REST; check the documented raw shapes defensively.
+  function extractInteractionText(data){
+    if(!data) return "";
+    if(typeof data.output_text === "string") return data.output_text;
+    if(Array.isArray(data.outputs) && data.outputs.length){
+      var lastOut = data.outputs[data.outputs.length - 1];
+      if(lastOut && typeof lastOut.text === "string") return lastOut.text;
+    }
+    if(Array.isArray(data.steps)){
+      for(var i = data.steps.length - 1; i >= 0; i--){
+        var step = data.steps[i];
+        if(step && step.type === "model_output" && Array.isArray(step.content)){
+          var parts = step.content
+            .filter(function(c){ return c && c.type === "text" && typeof c.text === "string"; })
+            .map(function(c){ return c.text; });
+          if(parts.length) return parts.join("\n");
+        }
+      }
+    }
+    return "";
+  }
+
+  // Safety net in case the model ignores the "no markdown" instruction.
+  // Renders the lightly-structured text Gemini returns (bold section headers,
+  // "- " bullet lines) as real HTML, so it reads like an actual job posting
+  // instead of raw markdown syntax or an undifferentiated wall of text.
+  function jdToHtml(text){
+    if(!text) return "";
+    var lines = text.replace(/\r\n/g, "\n").split("\n");
+    var html = "";
+    var listOpen = false;
+    function closeList(){ if(listOpen){ html += "</ul>"; listOpen = false; } }
+    function inlineFormat(s){
+      return escapeHtml(s).replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+    }
+    lines.forEach(function(raw){
+      var line = raw.trim();
+      if(!line){ closeList(); return; }
+      var headerMatch = line.match(/^\*\*(.+?)\*\*:?$/);
+      if(headerMatch){
+        closeList();
+        html += "<h4>" + escapeHtml(headerMatch[1]) + "</h4>";
+        return;
+      }
+      var bulletMatch = line.match(/^[-*•]\s+(.*)$/);
+      if(bulletMatch){
+        if(!listOpen){ html += "<ul>"; listOpen = true; }
+        html += "<li>" + inlineFormat(bulletMatch[1]) + "</li>";
+        return;
+      }
+      closeList();
+      html += "<p>" + inlineFormat(line) + "</p>";
+    });
+    closeList();
+    return html;
+  }
+
+  function askTextOnly(prompt){
+    return callInteraction(prompt, null, null).then(function(r){ return r.text; });
+  }
+
+  // ---------- API key: persisted, one-time modal gate, not a step ----------
+  var API_KEY_STORAGE = "prep_api_key";
+  function loadSavedApiKey(){
+    try{ return window.localStorage.getItem(API_KEY_STORAGE) || ""; } catch(e){ return ""; }
+  }
+  function persistApiKey(key){
+    try{ window.localStorage.setItem(API_KEY_STORAGE, key); } catch(e){}
+  }
+  function showApiKeyModal(){
+    document.getElementById("apiKeyModalBackdrop").classList.add("visible");
+  }
+  function hideApiKeyModal(){
+    document.getElementById("apiKeyModalBackdrop").classList.remove("visible");
+  }
+  function showApiKeyModalError(msg){
+    var el = document.getElementById("apiKeyModalError");
+    el.textContent = msg;
+    el.style.display = "block";
+  }
+
+  var apiKeyInput = document.getElementById("apiKeyInput");
+  document.getElementById("toggleKeyVisibility").addEventListener("click", function(){
+    var showing = apiKeyInput.type === "text";
+    apiKeyInput.type = showing ? "password" : "text";
+    this.textContent = showing ? "Show" : "Hide";
+  });
+  document.getElementById("keyContinueBtn").addEventListener("click", function(){
+    var key = apiKeyInput.value.trim();
+    if(!key){ showApiKeyModalError("Paste your Gemini API key to continue."); return; }
+    document.getElementById("apiKeyModalError").style.display = "none";
+    state.apiKey = key;
+    persistApiKey(key);
+    hideApiKeyModal();
+  });
+  document.getElementById("changeKeyBtn").addEventListener("click", function(){
+    apiKeyInput.value = state.apiKey || "";
+    document.getElementById("apiKeyModalError").style.display = "none";
+    showApiKeyModal();
+  });
+
+  var savedApiKey = loadSavedApiKey();
+  if(savedApiKey){
+    state.apiKey = savedApiKey;
+  } else {
+    showApiKeyModal();
+  }
+
+  // ---------- Screen 1: Job description ----------
+  document.querySelectorAll(".tab-opt").forEach(function(tab){
+    tab.addEventListener("click", function(){
+      document.querySelectorAll(".tab-opt").forEach(function(t){ t.classList.remove("selected"); });
+      tab.classList.add("selected");
+      var name = tab.getAttribute("data-tab");
+      document.querySelectorAll(".tab-panel").forEach(function(p){
+        p.classList.toggle("active", p.getAttribute("data-panel") === name);
+      });
+    });
+  });
+
+  var simulatedJD = "";
+  document.getElementById("simulateBtn").addEventListener("click", function(){
+    var title = document.getElementById("simTitle").value.trim() || "Analytics Engineer";
+    var company = document.getElementById("simCompany").value.trim();
+    var industry = document.getElementById("simIndustry").value.trim() || "technology";
+    var location = document.getElementById("simLocation").value.trim();
+    var hint = document.getElementById("simHint").value.trim();
+
+    var prompt = "Write a realistic job description for the role of " + title +
+      (company ? (" at a company called " + company) : " at a plausible, invented company") +
+      " in the " + industry + " industry" + (location ? (", located in " + location) : "") + ". " +
+      (hint ? ("Additional context from the user: " + hint + ". ") : "") +
+      'Write it the way a real job posting reads. Use a couple of short section headers written in bold, like **Responsibilities** and **Requirements**, and use "- " at the start of a line for each bullet point under those sections. Keep any intro paragraph plain, unbulleted text. Return only the job description, no preamble or extra commentary.';
+
+    var btn = this;
+    btn.disabled = true; btn.textContent = "Simulating…";
+    hideError();
+    askTextOnly(prompt).then(function(text){
+      simulatedJD = text;
+      document.getElementById("jdTitleDisplay").textContent = title + (company ? (" at " + company) : "");
+      document.getElementById("jdReviewBox").innerHTML = jdToHtml(text);
+      document.getElementById("jdSimForm").style.display = "none";
+      document.getElementById("jdReviewWrap").style.display = "block";
+    }).catch(function(err){
+      showError(err.message);
+    }).finally(function(){
+      btn.disabled = false; btn.textContent = "Simulate job description";
+    });
+  });
+
+  document.getElementById("jdEditDetailsBtn").addEventListener("click", function(){
+    document.getElementById("jdReviewWrap").style.display = "none";
+    document.getElementById("jdSimForm").style.display = "block";
+  });
+
+  document.getElementById("jdModifyBtn").addEventListener("click", function(){
+    var instruction = document.getElementById("jdModifyInput").value.trim();
+    if(!instruction || !simulatedJD) return;
+    var prompt = "Here is a job description:\n\n" + simulatedJD + "\n\nRevise it with these changes: " + instruction + '. Keep using bold section headers (like **Responsibilities**) and "- " bullet points the same way as before. Return only the revised job description text.';
+    var btn = this;
+    btn.disabled = true; btn.textContent = "Updating…";
+    hideError();
+    askTextOnly(prompt).then(function(text){
+      simulatedJD = text;
+      document.getElementById("jdReviewBox").innerHTML = jdToHtml(text);
+      document.getElementById("jdModifyInput").value = "";
+    }).catch(function(err){
+      showError(err.message);
+    }).finally(function(){
+      btn.disabled = false; btn.textContent = "Modify";
+    });
+  });
+
+  document.getElementById("jdContinueBtn").addEventListener("click", function(){
+    var activeTab = document.querySelector(".tab-opt.selected").getAttribute("data-tab");
+    var jd = activeTab === "paste" ? document.getElementById("jdPaste").value.trim() : simulatedJD;
+    if(!jd){ showError(activeTab === "paste" ? "Paste a job description to continue." : "Simulate a job description first."); return; }
+    state.jobDescription = jd;
+
+    var ind = activeTab === "simulate" ? document.getElementById("simIndustry").value.trim() : "";
+    state.industryLocked = !!ind;
+    var industryFieldWrap = document.getElementById("industryFieldWrap");
+    var industryLockedNote = document.getElementById("industryLockedNote");
+    if(state.industryLocked){
+      state.industry = ind;
+      document.getElementById("industryLockedChip").textContent = ind;
+      industryFieldWrap.style.display = "none";
+      industryLockedNote.style.display = "block";
+    } else {
+      industryFieldWrap.style.display = "block";
+      industryLockedNote.style.display = "none";
+    }
+    showScreen(2);
+  });
+
+  // ---------- Screen 2: Track config ----------
+  document.querySelectorAll(".toggle-opt").forEach(function(opt){
+    opt.addEventListener("click", function(){
+      document.querySelectorAll(".toggle-opt").forEach(function(o){ o.classList.remove("selected"); });
+      opt.classList.add("selected");
+      state.track = opt.getAttribute("data-track");
+      document.getElementById("technicalFields").style.display = state.track === "technical" ? "block" : "none";
+    });
+  });
+
+  document.querySelectorAll("#levelChips .chip").forEach(function(c){
+    c.addEventListener("click", function(){
+      document.querySelectorAll("#levelChips .chip").forEach(function(x){ x.classList.remove("selected"); });
+      c.classList.add("selected");
+      state.level = c.getAttribute("data-level");
+    });
+  });
+  document.querySelectorAll("#difficultyChips .chip").forEach(function(c){
+    c.addEventListener("click", function(){
+      document.querySelectorAll("#difficultyChips .chip").forEach(function(x){ x.classList.remove("selected"); });
+      c.classList.add("selected");
+      state.difficulty = c.getAttribute("data-difficulty");
+    });
+  });
+  document.querySelectorAll("#durationChips .chip").forEach(function(c){
+    c.addEventListener("click", function(){
+      document.querySelectorAll("#durationChips .chip").forEach(function(x){ x.classList.remove("selected"); });
+      c.classList.add("selected");
+      state.duration = parseInt(c.getAttribute("data-duration"), 10);
+    });
+  });
+  document.querySelectorAll('input[name="timing"]').forEach(function(r){
+    r.addEventListener("change", function(){
+      state.timing = r.value;
+      document.querySelectorAll(".radio-opt").forEach(function(o){
+        o.classList.toggle("selected", o.querySelector("input").value === r.value);
+      });
+    });
+  });
+
+  document.getElementById("startInterviewBtn").addEventListener("click", function(){
+    if(!state.industryLocked){
+      state.industry = document.getElementById("industryInput").value.trim();
+    }
+    state.addressAs = document.getElementById("nameInput").value.trim();
+    if(!state.industry){ showError("Add an industry before starting."); return; }
+    beginInterview();
+  });
+
+  // ---------- Screen 3: Interview session ----------
+  var personaName, personaRole;
+  function buildSystemInstruction(){
+    var levelLine = state.track === "technical" ? ("Interview stage: " + state.level + ". ") : "";
+    var addressLine = state.addressAs ? ("Address the candidate as " + state.addressAs + ". ") : "";
+    return "You are " + personaName + ", a " + personaRole + " conducting a mock " + state.track + " interview. " +
+      "Job description:\n" + state.jobDescription + "\n\n" +
+      "Industry: " + state.industry + ". " + levelLine +
+      (state.track === "technical" ? "Base your technical questions on the tools and technologies actually mentioned or implied in the job description. " : "") +
+      "Difficulty: " + state.difficulty + ". " + addressLine +
+      "Ask one interview question at a time, in character, conversational and concise (2-4 sentences max). " +
+      "Do not answer your own questions. Do not use markdown formatting. " +
+      (state.timing === "immediate"
+        ? "After the candidate answers, first give brief (1-2 sentence) spoken feedback rating their answer as Surface, Working, or Strong knowledge, then ask your next question in the same reply."
+        : "After the candidate answers, simply ask your next question. Do not give feedback yet.");
+  }
+
+  function showMessage(text, thinking){
+    var el = document.getElementById("currentMessage");
+    el.classList.toggle("thinking", !!thinking);
+    el.textContent = text;
+    // restart the entrance animation so each new question feels like a fresh page
+    el.style.animation = "none";
+    void el.offsetWidth;
+    el.style.animation = "";
+    return el;
+  }
+  function updateQCounter(){
+    document.getElementById("qCounter").textContent = "Question " + state.questionCount;
+  }
+  function escapeHtml(s){
+    var d = document.createElement("div"); d.textContent = s; return d.innerHTML;
+  }
+
+  // Browser text-to-speech quality depends entirely on the voices the OS/browser ships,
+  // and even the best of those sound noticeably robotic. Gemini has an actual TTS model,
+  // so that's used as the primary voice; this browser voice is only the fallback if the
+  // Gemini TTS call fails for any reason (offline, rate-limited, preview model down, etc).
+  var cachedVoices = [];
+  function loadVoices(){
+    if(!("speechSynthesis" in window)) return;
+    cachedVoices = window.speechSynthesis.getVoices();
+  }
+  if("speechSynthesis" in window){
+    loadVoices();
+    window.speechSynthesis.onvoiceschanged = loadVoices;
+  }
+  function pickBestVoice(){
+    if(!cachedVoices.length) return null;
+    var englishVoices = cachedVoices.filter(function(v){ return /^en/i.test(v.lang); });
+    var pool = englishVoices.length ? englishVoices : cachedVoices;
+    var preferredNamePattern = /(Natural|Neural|Enhanced|Premium|Google)/i;
+    var preferred = pool.filter(function(v){ return preferredNamePattern.test(v.name); });
+    if(preferred.length) return preferred[0];
+    var local = pool.filter(function(v){ return v.localService; });
+    return (local[0] || pool[0]);
+  }
+  function speakWithBrowserVoice(text){
+    if(!("speechSynthesis" in window)) return;
+    window.speechSynthesis.cancel();
+    var u = new SpeechSynthesisUtterance(text);
+    var voice = pickBestVoice();
+    if(voice) u.voice = voice;
+    u.rate = 1;
+    u.pitch = 1;
+    window.speechSynthesis.speak(u);
+  }
+
+  // ---------- Gemini text-to-speech (actual neural voice, not the browser's) ----------
+  // Preview model as of this writing; if Google renames/retires it, this is the one
+  // constant to change. TTS_VOICE is one of Gemini's prebuilt voice names.
+  var TTS_MODEL = "gemini-3.1-flash-tts-preview";
+  var TTS_VOICE = "Charon"; // fallback default; set per-persona in beginInterview
+
+  function extractInteractionAudio(data){
+    if(!data) return null;
+    if(Array.isArray(data.steps)){
+      for(var i = data.steps.length - 1; i >= 0; i--){
+        var step = data.steps[i];
+        if(step && step.type === "model_output" && Array.isArray(step.content)){
+          for(var j = 0; j < step.content.length; j++){
+            var item = step.content[j];
+            if(item && item.type === "audio" && item.data){
+              return { data: item.data, sampleRate: item.sample_rate || 24000, channels: item.channels || 1 };
+            }
+          }
+        }
+      }
+    }
+    // SDKs expose a convenience "output_audio" property; in case a REST revision
+    // starts returning it directly too, check it as a fallback.
+    if(data.output_audio && data.output_audio.data){
+      return { data: data.output_audio.data, sampleRate: data.output_audio.sample_rate || 24000, channels: data.output_audio.channels || 1 };
+    }
+    return null;
+  }
+
+  function synthesizeSpeech(text){
+    var body = {
+      model: TTS_MODEL,
+      input: text,
+      response_format: { type: "audio" },
+      generation_config: { speech_config: [{ voice: TTS_VOICE }] }
+    };
+    return fetch(INTERACTIONS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": state.apiKey },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      return res.text().then(function(rawText){
+        var data = null;
+        try{ data = rawText ? JSON.parse(rawText) : null; } catch(e){ data = null; }
+        if(!res.ok){
+          throw new Error(extractErrorMessage(data) || "TTS request failed (" + res.status + ")");
+        }
+        return data;
+      });
+    }).then(function(data){
+      var audio = extractInteractionAudio(data);
+      if(!audio) throw new Error("No audio returned.");
+      return audio;
+    });
+  }
+
+  function base64ToBytes(b64){
+    var bin = atob(b64);
+    var bytes = new Uint8Array(bin.length);
+    for(var i = 0; i < bin.length; i++){ bytes[i] = bin.charCodeAt(i); }
+    return bytes;
+  }
+
+  // Gemini TTS returns raw PCM, not a playable file; wrap it in a WAV header so the
+  // browser's <audio> element can play it.
+  function pcmToWavBlob(pcmBytes, sampleRate, channels, bitsPerSample){
+    var byteRate = sampleRate * channels * bitsPerSample / 8;
+    var blockAlign = channels * bitsPerSample / 8;
+    var buffer = new ArrayBuffer(44 + pcmBytes.length);
+    var view = new DataView(buffer);
+    function writeStr(offset, str){ for(var i = 0; i < str.length; i++){ view.setUint8(offset + i, str.charCodeAt(i)); } }
+    writeStr(0, "RIFF");
+    view.setUint32(4, 36 + pcmBytes.length, true);
+    writeStr(8, "WAVE");
+    writeStr(12, "fmt ");
+    view.setUint32(16, 16, true);
+    view.setUint16(20, 1, true);
+    view.setUint16(22, channels, true);
+    view.setUint32(24, sampleRate, true);
+    view.setUint32(28, byteRate, true);
+    view.setUint16(32, blockAlign, true);
+    view.setUint16(34, bitsPerSample, true);
+    writeStr(36, "data");
+    view.setUint32(40, pcmBytes.length, true);
+    new Uint8Array(buffer, 44).set(pcmBytes);
+    return new Blob([buffer], { type: "audio/wav" });
+  }
+
+  var lastAudioUrl = null;
+  function playPcmAudio(base64Data, sampleRate, channels){
+    var player = document.getElementById("ttsPlayer");
+    var blob = pcmToWavBlob(base64ToBytes(base64Data), sampleRate, channels, 16);
+    if(lastAudioUrl) URL.revokeObjectURL(lastAudioUrl);
+    lastAudioUrl = URL.createObjectURL(blob);
+    player.src = lastAudioUrl;
+    player.play().catch(function(){});
+  }
+
+  // ---------- Streaming playback (cuts the delay before speech starts) ----------
+  var audioCtx = null;
+  var nextPlayTime = 0;
+  var activeAudioSources = [];
+  function getAudioContext(){
+    if(!audioCtx){
+      var Ctx = window.AudioContext || window.webkitAudioContext;
+      if(!Ctx) return null;
+      audioCtx = new Ctx();
+    }
+    if(audioCtx.state === "suspended"){ audioCtx.resume(); }
+    return audioCtx;
+  }
+  function stopStreamingAudio(){
+    activeAudioSources.forEach(function(s){ try{ s.stop(); }catch(e){} });
+    activeAudioSources = [];
+  }
+  function schedulePcmChunk(base64Data, sampleRate, channels){
+    var ctx = getAudioContext();
+    if(!ctx) return;
+    var bytes = base64ToBytes(base64Data);
+    var sampleCount = Math.floor(bytes.length / 2);
+    if(sampleCount <= 0) return;
+    var buffer = ctx.createBuffer(channels || 1, sampleCount, sampleRate || 24000);
+    var channelData = buffer.getChannelData(0);
+    var dv = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+    for(var i = 0; i < sampleCount; i++){
+      channelData[i] = dv.getInt16(i * 2, true) / 32768;
+    }
+    var source = ctx.createBufferSource();
+    source.buffer = buffer;
+    source.connect(ctx.destination);
+    var startAt = Math.max(nextPlayTime, ctx.currentTime + 0.02);
+    source.start(startAt);
+    nextPlayTime = startAt + buffer.duration;
+    activeAudioSources.push(source);
+    source.onended = function(){
+      var idx = activeAudioSources.indexOf(source);
+      if(idx !== -1) activeAudioSources.splice(idx, 1);
+    };
+  }
+
+  // Reads the SSE stream and schedules each audio chunk as it arrives, rather than
+  // waiting for the whole response. Resolves true if at least one chunk played.
+  function streamSpeech(text){
+    var ctx = getAudioContext();
+    if(!ctx || !window.ReadableStream) return Promise.reject(new Error("streaming not supported"));
+    nextPlayTime = ctx.currentTime + 0.05;
+
+    var body = {
+      model: TTS_MODEL,
+      input: text,
+      response_format: { type: "audio" },
+      generation_config: { speech_config: [{ voice: TTS_VOICE }] },
+      stream: true
+    };
+    return fetch(INTERACTIONS_URL + "?alt=sse", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "x-goog-api-key": state.apiKey },
+      body: JSON.stringify(body)
+    }).then(function(res){
+      if(!res.ok || !res.body) throw new Error("TTS stream failed (" + res.status + ")");
+      var reader = res.body.getReader();
+      var decoder = new TextDecoder();
+      var buffered = "";
+      var gotAudio = false;
+
+      function handleEvent(rawEvent){
+        var line = rawEvent.split("\n").filter(function(l){ return l.indexOf("data:") === 0; })[0];
+        if(!line) return;
+        var jsonStr = line.slice(5).trim();
+        if(!jsonStr || jsonStr === "[DONE]") return;
+        var parsed;
+        try{ parsed = JSON.parse(jsonStr); } catch(e){ return; }
+        var delta = parsed && parsed.delta;
+        if(delta && delta.type === "audio" && delta.data){
+          gotAudio = true;
+          schedulePcmChunk(delta.data, delta.sample_rate || 24000, delta.channels || 1);
+        }
+      }
+      function pump(){
+        return reader.read().then(function(result){
+          if(result.done){ return gotAudio; }
+          buffered += decoder.decode(result.value, { stream: true });
+          var events = buffered.split("\n\n");
+          buffered = events.pop();
+          events.forEach(handleEvent);
+          return pump();
+        });
+      }
+      return pump();
+    }).then(function(gotAudio){
+      if(!gotAudio) throw new Error("No audio in stream.");
+      return true;
+    });
+  }
+
+  function speak(text){
+    if(!state.apiKey) return;
+    streamSpeech(text).catch(function(){
+      // fall back to a single non-streaming TTS call, then finally the browser voice
+      return synthesizeSpeech(text).then(function(audio){
+        playPcmAudio(audio.data, audio.sampleRate, audio.channels);
+      });
+    }).catch(function(){
+      speakWithBrowserVoice(text);
+    });
+  }
+
+  function beginInterview(){
+    personaName = personaNames[Math.floor(Math.random() * personaNames.length)];
+    personaRole = personaRoles[state.track];
+    TTS_VOICE = personaVoices[personaName] || TTS_VOICE;
+
+    document.getElementById("currentMessage").textContent = "";
+    state.lastInteractionId = null;
+    state.questionCount = 0;
+
+    setupMicOrFallback();
+    startTimer(state.duration * 60);
+    showScreen(3);
+    requestNextQuestion(true);
+  }
+
+  function startTimer(seconds){
+    state.timerRemaining = seconds;
+    updateTimerDisplay();
+    clearInterval(state.timerHandle);
+    state.timerHandle = setInterval(function(){
+      state.timerRemaining -= 1;
+      updateTimerDisplay();
+      if(state.timerRemaining <= 0){
+        clearInterval(state.timerHandle);
+        endInterview();
+      }
+    }, 1000);
+  }
+  function updateTimerDisplay(){
+    var m = Math.floor(state.timerRemaining / 60);
+    var s = state.timerRemaining % 60;
+    var el = document.getElementById("sessionTimer");
+    el.textContent = (m < 10 ? "0" : "") + m + ":" + (s < 10 ? "0" : "") + s;
+    el.classList.toggle("low", state.timerRemaining <= 60);
+  }
+
+  var lastAdvanceInput = null;
+  var lastAdvanceIsFirst = false;
+
+  function advanceInteraction(input, isFirst){
+    lastAdvanceInput = input;
+    lastAdvanceIsFirst = isFirst;
+    showMessage("…thinking…", true);
+    hideError();
+    callInteraction(input, buildSystemInstruction(), state.lastInteractionId).then(function(r){
+      state.lastInteractionId = r.id || state.lastInteractionId;
+      showMessage(r.text, false);
+      speak(r.text);
+      startActiveRecording();
+      state.questionCount += 1;
+      updateQCounter();
+      if(state.questionCount >= state.maxQuestions){
+        setTimeout(endInterview, 600);
+      }
+    }).catch(function(err){
+      showError(err.message);
+      showRetryMessage();
+    });
+  }
+
+  function showRetryMessage(){
+    var el = document.getElementById("currentMessage");
+    el.classList.remove("thinking");
+    el.innerHTML = "Something went wrong getting the next question. " +
+      '<button class="btn btn-ghost" id="retryQuestionBtn" type="button" style="margin-left:8px;">Try again</button>';
+    document.getElementById("retryQuestionBtn").addEventListener("click", function(){
+      advanceInteraction(lastAdvanceInput, lastAdvanceIsFirst);
+    });
+  }
+
+  function requestNextQuestion(isFirst){
+    advanceInteraction("Begin the interview with a brief introduction and your first question.", true);
+  }
+
+  function submitAnswer(answerText){
+    if(!answerText.trim()) return;
+    advanceInteraction(answerText, false);
+  }
+
+  document.getElementById("submitAnswerBtn").addEventListener("click", function(){
+    stopActiveRecording();
+    var box = document.getElementById("answerText");
+    submitAnswer(box.value);
+    box.value = "";
+  });
+
+  // ---------- Voice input (with text fallback) ----------
+  var stopActiveRecording = function(){}; // reassigned below when voice input is available
+
+  var startActiveRecording = function(){}; // reassigned below when voice input is available
+
+  function setupMicOrFallback(){
+    var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+    var answerBox = document.getElementById("answerBox");
+    var micToggleBtn = document.getElementById("micToggleBtn");
+    answerBox.style.display = "block";
+    stopActiveRecording = function(){};
+    startActiveRecording = function(){};
+
+    if(!SR){
+      micToggleBtn.style.display = "none";
+      return;
+    }
+    micToggleBtn.style.display = "block";
+    micToggleBtn.textContent = "Tap to speak";
+
+    // Ask for mic access once, explicitly, right here — rather than letting
+    // SpeechRecognition implicitly (and sometimes repeatedly) request it on
+    // every single start() call once per question.
+    if(navigator.mediaDevices && navigator.mediaDevices.getUserMedia){
+      navigator.mediaDevices.getUserMedia({ audio: true }).then(function(stream){
+        stream.getTracks().forEach(function(t){ t.stop(); });
+      }).catch(function(){ /* they'll still get the normal prompt when they try to speak */ });
+    }
+
+    var recognition = new SR();
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = "en-US";
+
+    var MAX_RECORD_MS = 10 * 60 * 1000; // let someone talk for up to 10 minutes, like a real answer
+    var SILENCE_STOP_MS = 2800; // auto-stop this long after the person last said something
+    var manualStop = false;
+    var recordingStartedAt = 0;
+    var finalTranscript = "";
+    var hasSpokenSomething = false;
+    var silenceTimer = null;
+
+    function clearSilenceTimer(){
+      if(silenceTimer){ clearTimeout(silenceTimer); silenceTimer = null; }
+    }
+    function armSilenceTimer(){
+      clearSilenceTimer();
+      if(!hasSpokenSomething) return; // don't cut someone off before they've said anything
+      silenceTimer = setTimeout(function(){
+        if(state.recognizing){
+          manualStop = true; // a deliberate stop, not a browser hiccup — don't auto-restart
+          recognition.stop();
+        }
+      }, SILENCE_STOP_MS);
+    }
+
+    function beginRecording(){
+      manualStop = false;
+      hasSpokenSomething = false;
+      clearSilenceTimer();
+      finalTranscript = "";
+      document.getElementById("answerText").value = "";
+      recordingStartedAt = Date.now();
+      try{ recognition.start(); } catch(e){}
+    }
+
+    recognition.onstart = function(){
+      state.recognizing = true;
+      micToggleBtn.classList.add("mic-toggle-recording");
+      micToggleBtn.textContent = "Listening… tap to stop";
+    };
+    recognition.onend = function(){
+      state.recognizing = false;
+      micToggleBtn.classList.remove("mic-toggle-recording");
+      clearSilenceTimer();
+      var withinTimeLimit = (Date.now() - recordingStartedAt) < MAX_RECORD_MS;
+      if(!manualStop && withinTimeLimit){
+        // The browser can end a recognition session on its own well before 10 minutes
+        // (e.g. after a pause); restart automatically unless the person or the silence
+        // timer deliberately stopped it.
+        try{ recognition.start(); } catch(e){ micToggleBtn.textContent = "Tap to speak"; }
+      } else {
+        micToggleBtn.textContent = manualStop ? "Tap to speak" : "Stopped after 10 minutes — tap to speak again";
+      }
+    };
+    recognition.onerror = function(e){
+      if(e.error === "no-speech" || e.error === "aborted"){
+        return; // benign; onend decides whether to restart
+      }
+      manualStop = true;
+      state.recognizing = false;
+      micToggleBtn.classList.remove("mic-toggle-recording");
+      micToggleBtn.textContent = "Couldn't hear that — type instead";
+    };
+    recognition.onresult = function(e){
+      var interim = "";
+      for(var i = e.resultIndex; i < e.results.length; i++){
+        var piece = e.results[i][0].transcript;
+        if(e.results[i].isFinal){
+          finalTranscript += piece + " ";
+        } else {
+          interim += piece;
+        }
+      }
+      document.getElementById("answerText").value = (finalTranscript + interim).trim();
+      if((finalTranscript + interim).trim()){
+        hasSpokenSomething = true;
+        armSilenceTimer();
+      }
+    };
+    micToggleBtn.addEventListener("click", function(){
+      if(state.recognizing){
+        manualStop = true;
+        clearSilenceTimer();
+        recognition.stop();
+      } else {
+        beginRecording();
+      }
+    });
+
+    stopActiveRecording = function(){
+      manualStop = true;
+      clearSilenceTimer();
+      if(state.recognizing){ recognition.stop(); }
+    };
+    startActiveRecording = function(){
+      if(!state.recognizing){ beginRecording(); }
+    };
+  }
+
+  document.getElementById("endInterviewBtn").addEventListener("click", endInterview);
+
+  function endInterview(){
+    clearInterval(state.timerHandle);
+    if("speechSynthesis" in window) window.speechSynthesis.cancel();
+    var player = document.getElementById("ttsPlayer");
+    if(player){ player.pause(); }
+    stopStreamingAudio();
+    showScreen(4);
+    generateFeedback();
+  }
+
+  // ---------- Screen 4: Feedback ----------
+  function generateFeedback(){
+    document.getElementById("feedbackTierWrap").innerHTML = '<div class="loading-line"><div class="spinner"></div> Reviewing your answers…</div>';
+    document.getElementById("feedbackSummary").textContent = "";
+    document.getElementById("qaBreakdown").innerHTML = "";
+    document.getElementById("reviewList").innerHTML = "";
+
+    var evaluatorInstruction = "You are now an interview coach reviewing the mock " + state.track +
+      " interview that just took place for a " + state.industry + " role. Base your evaluation only on what the candidate actually said.";
+
+    var prompt = "The interview is now over. Respond with ONLY valid JSON, no markdown fences, in this exact shape:\n" +
+      '{"overall":"Surface"|"Working"|"Strong","summary":"one or two sentence overall summary",' +
+      '"perQuestion":[{"question":"...","tier":"Surface"|"Working"|"Strong","note":"one sentence note"}],' +
+      '"toReview":["concept 1","concept 2"]}\n' +
+      "Base every tier on whether the candidate showed surface recognition, working knowledge, or strong understanding of each topic.";
+
+    hideError();
+    callInteraction(prompt, evaluatorInstruction, state.lastInteractionId).then(function(r){
+      var text = r.text;
+      var cleaned = text.replace(/^```json\s*/i, "").replace(/^```\s*/i, "").replace(/```\s*$/i, "").trim();
+      var data;
+      try{ data = JSON.parse(cleaned); } catch(e){ throw new Error("Couldn't parse the feedback. Raw response: " + text); }
+      renderFeedback(data);
+      saveHistoryEntry(data);
+    }).catch(function(err){
+      document.getElementById("feedbackTierWrap").innerHTML = "";
+      showError(err.message);
+    });
+  }
+
+  function tierClass(tier){
+    var t = (tier || "").toLowerCase();
+    if(t.indexOf("strong") !== -1) return "tier-strong";
+    if(t.indexOf("working") !== -1) return "tier-working";
+    return "tier-surface";
+  }
+
+  function renderFeedback(data){
+    var tierWrap = document.getElementById("feedbackTierWrap");
+    tierWrap.innerHTML = '<div class="tier-badge ' + tierClass(data.overall) + '">Overall: ' + escapeHtml(data.overall || "—") + " knowledge</div>";
+    document.getElementById("feedbackSummary").textContent = data.summary || "";
+
+    var qaWrap = document.getElementById("qaBreakdown");
+    qaWrap.innerHTML = "";
+    (data.perQuestion || []).forEach(function(item){
+      var card = document.createElement("div");
+      card.className = "qa-card";
+      card.innerHTML =
+        '<div class="qa-tier ' + tierClass(item.tier) + '">' + escapeHtml(item.tier || "") + '</div>' +
+        '<div class="q">' + escapeHtml(item.question || "") + '</div>' +
+        '<div class="note">' + escapeHtml(item.note || "") + '</div>';
+      qaWrap.appendChild(card);
+    });
+
+    var reviewList = document.getElementById("reviewList");
+    reviewList.innerHTML = "";
+    (data.toReview || []).forEach(function(concept){
+      var li = document.createElement("li");
+      li.textContent = concept;
+      reviewList.appendChild(li);
+    });
+  }
+
+  // ---------- Session history (kept in this browser only, like talkabout) ----------
+  var HISTORY_KEY = "prep_history";
+  var HISTORY_MAX = 50;
+
+  function loadHistory(){
+    try{
+      var raw = window.localStorage.getItem(HISTORY_KEY);
+      var list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch(e){ return []; }
+  }
+  function saveHistory(list){
+    try{ window.localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); } catch(e){}
+  }
+  function saveHistoryEntry(feedbackData){
+    var entry = {
+      id: Date.now() + "_" + Math.random().toString(36).slice(2, 8),
+      date: new Date().toISOString(),
+      track: state.track,
+      industry: state.industry,
+      level: state.track === "technical" ? state.level : null,
+      overall: feedbackData.overall,
+      summary: feedbackData.summary,
+      perQuestion: feedbackData.perQuestion,
+      toReview: feedbackData.toReview
+    };
+    var list = loadHistory();
+    list.unshift(entry);
+    if(list.length > HISTORY_MAX) list = list.slice(0, HISTORY_MAX);
+    saveHistory(list);
+    renderHistoryList();
+  }
+  function formatHistoryDate(iso){
+    try{
+      var d = new Date(iso);
+      return d.toLocaleDateString(undefined, { month: "short", day: "numeric" }) + " · " +
+        d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" });
+    } catch(e){ return ""; }
+  }
+  function renderHistoryList(){
+    var list = loadHistory();
+    var wrap = document.getElementById("historyList");
+    wrap.innerHTML = "";
+    if(!list.length){
+      wrap.innerHTML = '<div class="history-empty">No sessions yet. Your first practice interview will show up here.</div>';
+      return;
+    }
+    list.forEach(function(entry){
+      var btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = "history-item";
+      var roleLabel = (entry.track === "technical" ? "Technical" : "Business") + (entry.industry ? (" · " + entry.industry) : "");
+      btn.innerHTML =
+        '<div class="hi-date">' + escapeHtml(formatHistoryDate(entry.date)) + '</div>' +
+        '<div class="hi-role">' + escapeHtml(roleLabel) + '</div>' +
+        '<div class="qa-tier ' + tierClass(entry.overall) + '" style="margin-bottom:0;">' + escapeHtml(entry.overall || "") + '</div>';
+      btn.addEventListener("click", function(){
+        renderFeedback(entry);
+        showScreen(4);
+      });
+      wrap.appendChild(btn);
+    });
+  }
+
+  function openSidebar(){
+    document.getElementById("historySidebar").classList.remove("closed");
+  }
+  function closeSidebar(){
+    document.getElementById("historySidebar").classList.add("closed");
+  }
+  document.getElementById("historyToggleBtn").addEventListener("click", function(){
+    var sidebar = document.getElementById("historySidebar");
+    if(sidebar.classList.contains("closed")){
+      renderHistoryList();
+      openSidebar();
+    } else {
+      closeSidebar();
+    }
+  });
+  document.getElementById("closeSidebarBtn").addEventListener("click", closeSidebar);
+  document.getElementById("clearHistoryBtn").addEventListener("click", function(){
+    if(window.confirm("Clear all saved session history? This can't be undone.")){
+      saveHistory([]);
+      renderHistoryList();
+    }
+  });
+  renderHistoryList();
+
+  document.getElementById("restartBtn").addEventListener("click", function(){
+    showScreen(1);
+  });
+
+})();
+</script>
+</body>
+</html>

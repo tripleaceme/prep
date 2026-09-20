@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prep — Behind The Data Academy</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#0E1418;
+    --surface:#161F25;
+    --surface-2:#1D2830;
+    --line:#2A363F;
+    --text:#EDEEE7;
+    --text-muted:#93A1AA;
+    --technical:#49C6B6;
+    --technical-soft:#16302D;
+    --business:#E7A94C;
+    --business-soft:#332614;
+    --radius-s:6px;
+    --radius-m:12px;
+  }
+
+  *{box-sizing:border-box; margin:0; padding:0;}
+
+  html{scroll-behavior:smooth;}
+
+  body{
+    background:var(--ink);
+    color:var(--text);
+    font-family:'IBM Plex Sans', sans-serif;
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+  }
+
+  h1,h2,h3{
+    font-family:'Fraunces', serif;
+    font-weight:500;
+    letter-spacing:-0.01em;
+  }
+
+  a{color:inherit;}
+
+  :focus-visible{
+    outline:2px solid var(--technical);
+    outline-offset:3px;
+  }
+
+  .wrap{
+    max-width:1180px;
+    margin:0 auto;
+    padding:0 32px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    background:var(--ink);
+    border-bottom:1px solid var(--line);
+    padding:24px 0;
+  }
+  .nav{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+  }
+  .brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    font-family:'Fraunces', serif;
+    font-size:19px;
+  }
+  .logo-icon{
+    width:26px;
+    height:26px;
+    flex-shrink:0;
+  }
+  .nav-links{
+    display:flex;
+    align-items:center;
+    gap:32px;
+    font-size:14.5px;
+  }
+  .nav-links a{
+    color:var(--text-muted);
+    text-decoration:none;
+    transition:color .15s ease;
+  }
+  .nav-links a:hover{color:var(--text);}
+
+  .btn{
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+    border-radius:var(--radius-s);
+    padding:12px 20px;
+    font-size:14.5px;
+    font-weight:600;
+    line-height:1;
+    text-decoration:none;
+    border:1px solid transparent;
+    cursor:pointer;
+    transition:transform .15s ease, background .15s ease, border-color .15s ease;
+  }
+  .btn:hover{transform:translateY(-1px);}
+  .btn-primary{
+    background:var(--technical);
+    color:#08201C;
+  }
+  .btn-primary:hover{background:#5ED4C5;}
+  .btn-ghost{
+    border-color:var(--line);
+    color:var(--text);
+    background:transparent;
+  }
+  .btn-ghost:hover{border-color:var(--technical);}
+
+  /* ---------- Hero ---------- */
+  .hero{
+    padding-top:96px;
+    padding-bottom:80px;
+    display:grid;
+    grid-template-columns:1.1fr 0.9fr;
+    gap:64px;
+    align-items:center;
+  }
+  .eyebrow{
+    color:var(--technical);
+    font-size:14.5px;
+    font-weight:600;
+    margin-bottom:22px;
+  }
+  .hero .eyebrow{
+    margin-top:24px;
+  }
+  .hero h1{
+    font-size:clamp(34px, 4.4vw, 54px);
+    line-height:1.08;
+    max-width:15ch;
+  }
+  .hero p.lede{
+    margin-top:24px;
+    font-size:18px;
+    color:var(--text-muted);
+    max-width:48ch;
+  }
+  .hero-actions{
+    margin-top:34px;
+    display:flex;
+    gap:16px;
+    flex-wrap:wrap;
+  }
+  .hero-note{
+    margin-top:20px;
+    font-size:13.5px;
+    color:var(--text-muted);
+  }
+
+  /* hero walkthrough */
+  .hero-walk{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    padding:26px;
+    margin-bottom:24px;
+    animation:rise .6s ease both;
+  }
+  @keyframes rise{
+    from{opacity:0; transform:translateY(14px);}
+    to{opacity:1; transform:translateY(0);}
+  }
+
+  .walk-tabs{
+    display:flex;
+    gap:8px;
+    margin-bottom:20px;
+  }
+  .walk-tab{
+    font-family:'Fraunces', serif;
+    font-size:14px;
+    width:36px; height:36px;
+    border-radius:50%;
+    border:1px solid var(--line);
+    background:var(--surface-2);
+    color:var(--text-muted);
+    cursor:pointer;
+    transition:background .2s ease, color .2s ease, border-color .2s ease;
+  }
+  .walk-tab.active{
+    background:var(--technical);
+    color:#08201C;
+    border-color:var(--technical);
+  }
+
+  .mic-row{
+    display:flex;
+    align-items:center;
+    gap:14px;
+    padding:16px;
+    background:var(--surface-2);
+    border-radius:var(--radius-s);
+    margin-bottom:16px;
+  }
+  .mic-dot{
+    width:38px; height:38px;
+    border-radius:50%;
+    background:var(--technical);
+    display:flex; align-items:center; justify-content:center;
+    flex-shrink:0;
+  }
+  .mic-dot svg{width:16px; height:16px;}
+  .bars{ display:flex; align-items:center; gap:3px; height:22px; }
+  .bars span{
+    width:3px; background:var(--technical); border-radius:2px;
+    animation:bar 1.1s ease-in-out infinite;
+  }
+  .bars span:nth-child(1){height:40%; animation-delay:.0s;}
+  .bars span:nth-child(2){height:80%; animation-delay:.1s;}
+  .bars span:nth-child(3){height:55%; animation-delay:.2s;}
+  .bars span:nth-child(4){height:95%; animation-delay:.3s;}
+  .bars span:nth-child(5){height:35%; animation-delay:.4s;}
+  .bars span:nth-child(6){height:70%; animation-delay:.5s;}
+  .bars span:nth-child(7){height:50%; animation-delay:.6s;}
+  @keyframes bar{
+    0%,100%{transform:scaleY(0.4);}
+    50%{transform:scaleY(1);}
+  }
+
+  .transcript-line{
+    font-size:14px;
+    color:var(--text-muted);
+    padding:12px 0;
+    border-top:1px solid var(--line);
+  }
+  .transcript-line b{ color:var(--text); font-weight:500; }
+
+  .rank-row{
+    margin-top:18px;
+    display:flex;
+    gap:8px;
+  }
+  .rank-pill{
+    flex:1;
+    text-align:center;
+    font-size:12px;
+    padding:9px 4px;
+    border-radius:var(--radius-s);
+    background:var(--surface-2);
+    color:var(--text-muted);
+    border:1px solid var(--line);
+  }
+  .rank-pill.active{
+    background:var(--technical-soft);
+    color:var(--technical);
+    border-color:var(--technical);
+  }
+
+  .walk-caption{ margin-top:20px; }
+  .walk-caption h3{ font-size:17px; margin-bottom:6px; font-family:'IBM Plex Sans', sans-serif; font-weight:600; }
+  .walk-caption p{ font-size:14px; color:var(--text-muted); }
+
+  @media (prefers-reduced-motion: reduce){
+    .hero-walk{animation:none;}
+    .bars span{animation:none; transform:none;}
+  }
+
+  /* ---------- Section shell ---------- */
+  .section{ padding:88px 0; border-top:1px solid var(--line); }
+  .section-head{ margin-bottom:52px; }
+  .section-head .eyebrow{ margin-bottom:16px; }
+  .section-head h2{ font-size:clamp(24px, 2.7vw, 36px); }
+  .section-head p{ margin-top:16px; color:var(--text-muted); font-size:16.5px; }
+
+  /* ---------- Reusable card grid (Why Prep / Outcomes / Levels) ---------- */
+  .why-intro{
+    color:var(--text-muted);
+    font-size:16.5px;
+    margin-bottom:40px;
+  }
+  .card-grid{ display:grid; gap:20px; }
+  .card-grid.cols-3{ grid-template-columns:repeat(3, 1fr); }
+  .card-grid.cols-4{ grid-template-columns:repeat(4, 1fr); }
+  .info-card{
+    padding:28px;
+    border:1px solid var(--line);
+    border-radius:var(--radius-m);
+    background:var(--surface);
+  }
+  .info-card .badge{
+    font-family:'Fraunces', serif;
+    font-size:14px;
+    color:var(--technical);
+    margin-bottom:14px;
+  }
+  .info-card h3{ font-size:17px; margin-bottom:8px; font-family:'IBM Plex Sans', sans-serif; font-weight:600; }
+  .info-card p{ font-size:14.5px; color:var(--text-muted); }
+
+  /* ---------- Two tracks ---------- */
+  .tracks{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:24px;
+  }
+  .track-card{
+    padding:36px;
+    border-radius:var(--radius-m);
+    border:1px solid var(--line);
+    background:var(--surface);
+  }
+  .track-card .tag{
+    display:inline-block;
+    font-size:13px;
+    font-weight:600;
+    padding:5px 12px;
+    border-radius:999px;
+    margin-bottom:22px;
+  }
+  .track-card.business .tag{ background:var(--business-soft); color:var(--business); }
+  .track-card.technical .tag{ background:var(--technical-soft); color:var(--technical); }
+  .track-card h3{ font-size:23px; margin-bottom:14px; }
+  .track-card p{ color:var(--text-muted); font-size:15.5px; margin-bottom:22px; }
+  .track-card ul{ list-style:none; }
+  .track-card li{
+    font-size:14.5px;
+    color:var(--text);
+    padding:10px 0;
+    border-top:1px solid var(--line);
+    display:flex;
+    gap:10px;
+  }
+  .track-card li:first-child{ border-top:none; }
+  .track-card.business li::before{ content:"—"; color:var(--business); }
+  .track-card.technical li::before{ content:"—"; color:var(--technical); }
+
+  /* ---------- Privacy trust list ---------- */
+  .trust-list{
+    list-style:none;
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:2px 32px;
+    margin-top:28px;
+  }
+  .trust-list li{
+    font-size:14.5px;
+    padding:11px 0;
+    border-top:1px solid var(--line);
+    display:flex;
+    gap:10px;
+  }
+  .trust-list li::before{ content:"✓"; color:var(--technical); font-weight:700; }
+
+  /* ---------- Open source ---------- */
+  .oss-actions{ margin-top:28px; display:flex; gap:16px; flex-wrap:wrap; }
+  .oss-note{ margin-top:20px; font-size:13.5px; color:var(--text-muted); }
+
+  /* ---------- How to get started (numbered steps) ---------- */
+  .steps{
+    display:grid;
+    grid-template-columns:repeat(4, 1fr);
+    gap:28px;
+  }
+  .step{ padding-top:20px; border-top:2px solid var(--line); }
+  .step .num{
+    font-family:'Fraunces', serif;
+    font-size:15px;
+    color:var(--technical);
+    margin-bottom:14px;
+  }
+  .step h3{ font-size:18px; margin-bottom:10px; font-family:'IBM Plex Sans', sans-serif; font-weight:600; }
+  .step p{ font-size:14.5px; color:var(--text-muted); }
+  .steps-actions{ margin-top:44px; display:flex; align-items:center; gap:18px; flex-wrap:wrap; }
+  .steps-note{ font-size:13.5px; color:var(--text-muted); }
+
+  /* ---------- Hero walkthrough preview + mock elements ---------- */
+  .walk-preview{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-s);
+    padding:24px;
+    min-height:190px;
+  }
+  .walk-frame{ animation:rise .35s ease both; }
+  .walk-preview .mock-box,
+  .walk-preview .mock-btn,
+  .walk-preview .mock-track,
+  .walk-preview .mock-tag,
+  .walk-preview .mic-row{ background:var(--surface); }
+
+  .mock-label{ font-size:12.5px; color:var(--text-muted); margin-bottom:10px; }
+  .mock-box{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    border-radius:var(--radius-s);
+    padding:16px;
+  }
+  .mock-line{ height:9px; border-radius:3px; background:var(--line); margin:9px 0; }
+  .mock-line.w90{ width:90%; }
+  .mock-line.w70{ width:70%; }
+  .mock-line.w80{ width:80%; }
+  .mock-line.caret{ position:relative; background:linear-gradient(90deg, var(--line) 0%, var(--line) calc(100% - 2px), var(--technical) calc(100% - 2px)); }
+  .mock-btn-row{ display:flex; gap:10px; margin-top:18px; }
+  .mock-btn{
+    font-size:12.5px; font-weight:600; padding:8px 14px; border-radius:var(--radius-s);
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text-muted);
+  }
+  .mock-btn.primary{ background:var(--technical-soft); color:var(--technical); border-color:var(--technical); }
+
+  .mock-track-row{ display:flex; gap:10px; margin-bottom:22px; }
+  .mock-track{
+    font-size:13.5px; font-weight:600; padding:9px 16px; border-radius:999px;
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text-muted);
+  }
+  .mock-track.selected{ background:var(--technical-soft); color:var(--technical); border-color:var(--technical); }
+  .mock-tags{ display:flex; flex-wrap:wrap; gap:8px; }
+  .mock-tag{
+    font-size:12.5px; padding:7px 12px; border-radius:var(--radius-s);
+    background:var(--surface-2); border:1px solid var(--line); color:var(--text);
+  }
+
+  .mock-review-label{ font-size:12.5px; color:var(--text-muted); margin:18px 0 10px; }
+  .mock-review-line{
+    font-size:14px; padding:10px 0; border-top:1px solid var(--line);
+  }
+  .mock-review-line:last-child{ border-bottom:1px solid var(--line); }
+
+  .stagger{ animation:rise .35s ease both; animation-delay:calc(var(--d, 0) * 90ms); }
+
+  @media (prefers-reduced-motion: reduce){
+    .walk-frame, .stagger{ animation:none; }
+  }
+
+  /* ---------- FAQ ---------- */
+  .faq-list{ }
+  .faq-item{
+    border-top:1px solid var(--line);
+    padding:20px 0;
+  }
+  .faq-item:last-child{ border-bottom:1px solid var(--line); }
+  .faq-item summary{
+    cursor:pointer;
+    font-size:16.5px;
+    font-weight:600;
+    list-style:none;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    gap:16px;
+  }
+  .faq-item summary::-webkit-details-marker{ display:none; }
+  .faq-item summary::after{
+    content:"+";
+    font-family:'Fraunces', serif;
+    font-size:20px;
+    color:var(--technical);
+    flex-shrink:0;
+    transition:transform .2s ease;
+  }
+  .faq-item[open] summary::after{ content:"–"; }
+  .faq-item p{
+    margin-top:14px;
+    font-size:15px;
+    color:var(--text-muted);
+  }
+  .faq-item p + p{ margin-top:10px; }
+  .faq-link{
+    color:var(--technical);
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+
+  /* ---------- Final CTA ---------- */
+  .final-cta{
+    text-align:center;
+    padding-top:96px;
+    padding-bottom:140px;
+  }
+  .final-cta h2{ font-size:clamp(28px, 3.6vw, 42px); max-width:24ch; margin:0 auto 18px; }
+  .final-cta p{ color:var(--text-muted); font-size:17px; max-width:46ch; margin:0 auto 32px; }
+  .final-cta .hero-actions{ justify-content:center; margin-top:0; }
+  .final-cta .final-note{ margin-top:18px; font-size:13.5px; color:var(--text-muted); }
+
+  /* ---------- Scroll to top ---------- */
+  .to-top{
+    position:fixed;
+    right:24px;
+    bottom:24px;
+    width:44px;
+    height:44px;
+    border-radius:50%;
+    background:var(--surface);
+    border:1px solid var(--line);
+    color:var(--technical);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    opacity:0;
+    transform:translateY(8px);
+    pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease, border-color .2s ease, background .2s ease;
+    z-index:30;
+  }
+  .to-top svg{ width:18px; height:18px; }
+  .to-top.visible{
+    opacity:1;
+    transform:translateY(0);
+    pointer-events:auto;
+  }
+  .to-top:hover{ border-color:var(--technical); background:var(--surface-2); }
+
+  @media (prefers-reduced-motion: reduce){
+    .to-top{ transition:opacity .1s linear; }
+  }
+  @media (max-width: 520px){
+    .to-top{ right:16px; bottom:16px; width:40px; height:40px; }
+  }
+
+  /* ---------- Footer ---------- */
+  footer{
+    border-top:1px solid var(--line);
+    padding:40px 0;
+  }
+  .foot-row{
+    display:flex;
+    justify-content:space-between;
+    align-items:flex-start;
+    flex-wrap:wrap;
+    gap:16px;
+    font-size:13.5px;
+    color:var(--text-muted);
+  }
+  .foot-brand{
+    display:flex;
+    align-items:center;
+    gap:8px;
+  }
+  .foot-brand a{ color:var(--text-muted); text-decoration:none; }
+  .foot-brand a:hover{ color:var(--text); }
+  .foot-tagline{ margin-top:8px; font-size:13px; color:var(--text-muted); }
+  .foot-links{ display:flex; gap:24px; padding-top:2px; }
+  .foot-links a{ text-decoration:none; color:var(--text-muted); }
+  .foot-links a:hover{ color:var(--text); }
+
+  @media (max-width: 860px){
+    .hero{ grid-template-columns:1fr; padding-top:64px; padding-bottom:56px; }
+    .tracks{ grid-template-columns:1fr; }
+    .card-grid.cols-3, .card-grid.cols-4{ grid-template-columns:1fr 1fr; }
+    .steps{ grid-template-columns:1fr 1fr; }
+    .trust-list{ grid-template-columns:1fr 1fr; }
+    .final-cta{ padding-top:64px; padding-bottom:72px; }
+    .nav-links{ display:none; }
+    .wrap{ padding:0 20px; }
+  }
+  @media (max-width: 520px){
+    .walk-preview{ padding:18px; }
+    .card-grid.cols-3, .card-grid.cols-4{ grid-template-columns:1fr; }
+    .steps{ grid-template-columns:1fr; }
+    .trust-list{ grid-template-columns:1fr; }
+    .final-cta{ padding-top:56px; padding-bottom:64px; }
+  }
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="logoGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#49C6B6"/>
+      <stop offset="1" stop-color="#E7A94C"/>
+    </linearGradient>
+    <symbol id="logoMark" viewBox="0 0 32 32">
+      <rect width="32" height="32" rx="9" fill="url(#logoGrad)"/>
+      <rect x="8" y="17" width="3.4" height="8" rx="1.7" fill="#0E1418"/>
+      <rect x="14.3" y="11" width="3.4" height="14" rx="1.7" fill="#0E1418"/>
+      <rect x="20.6" y="7" width="3.4" height="18" rx="1.7" fill="#0E1418"/>
+    </symbol>
+  </defs>
+</svg>
+
+<header>
+  <div class="wrap nav">
+    <div class="brand">
+      <svg class="logo-icon" aria-hidden="true"><use href="#logoMark"/></svg> Prep
+    </div>
+    <nav class="nav-links">
+      <a href="#hero">How it works</a>
+      <a href="#tracks">Tracks</a>
+      <a href="#why">Why Prep</a>
+      <a href="#oss">Open source</a>
+      <a href="#faq">FAQ</a>
+    </nav>
+    <a href="#start" class="btn btn-primary">Start a Mock Interview</a>
+  </div>
+</header>
+
+<section class="hero wrap" id="hero">
+  <div>
+    <div class="eyebrow">Free · Open source · English, French, German</div>
+    <h1>Practice the interview before it costs you the offer.</h1>
+    <p class="lede">A realistic voice interview simulator for data and analytics roles. Paste the job description, answer questions out loud, and find out what you actually know before the interviewer does.</p>
+    <div class="hero-actions">
+      <a href="#start" class="btn btn-primary">Start a Mock Interview</a>
+    </div>
+    <div class="hero-note">No subscription. No account required. Bring your own Gemini API key.</div>
+  </div>
+
+  <div class="hero-walk">
+    <div class="walk-tabs" role="tablist" aria-label="How Prep works">
+      <button class="walk-tab active" data-step="0" role="tab" aria-selected="true"
+        data-title="Choose the job" data-desc="Paste the real job description you're applying for, or create a practice role from a title, company and industry.">01</button>
+      <button class="walk-tab" data-step="1" role="tab" aria-selected="false"
+        data-title="Configure the interview" data-desc="Choose business or technical, set the interview level, select the industry and pick the tools relevant to the role.">02</button>
+      <button class="walk-tab" data-step="2" role="tab" aria-selected="false"
+        data-title="Answer out loud" data-desc="Talk through the questions just like you would in an interview. Prep listens to your answers and evaluates how you explain and apply what you know.">03</button>
+      <button class="walk-tab" data-step="3" role="tab" aria-selected="false"
+        data-title="Find your gaps" data-desc="See where your knowledge is strong, where your explanations need work, and which concepts you should review before the real interview.">04</button>
+    </div>
+
+    <div class="walk-preview">
+      <!-- Frame 1: Choose the job -->
+      <div class="walk-frame" data-frame="0">
+        <div class="mock-label">Job description</div>
+        <div class="mock-box">
+          <div class="mock-line w90"></div>
+          <div class="mock-line w70"></div>
+          <div class="mock-line w80 caret"></div>
+        </div>
+        <div class="mock-btn-row">
+          <span class="mock-btn primary">Simulate</span>
+          <span class="mock-btn">Paste your own</span>
+        </div>
+      </div>
+
+      <!-- Frame 2: Configure the interview -->
+      <div class="walk-frame" data-frame="1" hidden>
+        <div class="mock-track-row">
+          <span class="mock-track">Business</span>
+          <span class="mock-track selected">Technical</span>
+        </div>
+        <div class="mock-tags">
+          <span class="mock-tag stagger" style="--d:0">Industry: Fintech</span>
+          <span class="mock-tag stagger" style="--d:1">Level: L1</span>
+          <span class="mock-tag stagger" style="--d:2">dbt</span>
+          <span class="mock-tag stagger" style="--d:3">Snowflake</span>
+          <span class="mock-tag stagger" style="--d:4">Airflow</span>
+        </div>
+      </div>
+
+      <!-- Frame 3: Answer out loud -->
+      <div class="walk-frame" data-frame="2" hidden>
+        <div class="mic-row">
+          <div class="mic-dot">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M12 15a3 3 0 003-3V6a3 3 0 10-6 0v6a3 3 0 003 3z" fill="#08201C"/><path d="M19 11a7 7 0 01-14 0M12 18v3" stroke="#08201C" stroke-width="1.6" stroke-linecap="round"/></svg>
+          </div>
+          <div class="bars"><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="transcript-line"><b>Interviewer:</b> How would you handle a late-arriving fact in an incremental model?</div>
+        <div class="transcript-line stagger" style="--d:1"><b>You:</b> I'd add a lookback window on the incremental filter and…</div>
+      </div>
+
+      <!-- Frame 4: Find your gaps -->
+      <div class="walk-frame" data-frame="3" hidden>
+        <div class="rank-row">
+          <div class="rank-pill">Surface</div>
+          <div class="rank-pill active">Working</div>
+          <div class="rank-pill">Strong</div>
+        </div>
+        <div class="mock-review-label">To review</div>
+        <div class="mock-review-line stagger" style="--d:0">Incremental strategies for late-arriving data</div>
+        <div class="mock-review-line stagger" style="--d:1">Trade-offs between merge and insert-overwrite</div>
+      </div>
+    </div>
+
+    <div class="walk-caption">
+      <h3 id="walkTitle">Choose the job</h3>
+      <p id="walkDesc">Paste the real job description you're applying for, or create a practice role from a title, company and industry.</p>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="why">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Why Prep</div>
+      <h2>Generic interview questions aren't enough.</h2>
+    </div>
+    <p class="why-intro">You can ask an AI to interview you. But a generic conversation doesn't know what the role you're applying for actually demands. Prep starts with the job. It uses the role, industry, interview stage and technical stack to create a practice session around the kind of knowledge and reasoning you are likely to need.</p>
+    <div class="card-grid cols-3">
+      <div class="info-card">
+        <h3>Built around the job</h3>
+        <p>Paste the job description and practice against the responsibilities, tools and expectations of the role you're targeting.</p>
+      </div>
+      <div class="info-card">
+        <h3>Practice out loud</h3>
+        <p>Knowing an answer and being able to explain it clearly under pressure are two different skills. Prep gives you a chance to practice the second one.</p>
+      </div>
+      <div class="info-card">
+        <h3>Find specific gaps</h3>
+        <p>Instead of leaving with a vague score, see the concepts you struggled to explain and the areas worth reviewing.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="tracks">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Choose your interview</div>
+      <h2>Practice what the interviewer will actually test.</h2>
+      <p>Different data roles test different things. Some interviews focus on business judgment and problem-solving. Others go deep into your technical knowledge. Prep lets you practice both.</p>
+    </div>
+    <div class="tracks">
+      <div class="track-card business">
+        <span class="tag">Business track</span>
+        <h3>Prove you understand the business, not just the tool.</h3>
+        <p>Choose an industry such as fintech, FMCG or e-commerce and practice questions that test how you apply data to real business decisions.</p>
+        <ul>
+          <li>Industry shapes the questions</li>
+          <li>Adjustable interview difficulty</li>
+          <li>Scored on reasoning and decision-making</li>
+        </ul>
+      </div>
+      <div class="track-card technical">
+        <span class="tag">Technical track</span>
+        <h3>Get drilled on the stack the role uses.</h3>
+        <p>Choose the interview stage, industry and technical tools in the role. Practice questions around the technologies and concepts you'll be expected to work with.</p>
+        <ul>
+          <li>Recruiter screen, technical or advanced technical interview</li>
+          <li>Choose the tools you'll be asked about</li>
+          <li>Industry context shapes how the tools are applied</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="outcomes">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">After the interview</div>
+      <h2>Don't just get a score. Know what to work on.</h2>
+      <p>A useful practice session should leave you with a clearer idea of what you know, what you don't, and what to do next.</p>
+    </div>
+    <div class="card-grid cols-4">
+      <div class="info-card">
+        <h3>Knowledge gaps</h3>
+        <p>Identify concepts you recognize but can't yet explain confidently.</p>
+      </div>
+      <div class="info-card">
+        <h3>Reasoning feedback</h3>
+        <p>See how well you apply concepts, explain trade-offs and work through unfamiliar situations.</p>
+      </div>
+      <div class="info-card">
+        <h3>Targeted review</h3>
+        <p>Get specific concepts and topics to revisit instead of a generic list of things to study.</p>
+      </div>
+      <div class="info-card">
+        <h3>Another attempt</h3>
+        <p>Practice again after you've closed the gaps and see whether your answers have improved.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="levels">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Know your level</div>
+      <h2>Recognition isn't the same as understanding.</h2>
+      <p>Prep looks beyond whether you've heard of a concept. The goal is to understand how confidently you can explain it and apply it in an interview.</p>
+    </div>
+    <div class="card-grid cols-3">
+      <div class="info-card">
+        <div class="badge">Level 01</div>
+        <h3>Surface knowledge</h3>
+        <p>You recognize the concept, but struggle to explain how or when it is used.</p>
+      </div>
+      <div class="info-card">
+        <div class="badge">Level 02</div>
+        <h3>Working knowledge</h3>
+        <p>You can explain the concept and apply it to a familiar situation.</p>
+      </div>
+      <div class="info-card">
+        <div class="badge">Level 03</div>
+        <h3>Strong understanding</h3>
+        <p>You can explain trade-offs, reason through unfamiliar situations and apply the concept in context.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="privacy">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Private by design</div>
+      <h2>Your interview preparation should stay yours.</h2>
+      <p>Job descriptions, CVs and interview practice can contain information you don't want sitting in another database. Prep is designed to keep your session data in your browser rather than storing it on a Prep server. You control your Gemini API key, and there is no Prep account or subscription required.</p>
+    </div>
+    <ul class="trust-list">
+      <li>Your job descriptions stay in your browser</li>
+      <li>Your CV stays in your browser</li>
+      <li>Your previous sessions stay in your browser</li>
+      <li>No Prep account required</li>
+    </ul>
+  </div>
+</section>
+
+<section class="section" id="oss">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Built in the open</div>
+      <h2>Free to use. Open source. Built for the data community.</h2>
+      <p>Prep is open source because tools for learning and career development shouldn't have to be black boxes. You can inspect the code, suggest improvements, contribute features or help bring Prep to more languages.</p>
+      <div class="oss-actions">
+        <a href="#" class="btn btn-primary">View on GitHub</a>
+        <a href="#" class="btn btn-ghost">Contribute a translation</a>
+      </div>
+      <div class="oss-note">Currently available in English, French and German. More languages can come from the community.</div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="get-started">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">Start in minutes</div>
+      <h2>Your next interview doesn't have to be your first practice run.</h2>
+    </div>
+    <div class="steps">
+      <div class="step">
+        <div class="num">01</div>
+        <h3>Get a Gemini API key</h3>
+        <p>Use Google's Gemini API free tier. You control your own API usage.</p>
+      </div>
+      <div class="step">
+        <div class="num">02</div>
+        <h3>Bring the job</h3>
+        <p>Paste the job description you're preparing for, or create a simulated role.</p>
+      </div>
+      <div class="step">
+        <div class="num">03</div>
+        <h3>Start talking</h3>
+        <p>Choose your track and answer the interview out loud.</p>
+      </div>
+      <div class="step">
+        <div class="num">04</div>
+        <h3>Review your gaps</h3>
+        <p>See what you know, what needs work and what to review next.</p>
+      </div>
+    </div>
+    <div class="steps-actions">
+      <a href="#start" class="btn btn-primary">Start a Mock Interview</a>
+      <span class="steps-note">No subscription. No account required.</span>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="eyebrow">FAQ</div>
+      <h2>Good to know before you start.</h2>
+    </div>
+    <div class="faq-list">
+      <details class="faq-item" open>
+        <summary>Is Prep free?</summary>
+        <p>Yes. Prep itself is free. You bring your own Gemini API key, and Google's free tier is enough for practice. No account is needed.</p>
+        <p>Get a free key at <a href="https://aistudio.google.com/apikey" class="faq-link">aistudio.google.com/apikey</a>.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I use my own job description?</summary>
+        <p>Yes. That's one of the main reasons Prep exists. Paste the job description for the role you're preparing for and Prep uses it to shape the interview around the position.</p>
+        <p>You can also create a simulated role using a title, company and industry.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is Prep only for Analytics Engineers?</summary>
+        <p>Prep is designed for data and analytics roles, including analytics engineering, data engineering, analytics and business intelligence. The available tools and interview configuration can be adapted to the role you're preparing for.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What's the difference between the Business and Technical tracks?</summary>
+        <p>The Business track focuses on industry context, business judgment and how you apply data to business problems. The Technical track focuses on the technical knowledge and tools required for the role.</p>
+        <p>Both tracks use industry context because the way data is used in fintech, FMCG and e-commerce can be very different.</p>
+      </details>
+      <details class="faq-item">
+        <summary>What interview levels can I practice?</summary>
+        <p>You can practice different stages of the interview process, from an initial recruiter screen to technical and more advanced technical interviews.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Is my CV or job description stored?</summary>
+        <p>Prep is designed so that your CV, job descriptions and previous sessions stay in your browser rather than being stored on a Prep server.</p>
+        <p>However, information used to generate an interview is sent to the AI provider you configure. Check the provider's current terms and privacy policy before using sensitive information.</p>
+      </details>
+      <details class="faq-item">
+        <summary>Can I contribute?</summary>
+        <p>Yes. Prep is open source. You can contribute code, suggest improvements or help add translations for languages that aren't supported yet.</p>
+      </details>
+    </div>
+  </div>
+</section>
+
+<section class="final-cta wrap">
+  <h2>Know what you can explain before the interviewer asks.</h2>
+  <p>Paste the job. Pick the track. Start talking. Then use the feedback to close your gaps before the real interview.</p>
+  <div class="hero-actions">
+    <a href="#start" class="btn btn-primary">Start a Mock Interview</a>
+  </div>
+  <div class="final-note">Free · Open source · No account required</div>
+</section>
+
+<footer>
+  <div class="wrap foot-row">
+    <div>
+      <div class="foot-brand">
+        <svg class="logo-icon" aria-hidden="true"><use href="#logoMark"/></svg>
+        Prep by <a href="https://behindthedata.tech">Behind The Data Academy</a>
+      </div>
+      <div class="foot-tagline">Interview practice for data and analytics roles.</div>
+    </div>
+    <div class="foot-links">
+      <a href="https://github.com/behind-the-data-academy">GitHub</a>
+      <a href="https://linkedin.com/company/behind-the-data-academy">LinkedIn</a>
+      <a href="https://instagram.com/behindthedataacademy">Instagram</a>
+      <a href="https://twitter.com/behindthedata">Twitter</a>
+    </div>
+  </div>
+</footer>
+
+<button id="toTop" class="to-top" aria-label="Scroll to top" type="button">
+  <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+</button>
+
+<script>
+(function(){
+  var tabs = Array.prototype.slice.call(document.querySelectorAll('.walk-tab'));
+  var frames = Array.prototype.slice.call(document.querySelectorAll('.walk-frame'));
+  var titleEl = document.getElementById('walkTitle');
+  var descEl = document.getElementById('walkDesc');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var current = 0;
+  var timer = null;
+
+  function restartAnimations(frame){
+    var animated = frame.querySelectorAll('.stagger, .bars span');
+    frame.style.animation = 'none';
+    void frame.offsetWidth;
+    frame.style.animation = '';
+    animated.forEach(function(el){
+      el.style.animation = 'none';
+      void el.offsetWidth;
+      el.style.animation = '';
+    });
+  }
+
+  function show(index){
+    current = index;
+    tabs.forEach(function(tab, i){
+      var active = i === index;
+      tab.classList.toggle('active', active);
+      tab.setAttribute('aria-selected', active ? 'true' : 'false');
+      if(active){
+        titleEl.textContent = tab.getAttribute('data-title');
+        descEl.textContent = tab.getAttribute('data-desc');
+      }
+    });
+    frames.forEach(function(frame, i){
+      var active = i === index;
+      frame.hidden = !active;
+      if(active && !reduceMotion){ restartAnimations(frame); }
+    });
+  }
+
+  function next(){ show((current + 1) % tabs.length); }
+
+  function startAuto(){
+    if(reduceMotion) return;
+    timer = setInterval(next, 4200);
+  }
+  function stopAuto(){
+    if(timer){ clearInterval(timer); timer = null; }
+  }
+
+  tabs.forEach(function(tab, i){
+    tab.addEventListener('click', function(){ stopAuto(); show(i); startAuto(); });
+  });
+
+  show(0);
+  startAuto();
+})();
+
+(function(){
+  var btn = document.getElementById('toTop');
+  var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var visible = false;
+
+  function onScroll(){
+    var shouldShow = window.scrollY > 500;
+    if(shouldShow !== visible){
+      visible = shouldShow;
+      btn.classList.toggle('visible', visible);
+    }
+  }
+
+  btn.addEventListener('click', function(){
+    window.scrollTo({ top: 0, behavior: reduceMotion ? 'auto' : 'smooth' });
+  });
+
+  window.addEventListener('scroll', onScroll, { passive: true });
+  onScroll();
+})();
+</script>
+</body>
+</html>
