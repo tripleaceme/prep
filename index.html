@@ -124,6 +124,20 @@
   }
   .nav-links a:hover{color:var(--text);}
 
+  .nav-actions{ display:flex; align-items:center; gap:14px; }
+  .lang-select{
+    font-family:inherit;
+    font-size:14px;
+    color:var(--text-muted);
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:var(--radius-s);
+    padding:10px 12px;
+    cursor:pointer;
+    transition:border-color .15s ease, color .15s ease;
+  }
+  .lang-select:hover{ border-color:var(--technical); color:var(--text); }
+
   .btn{
     display:inline-flex;
     align-items:center;
@@ -755,7 +769,14 @@
       <a href="#oss">Open source</a>
       <a href="#faq">FAQ</a>
     </nav>
-    <a href="app.html" class="btn btn-primary">Start a Mock Interview</a>
+    <div class="nav-actions">
+      <select class="lang-select" id="langSelect" aria-label="Language">
+        <option value="en">English</option>
+        <option value="fr">Français</option>
+        <option value="de">Deutsch</option>
+      </select>
+      <a href="app.html" class="btn btn-primary">Start a Mock Interview</a>
+    </div>
   </div>
 </header>
 
@@ -1097,6 +1118,7 @@
   <svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M12 19V5M6 11l6-6 6 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
 </button>
 
+<script src="i18n.js"></script>
 <script>
 (function(){
   var tabs = Array.prototype.slice.call(document.querySelectorAll('.walk-tab'));
@@ -1187,6 +1209,19 @@
 
   window.addEventListener('scroll', onScroll, { passive: true });
   onScroll();
+})();
+</script>
+<script>
+/* Language switcher. The choice is stored per browser and shared with app.html,
+   so picking French here means the interview starts in French too. */
+(function(){
+  var select = document.getElementById('langSelect');
+  if(!select || !window.PrepI18n) return;
+  select.value = PrepI18n.get();
+  select.addEventListener('change', function(){
+    PrepI18n.set(select.value);
+  });
+  PrepI18n.onChange(function(lang){ select.value = lang; });
 })();
 </script>
 </body>

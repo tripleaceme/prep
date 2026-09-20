@@ -96,6 +96,22 @@
     padding:32px; max-width:440px; width:100%;
   }
 
+  /* ---------- Language picker ---------- */
+  .lang-options{ display:flex; flex-direction:column; gap:8px; margin-bottom:24px; }
+  .lang-option{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    width:100%; text-align:left; cursor:pointer;
+    padding:14px 16px; border-radius:var(--radius-s);
+    border:1px solid var(--line); background:var(--surface-2); color:var(--text);
+    font-family:inherit; font-size:15px;
+    transition:border-color .15s ease, background .15s ease;
+  }
+  .lang-option:hover{ border-color:var(--technical); }
+  .lang-option[aria-checked="true"]{ border-color:var(--technical); background:var(--technical-soft); }
+  .lang-endonym{ font-weight:600; }
+  .lang-tick{ color:var(--technical); opacity:0; }
+  .lang-option[aria-checked="true"] .lang-tick{ opacity:1; }
+
   /* ---------- History sidebar (sticky column, not a blocking overlay) ---------- */
   .page-shell{ display:flex; align-items:flex-start; min-height:100vh; }
   .history-sidebar{
@@ -330,6 +346,30 @@
   </div>
 </div>
 
+<div class="modal-backdrop" id="langModalBackdrop">
+  <div class="modal-card">
+    <h2 class="screen-title">Interface and interview language</h2>
+    <p class="screen-sub">Prep switches the whole app, the interviewer's questions and your feedback into the language you choose.</p>
+    <div class="lang-options" id="langOptions" role="radiogroup" aria-label="Language">
+      <button class="lang-option" type="button" data-lang="en" role="radio" aria-checked="true">
+        <span class="lang-endonym">English</span>
+        <span class="lang-tick" aria-hidden="true">✓</span>
+      </button>
+      <button class="lang-option" type="button" data-lang="fr" role="radio" aria-checked="false">
+        <span class="lang-endonym">Français</span>
+        <span class="lang-tick" aria-hidden="true">✓</span>
+      </button>
+      <button class="lang-option" type="button" data-lang="de" role="radio" aria-checked="false">
+        <span class="lang-endonym">Deutsch</span>
+        <span class="lang-tick" aria-hidden="true">✓</span>
+      </button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" id="langDoneBtn" type="button">Continue</button>
+    </div>
+  </div>
+</div>
+
 <div class="page-shell">
   <aside class="history-sidebar" id="historySidebar">
     <div class="history-sidebar-head">
@@ -337,6 +377,7 @@
       <button class="icon-btn" id="closeSidebarBtn" type="button" aria-label="Collapse">✕</button>
     </div>
     <div class="history-list" id="historyList"></div>
+    <button class="btn btn-ghost history-clear" id="changeLangBtn" type="button">Language</button>
     <button class="btn btn-ghost history-clear" id="changeKeyBtn" type="button">API key</button>
     <button class="btn btn-ghost history-clear" id="clearHistoryBtn" type="button">Clear history</button>
   </aside>
@@ -523,6 +564,7 @@
   </div>
 </div>
 
+<script src="i18n.js"></script>
 <script>
 (function(){
   "use strict";
@@ -755,6 +797,39 @@
     showApiKeyModal();
   });
 
+  // ---------- Language ----------
+  (function(){
+    var backdrop = document.getElementById("langModalBackdrop");
+    var options = Array.prototype.slice.call(document.querySelectorAll(".lang-option"));
+
+    function markSelected(){
+      var active = window.PrepI18n ? PrepI18n.get() : "en";
+      options.forEach(function(opt){
+        opt.setAttribute("aria-checked", opt.getAttribute("data-lang") === active ? "true" : "false");
+      });
+    }
+
+    options.forEach(function(opt){
+      opt.addEventListener("click", function(){
+        if(window.PrepI18n) PrepI18n.set(opt.getAttribute("data-lang"));
+        markSelected();
+      });
+    });
+
+    document.getElementById("changeLangBtn").addEventListener("click", function(){
+      markSelected();
+      backdrop.classList.add("visible");
+    });
+    document.getElementById("langDoneBtn").addEventListener("click", function(){
+      backdrop.classList.remove("visible");
+    });
+    backdrop.addEventListener("click", function(e){
+      if(e.target === backdrop) backdrop.classList.remove("visible");
+    });
+
+    markSelected();
+  })();
+
   var savedApiKey = loadSavedApiKey();
   if(savedApiKey){
     state.apiKey = savedApiKey;
@@ -912,7 +987,14 @@
       "Do not answer your own questions. Do not use markdown formatting. " +
       (state.timing === "immediate"
         ? "After the candidate answers, first give brief (1-2 sentence) spoken feedback rating their answer as Surface, Working, or Strong knowledge, then ask your next question in the same reply."
-        : "After the candidate answers, simply ask your next question. Do not give feedback yet.");
+        : "After the candidate answers, simply ask your next question. Do not give feedback yet.") +
+      interviewLanguageInstruction();
+  }
+
+  /* The interview is conducted in whatever language the interface is set to, so a
+     French or German session is not an English interview with translated buttons. */
+  function interviewLanguageInstruction(){
+    return (window.PrepI18n && PrepI18n.interviewInstruction()) || "";
   }
 
   function showMessage(text, thinking){
@@ -947,8 +1029,14 @@
   }
   function pickBestVoice(){
     if(!cachedVoices.length) return null;
-    var englishVoices = cachedVoices.filter(function(v){ return /^en/i.test(v.lang); });
-    var pool = englishVoices.length ? englishVoices : cachedVoices;
+    // Match the interface language first. Not every system ships a French or German
+    // voice, so fall back to English rather than reading French with no voice at all.
+    var want = (window.PrepI18n ? PrepI18n.get() : "en");
+    var matching = cachedVoices.filter(function(v){ return v.lang && v.lang.toLowerCase().indexOf(want) === 0; });
+    if(!matching.length){
+      matching = cachedVoices.filter(function(v){ return /^en/i.test(v.lang); });
+    }
+    var pool = matching.length ? matching : cachedVoices;
     var preferredNamePattern = /(Natural|Neural|Enhanced|Premium|Google)/i;
     var preferred = pool.filter(function(v){ return preferredNamePattern.test(v.name); });
     if(preferred.length) return preferred[0];
@@ -961,6 +1049,7 @@
     var u = new SpeechSynthesisUtterance(text);
     var voice = pickBestVoice();
     if(voice) u.voice = voice;
+    u.lang = (window.PrepI18n && PrepI18n.locale()) || "en-US";
     u.rate = 1;
     u.pitch = 1;
     window.speechSynthesis.speak(u);
@@ -1291,7 +1380,12 @@
     var recognition = new SR();
     recognition.continuous = true;
     recognition.interimResults = true;
-    recognition.lang = "en-US";
+    // Speech recognition needs the right locale or it transcribes French and German
+    // answers as garbled English. Kept in sync if the language is changed mid-session.
+    recognition.lang = (window.PrepI18n && PrepI18n.locale()) || "en-US";
+    if(window.PrepI18n){
+      PrepI18n.onChange(function(){ recognition.lang = PrepI18n.locale(); });
+    }
 
     var MAX_RECORD_MS = 10 * 60 * 1000; // let someone talk for up to 10 minutes, like a real answer
     var SILENCE_STOP_MS = 2800; // auto-stop this long after the person last said something
@@ -1409,7 +1503,9 @@
     document.getElementById("reviewList").innerHTML = "";
 
     var evaluatorInstruction = "You are now an interview coach reviewing the mock " + state.track +
-      " interview that just took place for a " + state.industry + " role. Base your evaluation only on what the candidate actually said.";
+      " interview that just took place for a " + state.industry + " role. Base your evaluation only on what the candidate actually said." +
+      interviewLanguageInstruction() +
+      " The JSON keys and the tier values (Surface, Working, Strong) must stay exactly as specified in English; only the human-readable text is translated.";
 
     var prompt = "The interview is now over. Respond with ONLY valid JSON, no markdown fences, in this exact shape:\n" +
       '{"overall":"Surface"|"Working"|"Strong","summary":"one or two sentence overall summary",' +

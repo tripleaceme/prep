@@ -59,6 +59,24 @@ Prep is bring-your-own-key and talks to the Gemini API directly from the browser
 
 Because the key lives client-side, use a key you're comfortable having in the browser and set usage limits on it.
 
+## Languages
+
+Prep runs in English, French and German. The choice is made in the app's sidebar (**Language**, above the API key) or from the selector in the landing page header, and it is stored per browser and shared by both pages.
+
+Picking a language switches everything: the interface, the interviewer's spoken questions, the speech recognition locale and the written feedback. A French session is a French interview, not an English one with translated buttons.
+
+`i18n.js` holds the translations and is the one file shared by both pages. Strings are keyed by their **English source text** rather than by invented keys, which means:
+
+- No `data-i18n` attributes are needed in the markup.
+- Anything missing from a dictionary simply stays in English rather than rendering a raw key.
+- Brand and product names (Prep, dbt, Snowflake, Airflow) are deliberately absent from the dictionaries, so they pass through untouched.
+
+Content the app renders after load is caught by a `MutationObserver`, and the original English is cached on each node so switching back restores the source text rather than translating a translation.
+
+To add a language: add an entry to `LANGS`, add a dictionary under `DICT`, and add the option to the picker in `app.html` and the `<select>` in `index.html`. Keys must match the English source exactly, punctuation included.
+
+Note that the tier values `Surface`, `Working` and `Strong` are pinned to English in the model's JSON response because the app uses them as keys; only the text shown to the reader is translated.
+
 ## Deployment
 
 Deployed on Vercel as a static site at **[prep.behindthedata.tech](https://prep.behindthedata.tech)**. There is no build step — Vercel serves the files as they are, so the Build Command stays empty and the Output Directory is the repository root.
