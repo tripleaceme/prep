@@ -65,9 +65,9 @@
   button, input, select, textarea{ font-family:inherit; color:inherit; }
   :focus-visible{ outline:2px solid var(--technical); outline-offset:2px; }
 
-  /* Centred on the viewport, not on the space beside the sidebar, so the column
-     sits in the same place whether the sidebar is open or closed. */
-  .app{ max-width:720px; margin:0 auto; padding:0 24px 80px; }
+  /* Fills the space beside the permanent rail, with the reading column centred
+     in it. Auto margins on a flex item do the centring. */
+  .app{ flex:1 1 auto; min-width:0; max-width:720px; margin:0 auto; padding:0 24px 80px; }
 
   /* ---------- Top bar ---------- */
   .topbar{
@@ -77,10 +77,14 @@
   .brand{ display:flex; align-items:center; gap:10px; font-family:'Fraunces', serif; font-size:18px; text-decoration:none; cursor:pointer; }
   .logo-icon{ width:24px; height:24px; flex-shrink:0; }
   .steps-track{ display:flex; gap:6px; }
+  /* The rail is permanent on desktop, so the hamburger only exists below 1024px. */
   .history-toggle{
     width:34px; height:34px; border-radius:var(--radius-s); border:1px solid var(--line);
     background:var(--surface); color:var(--text-muted); cursor:pointer;
-    display:flex; align-items:center; justify-content:center;
+    display:none; align-items:center; justify-content:center;
+  }
+  @media (max-width:1023px){
+    .history-toggle{ display:flex; }
   }
   .history-toggle svg{ width:18px; height:18px; }
   .history-toggle:hover{ color:var(--text); border-color:var(--technical); }
@@ -159,22 +163,54 @@
     .install-row, .install-help{ padding-left:20px; padding-right:20px; }
   }
 
-  /* ---------- History sidebar (overlay at every width) ----------
-     The sidebar slides over the page instead of occupying a column in it, so
-     the content keeps exactly the same position whether it is open or closed.
-     As a flex column it pushed the content sideways on every toggle, and
-     collapsing its width dragged the whole column left. */
-  .page-shell{ display:block; min-height:100vh; }
+  /* ---------- History sidebar ----------
+     Same model as session-companion: a permanent rail from 1024px up, and
+     below that a drawer over a dimmed backdrop. There is no desktop collapse,
+     so the content column cannot be shifted about by a toggle. */
+  .page-shell{ display:flex; align-items:flex-start; min-height:100dvh; }
   .history-sidebar{
-    position:fixed; top:0; left:0; bottom:0; z-index:41;
-    width:280px; max-width:85vw; overflow-y:auto;
+    display:flex; flex-direction:column;
+    position:sticky; top:0; align-self:flex-start;
+    width:288px; flex-shrink:0; height:100dvh; overflow-y:auto;
     background:var(--surface); border-right:1px solid var(--line);
-    padding:16px; display:flex; flex-direction:column;
-    transform:translateX(0); transition:transform .2s ease;
+    padding:16px;
   }
-  .history-sidebar.closed{ transform:translateX(-100%); }
-  .history-sidebar-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:14px; }
+  .drawer-backdrop{ display:none; }
+
+  @media (max-width:1023px){
+    .page-shell{ display:block; }
+    .history-sidebar{
+      position:fixed; top:0; left:0; bottom:0; z-index:41;
+      width:304px; max-width:85vw; height:100dvh;
+      display:none;
+    }
+    .history-sidebar.open{ display:flex; }
+    .drawer-backdrop{
+      position:fixed; inset:0; z-index:40;
+      background:color-mix(in oklab, var(--ink) 85%, transparent);
+      -webkit-backdrop-filter:blur(4px); backdrop-filter:blur(4px);
+      border:none; padding:0; cursor:pointer;
+    }
+    .drawer-backdrop.open{ display:block; }
+  }
+  .history-sidebar-head{
+    display:flex; justify-content:space-between; align-items:flex-start; gap:8px;
+    border-bottom:1px solid var(--line); padding-bottom:14px; margin-bottom:14px;
+  }
   .history-sidebar-head h3{ font-size:17px; white-space:nowrap; }
+  /* The engraved-label treatment from session-companion. Prep loads no mono
+     webfont, so this uses the system monospace stack rather than adding one. */
+  .sidebar-label{
+    margin-top:5px;
+    font-family:ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    font-size:10px; font-weight:500; letter-spacing:.16em;
+    text-transform:uppercase; color:var(--text-muted);
+  }
+  /* Dismissing the rail is a drawer affordance; on desktop there is nothing to close. */
+  #closeSidebarBtn{ display:none; }
+  @media (max-width:1023px){
+    #closeSidebarBtn{ display:flex; }
+  }
   .icon-btn{
     width:28px; height:28px; border-radius:50%; border:1px solid var(--line); background:transparent;
     color:var(--text-muted); cursor:pointer; font-size:13px; display:flex; align-items:center; justify-content:center;
@@ -409,10 +445,16 @@
 <div id="installSlot"></div>
 
 <div class="page-shell">
+  <!-- Mobile only: tapping anywhere outside the drawer closes it. -->
+  <button class="drawer-backdrop" id="drawerBackdrop" type="button" aria-label="Close history"></button>
+
   <aside class="history-sidebar" id="historySidebar">
     <div class="history-sidebar-head">
-      <h3>Past sessions</h3>
-      <button class="icon-btn" id="closeSidebarBtn" type="button" aria-label="Collapse">✕</button>
+      <div>
+        <h3>Past sessions</h3>
+        <p class="sidebar-label">History · stored on your device</p>
+      </div>
+      <button class="icon-btn" id="closeSidebarBtn" type="button" aria-label="Close history">✕</button>
     </div>
     <div class="history-list" id="historyList"></div>
     <button class="btn btn-ghost history-clear" id="changeLangBtn" type="button">Language</button>
@@ -1663,30 +1705,32 @@
     });
   }
 
+  // The drawer only exists below 1024px; above that the rail is always on
+  // screen and these classes have no effect, exactly as in session-companion.
+  var sidebarEl = document.getElementById("historySidebar");
+  var backdropEl = document.getElementById("drawerBackdrop");
+
   function openSidebar(){
-    document.getElementById("historySidebar").classList.remove("closed");
+    sidebarEl.classList.add("open");
+    backdropEl.classList.add("open");
   }
   function closeSidebar(){
-    document.getElementById("historySidebar").classList.add("closed");
+    sidebarEl.classList.remove("open");
+    backdropEl.classList.remove("open");
   }
   document.getElementById("historyToggleBtn").addEventListener("click", function(){
-    var sidebar = document.getElementById("historySidebar");
-    if(sidebar.classList.contains("closed")){
+    if(sidebarEl.classList.contains("open")){
+      closeSidebar();
+    } else {
       renderHistoryList();
       openSidebar();
-    } else {
-      closeSidebar();
     }
   });
   document.getElementById("closeSidebarBtn").addEventListener("click", closeSidebar);
-
-  // The sidebar floats over the page so the content never shifts, which means a
-  // narrow window would open with it sitting on top of the content. The column
-  // is 720px centred, so it only clears a 280px sidebar from 1280px up; below
-  // that, start collapsed. Only on load — resizing should not close it under you.
-  if(window.innerWidth < 1280){
-    closeSidebar();
-  }
+  backdropEl.addEventListener("click", closeSidebar);
+  document.addEventListener("keydown", function(e){
+    if(e.key === "Escape") closeSidebar();
+  });
   document.getElementById("clearHistoryBtn").addEventListener("click", function(){
     if(window.confirm("Clear all saved session history? This can't be undone.")){
       saveHistory([]);

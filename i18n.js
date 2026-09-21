@@ -358,7 +358,8 @@
   DICT.fr["Concepts to review"] = "Concepts à revoir";
   DICT.fr["Practice again"] = "S'entraîner à nouveau";
   DICT.fr["Paste your key here"] = "Collez votre clé ici";
-  DICT.fr["Collapse"] = "Réduire";
+  DICT.fr["Close history"] = "Fermer l'historique";
+  DICT.fr["History · stored on your device"] = "Historique · enregistré sur votre appareil";
   DICT.fr["Paste the job description here…"] = "Collez l'offre d'emploi ici…";
   DICT.fr["e.g. Senior Analytics Engineer"] = "ex. Senior Analytics Engineer";
   DICT.fr["Leave blank to let Prep invent one"] = "Laissez vide pour que Prep en invente une";
@@ -448,7 +449,8 @@
   DICT.de["Concepts to review"] = "Zu wiederholende Konzepte";
   DICT.de["Practice again"] = "Erneut üben";
   DICT.de["Paste your key here"] = "Schlüssel hier einfügen";
-  DICT.de["Collapse"] = "Einklappen";
+  DICT.de["Close history"] = "Verlauf schließen";
+  DICT.de["History · stored on your device"] = "Verlauf · auf Ihrem Gerät gespeichert";
   DICT.de["Paste the job description here…"] = "Stellenbeschreibung hier einfügen…";
   DICT.de["e.g. Senior Analytics Engineer"] = "z. B. Senior Analytics Engineer";
   DICT.de["Leave blank to let Prep invent one"] = "Leer lassen, damit Prep eines erfindet";
