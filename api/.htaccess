@@ -1,0 +1,30 @@
+# Prep API — Apache configuration for cPanel (go54)
+
+# Route everything to the front controller.
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^ index.php [QSA,L]
+
+# The signature header must survive to PHP. Some cPanel/FCGI setups strip
+# non-standard headers, so re-expose them explicitly.
+<IfModule mod_rewrite.c>
+  RewriteCond %{HTTP:X-Prep-Signature} ^(.+)$
+  RewriteRule .* - [E=HTTP_X_PREP_SIGNATURE:%1]
+  RewriteCond %{HTTP:X-Prep-Timestamp} ^(.+)$
+  RewriteRule .* - [E=HTTP_X_PREP_TIMESTAMP:%1]
+  RewriteCond %{HTTP:X-Prep-User} ^(.+)$
+  RewriteRule .* - [E=HTTP_X_PREP_USER:%1]
+</IfModule>
+
+# Never serve configuration or source directly.
+<FilesMatch "\.(env|sql|md)$">
+  Require all denied
+</FilesMatch>
+
+RedirectMatch 404 ^/api/(lib|routes)/
+
+# This API is called server-to-server only; browsers have no business here.
+Header always set X-Content-Type-Options "nosniff"
+Header always set X-Frame-Options "DENY"
+Header always set Referrer-Policy "no-referrer"

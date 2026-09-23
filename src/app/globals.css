@@ -1,0 +1,106 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   Prep design tokens — Behind The Data Academy
+   Dark shell modelled on the reference dashboard, but anchored on BTD teal
+   (#0C877B) rather than the reference blue. `--brand` is for filled surfaces;
+   `--brand-bright` is the on-dark variant for text, icons and focus rings,
+   because #0C877B alone is too dark to read against the near-black shell.
+--------------------------------------------------------------------------- */
+
+:root {
+  --bg: #0a0c0b;
+  --surface: #101413;
+  --surface-2: #161b19;
+  --surface-3: #1d2422;
+
+  --border: #222a28;
+  --border-strong: #2e3936;
+
+  --text: #e8eeec;
+  --text-muted: #9aa8a4;
+  --text-faint: #6b7975;
+
+  --brand: #0c877b;
+  --brand-hover: #0f9c8e;
+  --brand-bright: #19b3a2;
+  --brand-dim: rgba(12, 135, 123, 0.12);
+  --brand-ring: rgba(25, 179, 162, 0.35);
+
+  --warn: #d9a441;
+  --warn-dim: rgba(217, 164, 65, 0.12);
+  --danger: #e06c60;
+  --success: #4caf88;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-surface-3: var(--surface-3);
+  --color-line: var(--border);
+  --color-line-strong: var(--border-strong);
+  --color-ink: var(--text);
+  --color-ink-muted: var(--text-muted);
+  --color-ink-faint: var(--text-faint);
+  --color-brand: var(--brand);
+  --color-brand-hover: var(--brand-hover);
+  --color-brand-bright: var(--brand-bright);
+  --color-warn: var(--warn);
+  --color-danger: var(--danger);
+  --color-success: var(--success);
+  --font-sans: var(--font-sans-stack);
+  --font-mono: var(--font-mono-stack);
+}
+
+* {
+  border-color: var(--border);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-sans-stack);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The reference UI leans on tight, confident headings. */
+h1,
+h2,
+h3 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--brand);
+  color: #fff;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-bright);
+  outline-offset: 2px;
+}
+
+/* Scrollbars — the default light ones break the dark shell. */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--surface-3);
+  border-radius: 999px;
+  border: 2px solid var(--bg);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--border-strong);
+}
