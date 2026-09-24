@@ -80,7 +80,7 @@ First, turn on hidden files — **Settings** (top right) → tick **Show Hidden
 Files (dotfiles)** → Save. Without this you cannot see or create `.htaccess`
 or `.env`.
 
-**Upload all eleven files, including both folders.** `index.php` on its own
+**Upload all twelve files, including both folders.** `index.php` on its own
 does nothing but crash: its first job is to `require` the files in `lib/` and
 `routes/`, and a missing one is a fatal error that returns an empty HTTP 500
 with no message explaining why.
@@ -91,6 +91,7 @@ When you are finished the folder must look exactly like this:
 /home/behindt/api.behindthedata.tech/
 ├── .htaccess
 ├── index.php
+├── config.local.php          ← you create this in A7
 ├── lib/
 │   ├── .htaccess
 │   ├── config.php
@@ -108,7 +109,8 @@ When you are finished the folder must look exactly like this:
 **The reliable way** — File Manager's uploader does not handle folders:
 
 1. On your Mac, open the repo's `api/` folder.
-2. Select everything *inside* it (`index.php`, `lib`, `routes`, `.htaccess`) —
+2. Select everything *inside* it (`index.php`, `lib`, `routes`, `.htaccess`,
+   `config.local.php.example`) —
    not the `api` folder itself — and compress the selection to a zip.
 3. Upload that zip into the document root, then use File Manager's **Extract**.
 4. Delete the zip afterwards.
@@ -130,51 +132,58 @@ On your Mac, run this twice and keep both values:
 openssl rand -hex 32
 ```
 
-- The **first** value is `API_SHARED_SECRET`. It goes in *both* the `.env` you
-  create in A7 and in Vercel. They must match character for character.
+- The **first** value is `API_SHARED_SECRET`. It goes in *both* the
+  `config.local.php` you create in A7 and in Vercel. They must match character
+  for character.
 - The **second** value is `SESSION_SECRET`. It goes in Vercel only. Changing it
   later signs everyone out, which is the intended emergency lever.
 
-### A7. Create the `.env` file — OUTSIDE the web root
+### A7. Create `config.local.php`
 
-⚠️ **Do not put this beside `index.php`.** This host runs nginx in front of
-Apache, and nginx serves static files itself without ever reading `.htaccess`.
-A `.env` inside the web root is readable at `https://api.behindthedata.tech/.env`
-— database password and all. The `.htaccess` deny rule does not save you.
+Credentials go in a **PHP file beside `index.php`** — everything stays inside
+the one API folder.
 
-In File Manager, go **one level above** the document root — if your API is at
-`/home/behindt/api.behindthedata.tech`, that means `/home/behindt`. Create a
-folder called `prep-config`, and inside it a file called `.env`:
+It is a `.php` file rather than a `.env` file deliberately. This host runs
+nginx in front of Apache, and nginx serves static files itself without ever
+reading `.htaccess`, so a deny rule cannot protect a `.env` sitting here — an
+earlier one was being served publicly at `/.env`, database password and all.
+A `.php` file in the same folder is safe because the server **executes** it
+instead of handing it over: requesting `config.local.php` runs the file, which
+returns an array to nobody and prints nothing.
 
-```
-/home/behindt/
-├── prep-config/
-│   └── .env          ← here: no URL can reach this
-└── api.behindthedata.tech/
-    ├── index.php
-    ├── lib/
-    └── routes/
-```
+In File Manager, inside the document root, copy `config.local.php.example` to
+`config.local.php` and edit it:
 
-The API looks there first and falls back to `api/.env` only if nothing is
-found. `/health` and `scripts/check-api.mjs` both fail loudly if it ever finds
-the fallback, so this cannot silently regress.
+```php
+<?php
+declare(strict_types=1);
 
-Paste this into that file:
+return [
+    'DB_HOST' => 'localhost',
+    'DB_PORT' => '3306',
+    'DB_NAME' => 'behindt_prep',
+    'DB_USER' => 'behindt_prepuser',
+    'DB_PASS' => 'the-password-from-A2',
 
-```
-DB_HOST=localhost
-DB_PORT=3306
-DB_NAME=behindt_prep
-DB_USER=behindt_prepuser
-DB_PASS=the-password-from-A2
-API_SHARED_SECRET=the-first-openssl-value
-APP_URL=https://prep.behindthedata.tech
-MAIL_FROM="Prep <no-reply@behindthedata.tech>"
-RESEND_API_KEY=
+    'API_SHARED_SECRET' => 'the-first-openssl-value',
+    'APP_URL'           => 'https://prep.behindthedata.tech',
+
+    'MAIL_FROM'      => 'Prep <no-reply@behindthedata.tech>',
+    'RESEND_API_KEY' => '',
+];
 ```
 
-Replace `behindt_...` with the real prefixed names from A2. Save.
+Replace `behindt_...` with the real prefixed names from A2.
+
+**Then check it once.** Open `https://api.behindthedata.tech/config.local.php`
+in a browser. You should get a **completely blank page**. If you can read your
+own credentials, PHP is not executing in that folder — stop and fix that before
+going any further.
+
+> A plain `.env` still works if you ever prefer one, but only outside the web
+> root. `/health` and `scripts/check-api.mjs` both fail loudly if they find one
+> sitting beside `index.php`, so the unsafe arrangement cannot come back
+> unnoticed.
 
 ### A8. Email, for resets and confirmations
 
@@ -184,7 +193,8 @@ back in, and shared hosts get filtered to spam routinely.
 
 You already have a Resend account from PhD Scout. In Resend, verify
 `behindthedata.tech` as a sending domain (it gives you DNS records to add in
-go54), then create an API key and put it in `RESEND_API_KEY` above.
+go54), then create an API key and put it in `RESEND_API_KEY` in
+`config.local.php`.
 
 If you leave `RESEND_API_KEY` blank the flow still works — it falls back to PHP
 `mail()` — but expect resets to land in spam until the domain is verified.
@@ -287,6 +297,8 @@ credentials from B3. You should see your own signup in the funnel.
 | `Prep requires PHP 8.1 or newer` | Go back to A1. |
 | `Missing tables` | The schema import in A3 didn't run. Re-import `db/schema.sql`. |
 | `Database unavailable` | `DB_NAME`/`DB_USER` are missing the cPanel account prefix, or the user wasn't added to the database in A2. |
+| `Server is not configured` | `config.local.php` doesn't exist yet, or returns something other than an array. Copy it from `config.local.php.example`. |
+| You can read your credentials at `/config.local.php` | PHP isn't executing in that folder. Nothing is safe there until that's fixed — check the handler in cPanel → MultiPHP Manager. |
 | Sign-in works, dashboard is blank | Normal if go54 is briefly unreachable — the shell degrades rather than erroring. Run `check-api.mjs`. |
 
 ---

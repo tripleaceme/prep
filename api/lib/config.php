@@ -2,42 +2,71 @@
 /**
  * Prep API — configuration.
  *
- * The .env file is looked for ONE LEVEL ABOVE the document root first, and
- * only falls back to sitting beside index.php.
+ * Credentials live in `config.local.php` beside index.php, as a PHP file that
+ * returns an array. Everything stays inside the one API folder.
  *
- * That order is deliberate and was learned the hard way. On this host nginx
- * sits in front of Apache and serves static files itself, without ever reading
- * .htaccess — so a `FilesMatch` deny on .env protects nothing, and the file was
- * being served publicly with the database password in it. A file the web server
- * cannot reach needs no rule to protect it.
+ * It is a .php file rather than a .env file for a specific reason. This host
+ * runs nginx in front of Apache, and nginx serves static files itself without
+ * ever consulting .htaccess — so a deny rule on .env does nothing, and an .env
+ * here was being served publicly with the database password in it. A .php file
+ * in the same folder is safe because the server *executes* it: requesting
+ * config.local.php directly runs the file, which returns an array to nobody and
+ * prints not one character.
+ *
+ * .env is still read if present, but only as a fallback, and /health reports it
+ * as exposed so the unsafe case can never sit there unnoticed.
  */
 
 declare(strict_types=1);
 
 /**
- * Finds .env, preferring a location outside the web root.
+ * Finds the config file.
  *
- * Returns the path, and whether it is in a web-reachable directory — the
- * health check reports the unsafe case loudly rather than letting it sit.
+ * `exposed` is true only for a plain .env, which a web server will hand over
+ * as text. A .php config is never flagged: it cannot leak by being requested.
  */
-function prep_locate_env(string $apiDir): array
+function prep_locate_config(string $apiDir): array
 {
-    $candidates = [
-        // Preferred: one level above the document root, unreachable over HTTP.
-        dirname($apiDir) . '/prep-config/.env',
-        dirname($apiDir) . '/.prep-env',
-        // Fallback: beside index.php. Works, but is only as private as the
-        // web server's configuration — which on this host is not enough.
-        $apiDir . '/.env',
-    ];
+    // A .php file in the web root is safe — it gets executed, not served.
+    if (is_readable($apiDir . '/config.local.php')) {
+        return [
+            'path'     => $apiDir . '/config.local.php',
+            'kind'     => 'php',
+            'exposed'  => false,
+        ];
+    }
 
-    foreach ($candidates as $index => $path) {
+    // Legacy/alternative: a .env anywhere the web server cannot reach.
+    foreach ([dirname($apiDir) . '/prep-config/.env', dirname($apiDir) . '/.prep-env'] as $path) {
         if (is_readable($path)) {
-            return ['path' => $path, 'exposed' => $index === count($candidates) - 1];
+            return ['path' => $path, 'kind' => 'env', 'exposed' => false];
         }
     }
 
-    return ['path' => null, 'exposed' => false];
+    // A .env beside index.php. Works, but this host will serve it publicly.
+    if (is_readable($apiDir . '/.env')) {
+        return ['path' => $apiDir . '/.env', 'kind' => 'env', 'exposed' => true];
+    }
+
+    return ['path' => null, 'kind' => null, 'exposed' => false];
+}
+
+/** Loads a `config.local.php` that returns an array of key => value. */
+function prep_load_php_config(string $path): void
+{
+    $values = require $path;
+
+    if (!is_array($values)) {
+        http_response_code(500);
+        header('Content-Type: application/json');
+        exit(json_encode([
+            'error' => 'config.local.php must return an array, e.g. return ["DB_HOST" => "localhost"];',
+        ]));
+    }
+
+    foreach ($values as $key => $value) {
+        $_ENV[(string) $key] = (string) $value;
+    }
 }
 
 function prep_load_env(?string $path): void
@@ -46,8 +75,8 @@ function prep_load_env(?string $path): void
         http_response_code(500);
         header('Content-Type: application/json');
         exit(json_encode([
-            'error' => 'Server is not configured: no .env file found. Expected it at '
-                . '../prep-config/.env (preferred) or beside index.php.',
+            'error' => 'Server is not configured: create config.local.php beside '
+                . 'index.php, copying config.local.php.example.',
         ]));
     }
 
@@ -82,12 +111,18 @@ function prep_env(string $key, ?string $default = null): string
     return $value;
 }
 
-$prepEnv = prep_locate_env(dirname(__DIR__));
-prep_load_env($prepEnv['path']);
+$prepConfig = prep_locate_config(dirname(__DIR__));
 
-// Surfaced by /health so an exposed .env is reported rather than assumed safe.
-define('PREP_ENV_EXPOSED', $prepEnv['exposed']);
-define('PREP_ENV_PATH', (string) $prepEnv['path']);
+if ($prepConfig['kind'] === 'php') {
+    prep_load_php_config($prepConfig['path']);
+} else {
+    prep_load_env($prepConfig['path']);
+}
+
+// Surfaced by /health, so a config file the web server would hand over is
+// reported rather than assumed safe.
+define('PREP_ENV_EXPOSED', $prepConfig['exposed']);
+define('PREP_ENV_PATH', (string) $prepConfig['path']);
 
 // Password reset links are short-lived: email is not a secure channel, and a
 // stale reset link sitting in an inbox is a standing risk.

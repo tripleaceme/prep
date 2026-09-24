@@ -1,0 +1,48 @@
+<?php
+/**
+ * Prep API — your live configuration.
+ *
+ * Copy this file to `config.local.php` in the same folder and fill in the real
+ * values. Never commit the copy — .gitignore already excludes it.
+ *
+ * WHY THIS IS A .php FILE AND NOT .env
+ * ------------------------------------
+ * This host runs nginx in front of Apache. nginx serves static files itself and
+ * never reads .htaccess, so a deny rule cannot protect a .env sitting here —
+ * an earlier .env was being served publicly at /.env, database password and all.
+ *
+ * A .php file in the same folder is safe because the server executes it rather
+ * than handing it over. Requesting config.local.php directly runs this file,
+ * which returns an array to nobody and prints nothing. Try it once deployed:
+ * you should get a blank page, not your credentials.
+ */
+
+declare(strict_types=1);
+
+return [
+    // ---- cPanel MySQL -----------------------------------------------------
+    // Connects over localhost. Leave Remote MySQL DISABLED in cPanel.
+    // Remember cPanel prefixes both names with your account name.
+    'DB_HOST' => 'localhost',
+    'DB_PORT' => '3306',
+    'DB_NAME' => 'youraccount_prep',
+    'DB_USER' => 'youraccount_prepuser',
+    'DB_PASS' => '',
+
+    // ---- Shared secret with the Next.js app -------------------------------
+    // Must match API_SHARED_SECRET in Vercel, exactly.
+    // Generate with:  openssl rand -hex 32
+    'API_SHARED_SECRET' => '',
+
+    // ---- Where the app lives, for links in emails -------------------------
+    'APP_URL' => 'https://prep.behindthedata.tech',
+
+    // ---- Email ------------------------------------------------------------
+    // Used for password resets and confirm-your-email links.
+    'MAIL_FROM' => 'Prep <no-reply@behindthedata.tech>',
+
+    // Strongly recommended. Without it we fall back to PHP mail(), which shared
+    // hosts routinely get filtered to spam — and a filtered reset link is a
+    // permanently locked account.
+    'RESEND_API_KEY' => '',
+];

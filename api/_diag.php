@@ -59,11 +59,12 @@ foreach ($required as $file) {
 }
 echo "\n";
 
-echo "CONFIG FILE (.env)\n";
+echo "CONFIG FILE\n";
 $candidates = [
-    dirname($dir) . '/prep-config/.env' => 'preferred — outside the web root',
-    dirname($dir) . '/.prep-env'        => 'also outside the web root',
-    $dir . '/.env'                      => 'INSIDE the web root — see warning below',
+    $dir . '/config.local.php'          => 'preferred — executed, never served',
+    dirname($dir) . '/prep-config/.env' => 'outside the web root',
+    dirname($dir) . '/.prep-env'        => 'outside the web root',
+    $dir . '/.env'                      => 'UNSAFE on this host — see warning below',
 ];
 $found = null;
 foreach ($candidates as $path => $note) {
@@ -74,12 +75,14 @@ foreach ($candidates as $path => $note) {
     printf("  %s %-46s %s\n", $exists ? 'FOUND' : '  -  ', $path, $note);
 }
 if ($found === null) {
-    echo "\n  !! No .env found in any location. Nothing will work until one exists.\n";
+    echo "\n  !! No config found. Copy config.local.php.example to config.local.php\n";
+    echo "     and fill it in. Nothing works until that exists.\n";
 } elseif ($found === $dir . '/.env') {
     echo "\n  !! WARNING: .env sits inside the web root.\n";
     echo "     On this host nginx serves static files itself and ignores .htaccess,\n";
     echo "     so it is very likely readable at https://<this-domain>/.env\n";
-    echo "     Move it to " . dirname($dir) . "/prep-config/.env and rotate every secret in it.\n";
+    echo "     Move those values into config.local.php (a .php file is executed,\n";
+    echo "     not served), delete the .env, and rotate every secret it held.\n";
 }
 echo "\n";
 
