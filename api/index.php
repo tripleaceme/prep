@@ -98,6 +98,12 @@ match (true) {
     $method === 'GET'  && preg_match('#^reports/([0-9a-f-]{36})$#', $path, $m) === 1
         => prep_route_get_report(prep_actor(), $m[1]),
 
+    $method === 'GET'  && $path === 'history'
+        => prep_route_ai_history(prep_actor()),
+
+    $method === 'POST' && $path === 'history/clear'
+        => prep_route_clear_ai_history(prep_actor()),
+
     $method === 'GET'  && $path === 'coding'
         => prep_route_list_coding(prep_actor()),
 

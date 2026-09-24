@@ -125,3 +125,95 @@ export function scoreFromReview(review: ReviewJson): number {
   );
   return Math.round(total / perQuestion.length);
 }
+
+/* ------------------------------------------------------------------------ */
+/* AI Interview — the original flow, ported verbatim from legacy/app.html.   */
+/*                                                                          */
+/* Kept separate from the Mock Interview builders above because the wording  */
+/* here was tuned against real sessions. Changing it changes the interviewer.*/
+/* ------------------------------------------------------------------------ */
+
+export type Track = "business" | "technical";
+
+export interface AiInterviewConfig {
+  jobDescription: string;
+  track: Track;
+  industry: string;
+  /** Technical track only. */
+  level: string;
+  difficulty: "Easy" | "Medium" | "Hard";
+  /** Minutes. */
+  duration: number;
+  /** What the interviewer should call the candidate. Optional. */
+  addressAs: string;
+  timing: "immediate" | "end";
+  personaName: string;
+}
+
+/** The interviewer's job title, by track — as in the original. */
+export const PERSONA_ROLES: Record<Track, string> = {
+  technical: "Senior Data Engineer",
+  business: "Senior Product Manager",
+};
+
+export function buildAiSystemInstruction(config: AiInterviewConfig): string {
+  const role = PERSONA_ROLES[config.track];
+  const levelLine =
+    config.track === "technical" ? `Interview stage: ${config.level}. ` : "";
+  const addressLine = config.addressAs
+    ? `Address the candidate as ${config.addressAs}. `
+    : "";
+
+  return (
+    `You are ${config.personaName}, a ${role} conducting a mock ${config.track} interview. ` +
+    `Job description:\n${config.jobDescription}\n\n` +
+    `Industry: ${config.industry}. ` +
+    levelLine +
+    (config.track === "technical"
+      ? "Base your technical questions on the tools and technologies actually mentioned or implied in the job description. "
+      : "") +
+    `Difficulty: ${config.difficulty}. ` +
+    addressLine +
+    "Ask one interview question at a time, in character, conversational and concise (2-4 sentences max). " +
+    "Do not answer your own questions. Do not use markdown formatting. " +
+    (config.timing === "immediate"
+      ? "After the candidate answers, first give brief (1-2 sentence) spoken feedback rating their answer as Surface, Working, or Strong knowledge, then ask your next question in the same reply."
+      : "After the candidate answers, simply ask your next question. Do not give feedback yet.")
+  );
+}
+
+export function buildAiReviewInstruction(config: AiInterviewConfig): string {
+  return (
+    `You are now an interview coach reviewing the mock ${config.track} interview that just took place ` +
+    `for a ${config.industry} role. Base your evaluation only on what the candidate actually said.`
+  );
+}
+
+/** Drafts a job posting for the "Simulate one" tab. */
+export function buildSimulatePrompt(fields: {
+  title: string;
+  company: string;
+  industry: string;
+  location: string;
+  hint: string;
+}): string {
+  return (
+    `Write a realistic job description for the role of ${fields.title}` +
+    (fields.company
+      ? ` at a company called ${fields.company}`
+      : " at a plausible, invented company") +
+    ` in the ${fields.industry} industry` +
+    (fields.location ? `, located in ${fields.location}` : "") +
+    ". " +
+    (fields.hint ? `Additional context from the user: ${fields.hint}. ` : "") +
+    'Write it the way a real job posting reads. Use a couple of short section headers written in bold, like **Responsibilities** and **Requirements**, and use "- " at the start of a line for each bullet point under those sections. Keep any intro paragraph plain, unbulleted text. Return only the job description, no preamble or extra commentary.'
+  );
+}
+
+export function buildModifyPrompt(current: string, instruction: string): string {
+  return (
+    `Here is a job description:\n\n${current}\n\nRevise it with these changes: ${instruction}. ` +
+    'Keep using bold section headers (like **Responsibilities**) and "- " bullet points the same way as before. ' +
+    "Return only the revised job description text."
+  );
+}

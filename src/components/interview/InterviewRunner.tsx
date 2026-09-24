@@ -42,11 +42,11 @@ export function InterviewRunner({
 }: Props) {
   const router = useRouter();
 
-  // The persona is fixed for the whole session, so it's chosen once.
-  const personaRef = useRef(
-    PERSONA_NAMES[Math.floor(Math.random() * PERSONA_NAMES.length)],
+  // Cast once, in a lazy initialiser rather than during render: calling
+  // Math.random() in the render body is impure and re-rolls every pass.
+  const [persona] = useState(
+    () => PERSONA_NAMES[Math.floor(Math.random() * PERSONA_NAMES.length)],
   );
-  const persona = personaRef.current;
   const voice = PERSONA_VOICES[persona];
 
   const fullSetup: InterviewSetup = {

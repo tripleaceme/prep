@@ -235,3 +235,40 @@ function prep_json_column(mixed $value): string
         JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE
     ) ?: '[]';
 }
+
+/**
+ * GET /history — past AI Interview sessions for the rail.
+ *
+ * Only completed AI sessions: an abandoned one has no report to open, so
+ * listing it would give the user a dead link.
+ */
+function prep_route_ai_history(string $userId): never
+{
+    $stmt = prep_db()->prepare(
+        "SELECT r.id, r.created_at, r.understanding, r.overall_score, i.role_title
+           FROM reports r
+           JOIN interviews i ON i.id = r.interview_id
+          WHERE r.user_id = ? AND i.kind = 'ai'
+          ORDER BY r.created_at DESC
+          LIMIT 50"
+    );
+    $stmt->execute([$userId]);
+    prep_json(['history' => $stmt->fetchAll()]);
+}
+
+/**
+ * POST /history/clear — delete this user's AI sessions.
+ *
+ * Deleting the interview cascades to its report, so this removes both rather
+ * than leaving orphaned rows. Mock interviews are untouched: the rail only
+ * shows AI sessions, so clearing it must not quietly bin track practice too.
+ */
+function prep_route_clear_ai_history(string $userId): never
+{
+    $stmt = prep_db()->prepare(
+        "DELETE FROM interviews WHERE user_id = ? AND kind = 'ai'"
+    );
+    $stmt->execute([$userId]);
+
+    prep_json(['ok' => true, 'deleted' => $stmt->rowCount()]);
+}
