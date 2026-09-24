@@ -80,7 +80,12 @@ First, turn on hidden files — **Settings** (top right) → tick **Show Hidden
 Files (dotfiles)** → Save. Without this you cannot see or create `.htaccess`
 or `.env`.
 
-Now upload **the contents of this repo's `api/` folder**, keeping the structure:
+**Upload all eleven files, including both folders.** `index.php` on its own
+does nothing but crash: its first job is to `require` the files in `lib/` and
+`routes/`, and a missing one is a fatal error that returns an empty HTTP 500
+with no message explaining why.
+
+When you are finished the folder must look exactly like this:
 
 ```
 /home/behindt/api.behindthedata.tech/
@@ -100,12 +105,22 @@ Now upload **the contents of this repo's `api/` folder**, keeping the structure:
     └── profile.php
 ```
 
-Upload `api/index.php` to the root of that folder — **not** `api/` itself
-inside it. If you end up with `.../api.behindthedata.tech/api/index.php`, move
-the files up one level.
+**The reliable way** — File Manager's uploader does not handle folders:
 
-The easiest way: zip the *contents* of `api/` locally, upload the zip through
-File Manager, then use **Extract**.
+1. On your Mac, open the repo's `api/` folder.
+2. Select everything *inside* it (`index.php`, `lib`, `routes`, `.htaccess`) —
+   not the `api` folder itself — and compress the selection to a zip.
+3. Upload that zip into the document root, then use File Manager's **Extract**.
+4. Delete the zip afterwards.
+
+The one thing to check after extracting: `index.php` must sit directly in the
+document root. If you end up with
+`/home/behindt/api.behindthedata.tech/api/index.php` — an extra `api` level —
+move everything up one folder.
+
+> `.htaccess` files are hidden. If you can't see them after extracting, you
+> skipped the "Show Hidden Files" step above. Without the top-level one,
+> nothing routes and every URL 404s.
 
 ### A6. Generate the two secrets
 
@@ -264,6 +279,7 @@ credentials from B3. You should see your own signup in the funnel.
 
 | What you see | What it means |
 |---|---|
+| **Empty 500 on every URL, no error text** | `lib/` or `routes/` didn't get uploaded. `index.php` alone cannot run — it `require`s them on its first lines, and a missing one is a fatal error with no output. Re-do A5 and upload all eleven files. Confirm with `api/_diag.php`. |
 | `The API returned HTML rather than JSON` | `PREP_API_URL` points at the wrong folder, or `.htaccess` didn't upload. Check hidden files are visible in File Manager. |
 | `Unsigned request` | The `X-Prep-*` headers are being stripped. Confirm `.htaccess` is present in the API root and `mod_rewrite` is on. |
 | `Bad signature` | `API_SHARED_SECRET` differs between `api/.env` and Vercel. Re-paste both; watch for trailing spaces. |
