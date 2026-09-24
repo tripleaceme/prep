@@ -23,9 +23,11 @@ if (PHP_VERSION_ID < 80100) {
 require __DIR__ . '/lib/config.php';
 require __DIR__ . '/lib/http.php';
 require __DIR__ . '/lib/db.php';
+require __DIR__ . '/lib/mail.php';
 require __DIR__ . '/routes/auth.php';
 require __DIR__ . '/routes/profile.php';
 require __DIR__ . '/routes/interviews.php';
+require __DIR__ . '/routes/analytics.php';
 
 // No browser should ever reach this API directly, so there is no CORS policy
 // to relax — omitting the header is the policy.
@@ -53,6 +55,17 @@ match (true) {
 
     $method === 'POST' && $path === 'auth/login'
         => prep_route_login($body),
+
+    $method === 'POST' && $path === 'auth/request-reset'
+        => prep_route_request_reset($body),
+
+    $method === 'POST' && $path === 'auth/reset'
+        => prep_route_reset_password($body),
+
+    // Guarded by the admin session in the Next.js app, not by prep_actor():
+    // analytics is not scoped to a user.
+    $method === 'GET'  && $path === 'analytics'
+        => prep_route_analytics(),
 
     $method === 'GET'  && $path === 'profile'
         => prep_route_get_profile(prep_actor()),

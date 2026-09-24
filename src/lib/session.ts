@@ -4,13 +4,16 @@ import { cookies } from "next/headers";
 /**
  * Session handling.
  *
- * After a magic link is verified, we mint a signed JWT and keep it in an
- * httpOnly cookie. Subsequent requests read the user id straight from the
- * cookie, so an ordinary page load costs no round trip to go54 — which matters
- * when Vercel and the database are on different continents.
+ * After a successful sign-in we mint a signed JWT and keep it in an httpOnly
+ * cookie. Subsequent requests read the user id straight from the cookie, so an
+ * ordinary page load costs no round trip to go54 — which matters when Vercel
+ * and the database are on different continents.
  */
 
 const COOKIE = "prep_session";
+// Distinct from the admin audience, so neither token can ever be accepted in
+// place of the other even though both are signed with SESSION_SECRET.
+const AUDIENCE = "prep-user";
 const MAX_AGE_SECONDS = 60 * 60 * 24 * 30; // 30 days
 
 export interface Session {
@@ -28,6 +31,7 @@ export async function createSession(session: Session): Promise<void> {
   const token = await new SignJWT({ email: session.email })
     .setProtectedHeader({ alg: "HS256" })
     .setSubject(session.userId)
+    .setAudience(AUDIENCE)
     .setIssuedAt()
     .setExpirationTime(`${MAX_AGE_SECONDS}s`)
     .sign(secret());
@@ -56,6 +60,7 @@ export async function verifySessionToken(
   try {
     const { payload } = await jwtVerify(token, secret(), {
       algorithms: ["HS256"],
+      audience: AUDIENCE,
     });
     if (!payload.sub) return null;
     return { userId: payload.sub, email: String(payload.email ?? "") };

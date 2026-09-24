@@ -90,9 +90,11 @@ Now upload **the contents of this repo's `api/` folder**, keeping the structure:
 │   ├── .htaccess
 │   ├── config.php
 │   ├── db.php
-│   └── http.php
+│   ├── http.php
+│   └── mail.php
 └── routes/
     ├── .htaccess
+    ├── analytics.php
     ├── auth.php
     ├── interviews.php
     └── profile.php
@@ -131,9 +133,24 @@ DB_USER=behindt_prepuser
 DB_PASS=the-password-from-A2
 API_SHARED_SECRET=the-first-openssl-value
 APP_URL=https://prep.behindthedata.tech
+MAIL_FROM="Prep <no-reply@behindthedata.tech>"
+RESEND_API_KEY=
 ```
 
 Replace `behindt_...` with the real prefixed names from A2. Save.
+
+### A8. Email, for password resets
+
+Password reset is the only thing that sends email, and it is the one place
+where deliverability decides whether a user is locked out permanently. Shared
+hosts get filtered to spam routinely.
+
+You already have a Resend account from PhD Scout. In Resend, verify
+`behindthedata.tech` as a sending domain (it gives you DNS records to add in
+go54), then create an API key and put it in `RESEND_API_KEY` above.
+
+If you leave `RESEND_API_KEY` blank the flow still works — it falls back to PHP
+`mail()` — but expect resets to land in spam until the domain is verified.
 
 ---
 
@@ -155,6 +172,8 @@ Project → **Settings** → **Environment Variables**. Add these for
 | `API_SHARED_SECRET` | the **first** openssl value from A6 |
 | `SESSION_SECRET` | the **second** openssl value from A6 |
 | `NEXT_PUBLIC_SITE_URL` | `https://prep.behindthedata.tech` |
+| `ANALYTICS_USERNAME` | whatever username you want for `/analytics` |
+| `ANALYTICS_PASSWORD_HASH` | output of the command in B3 |
 
 If you used `public_html/api` instead of a subdomain, `PREP_API_URL` is
 `https://behindthedata.tech/api`.
@@ -162,7 +181,25 @@ If you used `public_html/api` instead of a subdomain, `PREP_API_URL` is
 Redeploy after adding them — Vercel does not pick up new variables on an
 existing build.
 
-### B3. Domain
+### B3. Analytics credentials
+
+The analytics dashboard has its own login, entirely separate from user
+accounts — there is no admin row in the database, so there is nothing to find
+or escalate to. Generate the hash locally:
+
+```bash
+node scripts/make-admin-password.mjs 'a-long-password-you-will-remember'
+```
+
+It prints the two environment variables to paste into Vercel. The plaintext is
+never stored anywhere — not in this repo, not in the database, not in Vercel.
+Clear it from your shell history afterwards:
+
+```bash
+history -d $(history 1)
+```
+
+### B4. Domain
 
 Project → **Settings** → **Domains** → add `prep.behindthedata.tech`.
 
@@ -196,6 +233,9 @@ Then open `https://prep.behindthedata.tech/register`, create an account, and
 walk through onboarding. If the dashboard loads with your name on it, both
 halves are talking to each other.
 
+Finally, open `https://prep.behindthedata.tech/analytics` and sign in with the
+credentials from B3. You should see your own signup in the funnel.
+
 ---
 
 ## Troubleshooting
@@ -217,14 +257,14 @@ halves are talking to each other.
 
 Worth knowing before you open this to the public:
 
-1. **No password reset.** A user who forgets their password is locked out and
-   has to email you. The `auth_tokens` table is already in the schema for it,
-   so adding the flow needs no migration — but it needs a working transactional
-   email sender first.
-2. **No email verification.** Anyone can register with an address they don't
-   own. Fine for a free tool; revisit before there's anything to lose.
-3. **No analytics.** There is still no measurement of how many people who land
-   on the site actually finish an interview, which is the number that should
-   drive the next round of work.
-4. **DuckDB loads from jsDelivr.** Coding Problems need that CDN reachable on
+1. **No email verification.** Anyone can register with an address they don't
+   own. Fine for a free tool; revisit before there's anything to lose. Note the
+   `auth_tokens.purpose` column already allows `email_verify`, so adding it
+   needs no migration.
+2. **Analytics starts at registration.** It cannot tell you how many people saw
+   the landing page and left without signing up. Switch on Vercel Analytics in
+   the project settings for that — no code, free at this scale.
+3. **DuckDB loads from jsDelivr.** Coding Problems need that CDN reachable on
    first use. It caches afterwards, but a blocked CDN means no SQL problems.
+4. **Password resets depend on Resend being configured.** Without A8 done, they
+   fall back to PHP `mail()` and will often be filtered to spam.

@@ -2,7 +2,17 @@ import { NextResponse, type NextRequest } from "next/server";
 import { SESSION_COOKIE, verifySessionToken } from "@/lib/session";
 
 /** Paths reachable without a session. */
-const PUBLIC_PATHS = ["/", "/login", "/register", "/auth"];
+const PUBLIC_PATHS = [
+  "/",
+  "/login",
+  "/register",
+  "/forgot-password",
+  "/reset-password",
+  "/auth",
+  // Analytics gates itself on a separate admin session, so it must not be
+  // bounced to the user sign-in page.
+  "/analytics",
+];
 
 function isPublic(pathname: string) {
   return PUBLIC_PATHS.some(

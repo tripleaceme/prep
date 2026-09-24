@@ -1,0 +1,16 @@
+User-agent: *
+Allow: /
+
+# Operator tooling and per-user pages — nothing here is useful in an index.
+Disallow: /analytics
+Disallow: /dashboard
+Disallow: /interview
+Disallow: /mock
+Disallow: /coding
+Disallow: /cv
+Disallow: /reports
+Disallow: /settings
+Disallow: /onboarding
+Disallow: /reset-password
+
+Sitemap: https://prep.behindthedata.tech/sitemap.xml

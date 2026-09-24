@@ -107,7 +107,16 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
                 <p className="mt-2 text-xs text-[var(--text-faint)]">
                   At least 8 characters.
                 </p>
-              ) : null}
+              ) : (
+                <p className="mt-2 text-right">
+                  <Link
+                    href="/forgot-password"
+                    className="text-sm text-[var(--text-muted)] hover:text-[var(--brand-bright)]"
+                  >
+                    Forgot your password?
+                  </Link>
+                </p>
+              )}
             </div>
 
             {isRegister ? (

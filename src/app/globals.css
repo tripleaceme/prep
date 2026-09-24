@@ -34,6 +34,22 @@
 
   --radius: 14px;
   --radius-sm: 10px;
+
+  /* ---------------------------------------------------------------------
+     Analytics palette.
+     Stepped for the dark chart surface (#101413) and validated, not picked
+     by eye. Two categorical slots for started-vs-completed; a single-hue
+     ordinal ramp for the understanding ladder, because surface → working →
+     strong is a magnitude, not four unrelated categories. (The red/amber/teal
+     used on the ladder *badges* fails the normal-vision separation floor when
+     the swatches sit adjacent — fine beside a text label, wrong in a chart.)
+  --------------------------------------------------------------------- */
+  --viz-1: #14a08f;
+  --viz-2: #4a82e8;
+  --viz-ordinal-1: #0e5c54;
+  --viz-ordinal-2: #14a08f;
+  --viz-ordinal-3: #3fd8c4;
+  --viz-grid: #1d2422;
 }
 
 @theme inline {
