@@ -136,10 +136,6 @@ export function HistoryRail({
             </button>
           )
         ) : null}
-
-        <Link className="btn btn-ghost history-clear" href="/settings">
-          API key
-        </Link>
       </aside>
     </>
   );

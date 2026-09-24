@@ -46,9 +46,9 @@ function prep_route_health(): never
 function prep_route_get_profile(string $userId): never
 {
     $stmt = prep_db()->prepare(
-        'SELECT id, email, display_name, career_stage, employer_type, goal, field,
-                onboarded_at, email_verified_at, readiness, current_streak,
-                longest_streak, last_active_on
+        'SELECT id, email, display_name, avatar_url, career_stage, employer_type,
+                goal, field, onboarded_at, email_verified_at, readiness,
+                current_streak, longest_streak, last_active_on
            FROM users WHERE id = ? LIMIT 1'
     );
     $stmt->execute([$userId]);
@@ -197,4 +197,96 @@ function prep_route_record_activity(string $userId, array $body): never
         error_log('[prep] record activity failed: ' . $e->getMessage());
         prep_json(['error' => 'Could not record activity'], 500);
     }
+}
+
+/** POST /profile/name  { display_name } */
+function prep_route_update_name(string $userId, array $body): never
+{
+    $name = trim((string) ($body['display_name'] ?? ''));
+
+    if ($name === '' || mb_strlen($name) > 120) {
+        prep_json(['error' => 'Enter a name of up to 120 characters.'], 422);
+    }
+
+    prep_db()->prepare('UPDATE users SET display_name = ? WHERE id = ?')
+             ->execute([$name, $userId]);
+
+    prep_json(['ok' => true, 'display_name' => $name]);
+}
+
+/**
+ * POST /profile/avatar  { image: "data:image/...;base64,..." }
+ *
+ * The browser resizes and re-encodes the picture to a small square before
+ * sending, so this receives a bounded payload, never the original file. That
+ * also strips EXIF — including any GPS coordinates the phone attached.
+ *
+ * Sent as base64 inside JSON rather than multipart so the HMAC signature
+ * covers the body unchanged, exactly like every other route.
+ */
+function prep_route_update_avatar(string $userId, array $body): never
+{
+    $payload = (string) ($body['image'] ?? '');
+
+    if (!preg_match('#^data:image/(jpeg|png|webp);base64,#', $payload, $m)) {
+        prep_json(['error' => 'Send a JPEG, PNG or WebP image.'], 422);
+    }
+
+    $binary = base64_decode(substr($payload, strlen($m[0])), true);
+    if ($binary === false) {
+        prep_json(['error' => 'That image could not be read.'], 422);
+    }
+    // The client caps this far lower; the limit is here because the client
+    // cannot be trusted to have run at all.
+    if (strlen($binary) > 400 * 1024) {
+        prep_json(['error' => 'That image is too large.'], 422);
+    }
+
+    // Never trust the declared type — confirm it really is an image, and that
+    // its dimensions are sane.
+    $info = @getimagesizefromstring($binary);
+    if ($info === false || $info[0] < 16 || $info[1] < 16 || $info[0] > 1024 || $info[1] > 1024) {
+        prep_json(['error' => 'That does not look like a valid image.'], 422);
+    }
+
+    $extension = match ($info[2]) {
+        IMAGETYPE_JPEG => 'jpg',
+        IMAGETYPE_PNG  => 'png',
+        IMAGETYPE_WEBP => 'webp',
+        default        => null,
+    };
+    if ($extension === null) {
+        prep_json(['error' => 'Send a JPEG, PNG or WebP image.'], 422);
+    }
+
+    $dir = dirname(__DIR__) . '/uploads/avatars';
+    if (!is_dir($dir) && !@mkdir($dir, 0755, true)) {
+        error_log('[prep] could not create avatar directory');
+        prep_json(['error' => 'Could not store that image.'], 500);
+    }
+
+    // Filename comes from the user id plus randomness — never from input — so
+    // a crafted name cannot escape the directory, and the new URL busts caches.
+    $filename = $userId . '-' . bin2hex(random_bytes(4)) . '.' . $extension;
+
+    if (@file_put_contents($dir . '/' . $filename, $binary) === false) {
+        error_log('[prep] could not write avatar');
+        prep_json(['error' => 'Could not store that image.'], 500);
+    }
+
+    $db = prep_db();
+
+    // Remove the previous file so the directory does not grow without bound.
+    $previous = $db->prepare('SELECT avatar_url FROM users WHERE id = ? LIMIT 1');
+    $previous->execute([$userId]);
+    $old = (string) ($previous->fetchColumn() ?: '');
+    if ($old !== '' && str_starts_with($old, 'uploads/avatars/')) {
+        @unlink(dirname(__DIR__) . '/' . $old);
+    }
+
+    $relative = 'uploads/avatars/' . $filename;
+    $db->prepare('UPDATE users SET avatar_url = ? WHERE id = ?')
+       ->execute([$relative, $userId]);
+
+    prep_json(['ok' => true, 'avatar_url' => $relative]);
 }

@@ -92,6 +92,7 @@ When you are finished the folder must look exactly like this:
 ├── .htaccess
 ├── index.php
 ├── config.local.php          ← you create this in A7
+├── uploads/avatars/          ← created automatically on first upload
 ├── lib/
 │   ├── .htaccess
 │   ├── config.php
@@ -189,6 +190,17 @@ going any further.
 > **Next.js** side, it holds different keys, it never goes on go54, and on
 > Vercel it is replaced by dashboard environment variables.
 
+### A7b. If you already imported the schema
+
+Profile pictures added a column. Run this once in phpMyAdmin → SQL:
+
+```sql
+ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255) NULL AFTER display_name;
+```
+
+It is also in `db/migrations/001_add_avatar.sql`. New installs get it from
+`schema.sql` and can skip this.
+
 ### A8. Email, for resets and confirmations
 
 Two things send email: password resets, and the confirm-your-email link sent
@@ -202,6 +214,22 @@ go54), then create an API key and put it in `RESEND_API_KEY` in
 
 If you leave `RESEND_API_KEY` blank the flow still works — it falls back to PHP
 `mail()` — but expect resets to land in spam until the domain is verified.
+
+**If mail is arriving but landing in spam**, authentication is not the problem:
+SPF, DKIM and DMARC already pass on this domain. What is left is reputation and
+shape, so:
+
+1. **Don't send from `no-reply@`.** Several providers score that pattern down on
+   its own, and a new domain has no reputation to absorb it. `config.local.php`
+   now defaults to `hello@` with a `MAIL_REPLY_TO`.
+2. **Strengthen DMARC.** The record is currently the bare minimum,
+   `v=DMARC1; p=none;`. Replace it with one that asks for reports, so you can
+   see what receivers actually do:
+   `v=DMARC1; p=none; rua=mailto:dmarc@behindthedata.tech; fo=1;`
+   Move to `p=quarantine` once the reports come back clean.
+3. **Mark the first few as "not spam", and reply to one.** A new sending domain
+   earns its reputation from engagement; those two actions are the strongest
+   positive signals available, and they work faster than any DNS change.
 
 ---
 

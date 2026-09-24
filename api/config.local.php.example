@@ -39,7 +39,11 @@ return [
 
     // ---- Email ------------------------------------------------------------
     // Used for password resets and confirm-your-email links.
-    'MAIL_FROM' => 'Prep <no-reply@behindthedata.tech>',
+    // Deliberately NOT no-reply@: several providers score that pattern down on
+    // its own, and a new sending domain has no reputation to absorb it. Use an
+    // address that actually receives mail, and answer anything sent to it.
+    'MAIL_FROM'     => 'Prep <hello@behindthedata.tech>',
+    'MAIL_REPLY_TO' => 'hello@behindthedata.tech',
 
     // Strongly recommended. Without it we fall back to PHP mail(), which shared
     // hosts routinely get filtered to spam — and a filtered reset link is a

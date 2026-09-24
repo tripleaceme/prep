@@ -138,7 +138,6 @@ export type Track = "business" | "technical";
 export interface AiInterviewConfig {
   jobDescription: string;
   track: Track;
-  industry: string;
   /** Technical track only. */
   level: string;
   difficulty: "Easy" | "Medium" | "Hard";
@@ -167,7 +166,10 @@ export function buildAiSystemInstruction(config: AiInterviewConfig): string {
   return (
     `You are ${config.personaName}, a ${role} conducting a mock ${config.track} interview. ` +
     `Job description:\n${config.jobDescription}\n\n` +
-    `Industry: ${config.industry}. ` +
+    // Asking the user for the industry was redundant: it is already stated or
+    // plainly implied by the posting, and the model reads it more reliably
+    // than someone typing it a second time.
+    "Work out the industry from the job description yourself, and ground your questions in how data is actually used in it. " +
     levelLine +
     (config.track === "technical"
       ? "Base your technical questions on the tools and technologies actually mentioned or implied in the job description. "
@@ -185,7 +187,7 @@ export function buildAiSystemInstruction(config: AiInterviewConfig): string {
 export function buildAiReviewInstruction(config: AiInterviewConfig): string {
   return (
     `You are now an interview coach reviewing the mock ${config.track} interview that just took place ` +
-    `for a ${config.industry} role. Base your evaluation only on what the candidate actually said.`
+    "for the role in the job description above. Base your evaluation only on what the candidate actually said."
   );
 }
 

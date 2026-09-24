@@ -71,8 +71,6 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
 
   /* ---- Screen 2: configuration --------------------------------------- */
   const [track, setTrack] = useState<Track>("technical");
-  const [industry, setIndustry] = useState("");
-  const [industryLocked, setIndustryLocked] = useState(false);
   const [level, setLevel] = useState(LEVELS[0]);
   const [difficulty, setDifficulty] =
     useState<(typeof DIFFICULTIES)[number]>("Medium");
@@ -181,10 +179,6 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
       );
       return;
     }
-    // A simulated posting already states its industry, so don't ask twice.
-    const simIndustry = tab === "simulate" ? sim.industry.trim() : "";
-    setIndustryLocked(!!simIndustry);
-    if (simIndustry) setIndustry(simIndustry);
     setError(null);
     setScreen(2);
   }
@@ -219,7 +213,6 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
     const config: AiInterviewConfig = {
       jobDescription,
       track,
-      industry: industry.trim() || "technology",
       level,
       difficulty,
       duration,
@@ -368,9 +361,6 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
               />
             </svg>
           </button>
-          <Link className="brand" href="/dashboard">
-            Prep
-          </Link>
           <div className="steps-track">
             {[1, 2, 3, 4].map((step) => (
               <div
@@ -421,6 +411,7 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
                 <label htmlFor="jdPaste">Job description</label>
                 <textarea
                   id="jdPaste"
+                  className="jd-textarea"
                   value={jdPaste}
                   onChange={(e) => setJdPaste(e.target.value)}
                   placeholder="Paste the job description here…"
@@ -548,94 +539,89 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
             <div className="eyebrow">Step 2 of 4</div>
             <h2 className="screen-title">Configure the interview.</h2>
             <p className="screen-sub">
-              Business or technical, industry either way, plus level if
-              it&apos;s technical.
+              The industry is taken from the job description. Choose the track,
+              how hard it should be, and how long you have.
             </p>
 
-            <div className="field">
-              <label>Track</label>
-              <div className="toggle-row">
-                {(["business", "technical"] as Track[]).map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`toggle-opt ${value}${track === value ? " selected" : ""}`}
-                    onClick={() => setTrack(value)}
+            <div className="field-grid">
+              <div className="field">
+                <label htmlFor="trackSelect">Track</label>
+                <select
+                  id="trackSelect"
+                  value={track}
+                  onChange={(e) => setTrack(e.target.value as Track)}
+                >
+                  <option value="technical">Technical</option>
+                  <option value="business">Business</option>
+                </select>
+              </div>
+
+              {track === "technical" ? (
+                <div className="field">
+                  <label htmlFor="levelSelect">Interview level</label>
+                  <select
+                    id="levelSelect"
+                    value={level}
+                    onChange={(e) => setLevel(e.target.value)}
                   >
-                    {value === "business" ? "Business" : "Technical"}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            {industryLocked ? (
-              <div className="field">
-                <label>Industry</label>
-                <div className="chip" style={{ display: "inline-block" }}>
-                  {industry}
+                    {LEVELS.map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))}
+                  </select>
                 </div>
-                <div className="hint">Set from your job description.</div>
-              </div>
-            ) : (
-              <div className="field">
-                <label htmlFor="industryInput">Industry</label>
-                <input
-                  id="industryInput"
-                  type="text"
-                  value={industry}
-                  onChange={(e) => setIndustry(e.target.value)}
-                  placeholder="e.g. Fintech, FMCG, e-commerce, logistics"
-                />
-              </div>
-            )}
+              ) : null}
 
-            {track === "technical" ? (
               <div className="field">
-                <label>Interview level</label>
-                <div className="chip-row">
-                  {LEVELS.map((value) => (
-                    <button
-                      key={value}
-                      type="button"
-                      className={`chip${level === value ? " selected" : ""}`}
-                      onClick={() => setLevel(value)}
-                    >
+                <label htmlFor="difficultySelect">Difficulty</label>
+                <select
+                  id="difficultySelect"
+                  value={difficulty}
+                  onChange={(e) =>
+                    setDifficulty(e.target.value as (typeof DIFFICULTIES)[number])
+                  }
+                >
+                  {DIFFICULTIES.map((value) => (
+                    <option key={value} value={value}>
                       {value}
-                    </button>
+                    </option>
                   ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label htmlFor="durationSelect">Duration</label>
+                <select
+                  id="durationSelect"
+                  value={duration}
+                  onChange={(e) => setDuration(Number(e.target.value))}
+                >
+                  {DURATIONS.map((value) => (
+                    <option key={value} value={value}>
+                      {value} minutes
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="field">
+                <label htmlFor="timingSelect">Feedback timing</label>
+                <select
+                  id="timingSelect"
+                  value={timing}
+                  onChange={(e) =>
+                    setTiming(e.target.value as "immediate" | "end")
+                  }
+                >
+                  <option value="immediate">After each answer</option>
+                  <option value="end">At the end of the session</option>
+                </select>
+                <div className="hint">
+                  {timing === "immediate"
+                    ? "Spoken feedback in the interviewer's voice, right after you answer."
+                    : "A written report once the interview is over."}
                 </div>
-              </div>
-            ) : null}
-
-            <div className="field">
-              <label>Difficulty</label>
-              <div className="chip-row">
-                {DIFFICULTIES.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`chip${difficulty === value ? " selected" : ""}`}
-                    onClick={() => setDifficulty(value)}
-                  >
-                    {value}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="field">
-              <label>Duration</label>
-              <div className="chip-row">
-                {DURATIONS.map((value) => (
-                  <button
-                    key={value}
-                    type="button"
-                    className={`chip${duration === value ? " selected" : ""}`}
-                    onClick={() => setDuration(value)}
-                  >
-                    {value} min
-                  </button>
-                ))}
               </div>
             </div>
 
@@ -650,45 +636,6 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
                 onChange={(e) => setAddressAs(e.target.value)}
                 placeholder="Your name"
               />
-            </div>
-
-            <div className="field">
-              <label>Feedback timing</label>
-              <div className="radio-row">
-                <label
-                  className={`radio-opt${timing === "immediate" ? " selected" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="timing"
-                    checked={timing === "immediate"}
-                    onChange={() => setTiming("immediate")}
-                  />
-                  <div>
-                    <div className="title">Immediately after each answer</div>
-                    <div className="desc">
-                      Spoken feedback, in the interviewer&apos;s voice, right
-                      after you answer.
-                    </div>
-                  </div>
-                </label>
-                <label
-                  className={`radio-opt${timing === "end" ? " selected" : ""}`}
-                >
-                  <input
-                    type="radio"
-                    name="timing"
-                    checked={timing === "end"}
-                    onChange={() => setTiming("end")}
-                  />
-                  <div>
-                    <div className="title">At the end of the session</div>
-                    <div className="desc">
-                      A written report once the interview is over.
-                    </div>
-                  </div>
-                </label>
-              </div>
             </div>
 
             <div className="btn-row">

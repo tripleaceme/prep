@@ -52,8 +52,11 @@ next-env.d.ts
 api/.env
 
 # Live API credentials. The .example template IS committed.
+# "* copy*" catches Finder duplicates, which have twice now slipped a stray
+# template into the repo under a name the specific rules didn't cover.
 api/config.local.php
 !api/config.local.php.example
+*\ copy*
 
 # Reference screenshots — competitor UI, not ours to ship
 /update/

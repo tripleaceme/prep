@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
@@ -11,6 +12,7 @@ import {
   History,
   Home,
   LogOut,
+  Settings,
   Bot,
   Dumbbell,
 } from "lucide-react";
@@ -50,9 +52,16 @@ const NAV: NavItem[] = [
     ],
   },
   { href: "/reports", label: "My Reports", icon: History },
+  { href: "/settings", label: "Settings", icon: Settings },
 ];
 
-export function Sidebar({ displayName }: { displayName: string }) {
+export function Sidebar({
+  displayName,
+  avatar,
+}: {
+  displayName: string;
+  avatar?: string | null;
+}) {
   const pathname = usePathname();
   const [open, setOpen] = useState(
     pathname.startsWith("/mock") || pathname.startsWith("/coding"),
@@ -155,9 +164,26 @@ export function Sidebar({ displayName }: { displayName: string }) {
 
       <div className="border-t border-[var(--border)] p-3">
         <div className="flex items-center gap-3 rounded-[var(--radius-sm)] px-2 py-2">
-          <span className="grid size-9 shrink-0 place-items-center rounded-full bg-[var(--brand)] text-sm font-bold text-white">
-            {displayName.charAt(0).toUpperCase()}
-          </span>
+          <Link
+            href="/settings"
+            aria-label="Profile settings"
+            className="size-9 shrink-0 overflow-hidden rounded-full"
+          >
+            {avatar ? (
+              <Image
+                src={avatar}
+                alt=""
+                width={72}
+                height={72}
+                unoptimized
+                className="size-full object-cover"
+              />
+            ) : (
+              <span className="grid size-full place-items-center rounded-full bg-[var(--brand)] text-sm font-bold text-white">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            )}
+          </Link>
           <div className="min-w-0 flex-1">
             <p className="truncate text-sm font-semibold">{displayName}</p>
             <ApiKeyBadge />

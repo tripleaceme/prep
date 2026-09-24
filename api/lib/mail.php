@@ -2,10 +2,16 @@
 /**
  * Prep API — outbound email.
  *
- * Only used for password resets. Deliverability is the whole game here: a
- * reset link filtered to spam is a permanently locked account, and shared-host
- * mail() is filtered routinely. Resend is used when configured; mail() remains
- * as a fallback so the flow still works before a sending domain is verified.
+ * Used for password resets and email confirmation. Deliverability is the whole
+ * game: a link filtered to spam is a locked account.
+ *
+ * SPF, DKIM and DMARC all pass on this domain, so what is left is reputation
+ * and shape. Two things here work against the filters and are deliberate:
+ * the sender is a real, replyable address rather than no-reply@ (which several
+ * providers score down on its own), and every message carries a Reply-To so a
+ * reply lands somewhere a human reads. Marking a message "not spam" and
+ * replying to it are the two strongest positive signals a new sending domain
+ * can earn.
  */
 
 declare(strict_types=1);
@@ -13,7 +19,7 @@ declare(strict_types=1);
 function prep_send_reset_link(string $email, string $url): bool
 {
     $expiry  = PREP_TOKEN_TTL_MINUTES;
-    $subject = 'Reset your Prep password';
+    $subject = 'Prep: reset your password';
 
     $text = <<<TXT
     Reset your Prep password
@@ -57,7 +63,7 @@ function prep_send_reset_link(string $email, string $url): bool
 function prep_send_verification_link(string $email, string $url): bool
 {
     $hours   = PREP_VERIFY_TTL_HOURS;
-    $subject = 'Confirm your email for Prep';
+    $subject = 'Prep: confirm your email address';
 
     $text = <<<TXT
     Confirm your email
@@ -107,11 +113,13 @@ function prep_send_email(
     string $html,
     string $text
 ): bool {
-    $from = prep_env('MAIL_FROM', 'Prep <no-reply@behindthedata.tech>');
+    $from = prep_env('MAIL_FROM', 'Prep <hello@behindthedata.tech>');
+    // Falls back to the From address, so there is always somewhere to reply.
+    $replyTo = $_ENV['MAIL_REPLY_TO'] ?? '';
     $resendKey = $_ENV['RESEND_API_KEY'] ?? '';
 
     if ($resendKey !== '') {
-        return prep_send_via_resend($resendKey, $from, $to, $subject, $html, $text);
+        return prep_send_via_resend($resendKey, $from, $to, $subject, $html, $text, $replyTo);
     }
 
     $headers = [
@@ -119,6 +127,9 @@ function prep_send_email(
         'MIME-Version: 1.0',
         'Content-Type: text/html; charset=UTF-8',
     ];
+    if ($replyTo !== '') {
+        $headers[] = 'Reply-To: ' . $replyTo;
+    }
     return mail($to, $subject, $html, implode("\r\n", $headers));
 }
 
@@ -128,7 +139,8 @@ function prep_send_via_resend(
     string $to,
     string $subject,
     string $html,
-    string $text
+    string $text,
+    string $replyTo = ''
 ): bool {
     $ch = curl_init('https://api.resend.com/emails');
     curl_setopt_array($ch, [
@@ -138,13 +150,17 @@ function prep_send_via_resend(
             'Authorization: Bearer ' . $apiKey,
             'Content-Type: application/json',
         ],
-        CURLOPT_POSTFIELDS => json_encode([
-            'from'    => $from,
-            'to'      => [$to],
-            'subject' => $subject,
-            'html'    => $html,
-            'text'    => $text,
-        ]),
+        CURLOPT_POSTFIELDS => json_encode(array_filter([
+            'from'     => $from,
+            'to'       => [$to],
+            'subject'  => $subject,
+            'html'     => $html,
+            'text'     => $text,
+            'reply_to' => $replyTo !== '' ? $replyTo : null,
+            // Transactional mail, so it must not be grouped with anything
+            // promotional a sending domain might send later.
+            'tags'     => [['name' => 'category', 'value' => 'transactional']],
+        ])),
     ]);
 
     $response = curl_exec($ch);

@@ -80,6 +80,12 @@ match (true) {
     $method === 'POST' && $path === 'profile'
         => prep_route_save_onboarding(prep_actor(), $body),
 
+    $method === 'POST' && $path === 'profile/name'
+        => prep_route_update_name(prep_actor(), $body),
+
+    $method === 'POST' && $path === 'profile/avatar'
+        => prep_route_update_avatar(prep_actor(), $body),
+
     $method === 'GET'  && $path === 'dashboard'
         => prep_route_dashboard(prep_actor()),
 

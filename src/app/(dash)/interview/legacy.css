@@ -12,6 +12,11 @@
    ======================================================================== */
 
 .legacy-shell {
+  /* Pinned to the viewport so the content column scrolls inside itself and the
+     three columns always line up, rather than step 2 stretching the page. */
+  height: 100dvh;
+  overflow: hidden;
+
   --ink: #0e1418;
   --surface: #161f25;
   --surface-2: #1d2830;
@@ -32,7 +37,6 @@
   font-family: "IBM Plex Sans", system-ui, sans-serif;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
-  min-height: 100dvh;
 }
 
 .legacy-shell h1,
@@ -51,25 +55,40 @@
 /* ---------- Shell: content column, history rail on the RIGHT ---------- */
 .legacy-shell .page-shell {
   display: flex;
-  align-items: flex-start;
-  min-height: 100dvh;
+  align-items: stretch;
+  height: 100dvh;
+  overflow: hidden;
 }
 .legacy-shell .app {
   flex: 1 1 auto;
   min-width: 0;
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 24px 80px;
+  padding: 0 24px 60px;
+  /* The only scroll container. A long configure step scrolls here; the rail
+     and the app nav stay put. */
+  height: 100dvh;
+  overflow-y: auto;
 }
 
 /* ---------- Top bar ---------- */
 .legacy-shell .topbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  justify-content: flex-end;
+  gap: 12px;
   padding: 22px 0;
   border-bottom: 1px solid var(--line);
   margin-bottom: 36px;
+  /* Stays visible while the step below scrolls under it. */
+  position: sticky;
+  top: 0;
+  background: var(--ink);
+  z-index: 5;
+}
+/* Pushes the step dots to the right when the drawer toggle is present. */
+.legacy-shell .history-toggle {
+  margin-right: auto;
 }
 .legacy-shell .brand {
   display: flex;
@@ -391,6 +410,41 @@
   gap: 12px;
   margin-top: 28px;
   flex-wrap: wrap;
+}
+
+/* ---------- Compact configure step ----------
+   Selects instead of chip rows and radio stacks: the same choices in a third
+   of the height, so step 2 fits without the column scrolling at all. */
+.legacy-shell .field-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 560px) {
+  .legacy-shell .field-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.legacy-shell select {
+  appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, var(--text-muted) 50%),
+    linear-gradient(135deg, var(--text-muted) 50%, transparent 50%);
+  background-position:
+    calc(100% - 18px) calc(50% + 2px),
+    calc(100% - 13px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+  padding-right: 38px;
+  cursor: pointer;
+}
+.legacy-shell select:focus {
+  border-color: var(--technical);
+  outline: none;
+}
+
+/* The job description is the whole point of step 1, so give it real room. */
+.legacy-shell .jd-textarea {
+  min-height: 46vh;
 }
 
 /* ---------- Toggle / chips ---------- */

@@ -25,6 +25,10 @@ CREATE TABLE IF NOT EXISTS users (
   email_verified_at DATETIME     NULL,
   password_hash     VARCHAR(255) NOT NULL,
   display_name      VARCHAR(120) NULL,
+  -- Path to an uploaded avatar, relative to the API root. Images are resized
+  -- and re-encoded in the browser before upload, so this never holds anything
+  -- larger than a small square.
+  avatar_url        VARCHAR(255) NULL,
 
   -- Onboarding answers (steps 1-4); NULL until onboarding completes.
   career_stage  ENUM('student','early','mid','senior','switching') NULL,
