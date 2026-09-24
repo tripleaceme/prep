@@ -15,15 +15,15 @@ SET time_zone = '+00:00';
 -- ---------------------------------------------------------------------------
 -- users
 --
--- `password_hash` is deliberately nullable and unused at launch. Sign-in is by
--- magic link only. When passwords are added later, users set one from Settings
--- and this column fills in — no migration, no change to existing accounts.
+-- Sign-in is email + password. `password_hash` holds the output of PHP's
+-- password_hash() — never the password itself. `email_verified_at` is unused
+-- at launch and reserved for confirmation emails later.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS users (
   id                CHAR(36)     NOT NULL,
   email             VARCHAR(255) NOT NULL,
   email_verified_at DATETIME     NULL,
-  password_hash     VARCHAR(255) NULL,
+  password_hash     VARCHAR(255) NOT NULL,
   display_name      VARCHAR(120) NULL,
 
   -- Onboarding answers (steps 1-4); NULL until onboarding completes.
@@ -47,17 +47,17 @@ CREATE TABLE IF NOT EXISTS users (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ---------------------------------------------------------------------------
--- auth_tokens — single-use magic links
+-- auth_tokens — reserved for "forgot password"
 --
--- Only the SHA-256 hash is stored. A leaked database therefore cannot be used
--- to log in as anyone; the raw token exists only in the email.
--- `purpose` already allows password_reset so that flow needs no schema change.
+-- Unused at launch, but created now so adding password reset later needs no
+-- migration. Only the SHA-256 hash of a token is ever stored, so a leaked
+-- database cannot be used to reset anyone's password.
 -- ---------------------------------------------------------------------------
 CREATE TABLE IF NOT EXISTS auth_tokens (
   id         CHAR(36)    NOT NULL,
   user_id    CHAR(36)    NOT NULL,
   token_hash CHAR(64)    NOT NULL,
-  purpose    ENUM('login','password_reset') NOT NULL DEFAULT 'login',
+  purpose    ENUM('password_reset','email_verify') NOT NULL DEFAULT 'password_reset',
   expires_at DATETIME    NOT NULL,
   used_at    DATETIME    NULL,
   request_ip VARBINARY(16) NULL,

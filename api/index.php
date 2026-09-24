@@ -9,12 +9,23 @@
 
 declare(strict_types=1);
 
+// `never` return types and readonly semantics used below need 8.1. Failing
+// loudly here beats a bare 500 with no explanation in the cPanel error log.
+if (PHP_VERSION_ID < 80100) {
+    http_response_code(500);
+    header('Content-Type: application/json');
+    exit(json_encode([
+        'error' => 'Prep requires PHP 8.1 or newer. This account is running ' . PHP_VERSION
+            . '. Change it in cPanel → Select PHP Version.',
+    ]));
+}
+
 require __DIR__ . '/lib/config.php';
 require __DIR__ . '/lib/http.php';
 require __DIR__ . '/lib/db.php';
-require __DIR__ . '/lib/mail.php';
 require __DIR__ . '/routes/auth.php';
 require __DIR__ . '/routes/profile.php';
+require __DIR__ . '/routes/interviews.php';
 
 // No browser should ever reach this API directly, so there is no CORS policy
 // to relax — omitting the header is the policy.
@@ -33,11 +44,15 @@ prep_verify_signature($method, $path, $rawBody);
 $body = prep_body();
 
 match (true) {
-    $method === 'POST' && $path === 'auth/request-link'
-        => prep_route_request_link($body),
+    // Signed, so it can report detail without exposing it publicly.
+    $method === 'GET' && $path === 'health'
+        => prep_route_health(),
 
-    $method === 'POST' && $path === 'auth/verify'
-        => prep_route_verify($body),
+    $method === 'POST' && $path === 'auth/register'
+        => prep_route_register($body),
+
+    $method === 'POST' && $path === 'auth/login'
+        => prep_route_login($body),
 
     $method === 'GET'  && $path === 'profile'
         => prep_route_get_profile(prep_actor()),
@@ -50,6 +65,24 @@ match (true) {
 
     $method === 'POST' && $path === 'activity'
         => prep_route_record_activity(prep_actor(), $body),
+
+    $method === 'POST' && $path === 'interviews'
+        => prep_route_start_interview(prep_actor(), $body),
+
+    $method === 'POST' && $path === 'interviews/complete'
+        => prep_route_complete_interview(prep_actor(), $body),
+
+    $method === 'GET'  && $path === 'reports'
+        => prep_route_list_reports(prep_actor()),
+
+    $method === 'GET'  && preg_match('#^reports/([0-9a-f-]{36})$#', $path, $m) === 1
+        => prep_route_get_report(prep_actor(), $m[1]),
+
+    $method === 'GET'  && $path === 'coding'
+        => prep_route_list_coding(prep_actor()),
+
+    $method === 'POST' && $path === 'coding'
+        => prep_route_save_coding(prep_actor(), $body),
 
     default => prep_json(['error' => 'Not found'], 404),
 };

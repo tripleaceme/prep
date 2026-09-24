@@ -1,0 +1,2 @@
+# Never serve library files directly, regardless of where api/ is mounted.
+Require all denied

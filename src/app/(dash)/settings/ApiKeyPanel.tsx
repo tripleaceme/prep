@@ -1,23 +1,17 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { Check, ExternalLink, KeyRound, Trash2 } from "lucide-react";
-import {
-  clearApiKey,
-  looksLikeGeminiKey,
-  readApiKey,
-  writeApiKey,
-} from "@/lib/apiKey";
+import { clearApiKey, looksLikeGeminiKey, writeApiKey } from "@/lib/apiKey";
+import { useApiKey } from "@/hooks/useApiKey";
 
 export function ApiKeyPanel() {
-  const [stored, setStored] = useState<string | null>(null);
+  // Subscribed rather than copied into state, so saving or removing the key
+  // updates this panel and the sidebar badge together.
+  const stored = useApiKey();
   const [value, setValue] = useState("");
   const [saved, setSaved] = useState(false);
   const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    setStored(readApiKey());
-  }, []);
 
   function save(e: React.FormEvent) {
     e.preventDefault();
@@ -35,7 +29,6 @@ export function ApiKeyPanel() {
     }
 
     writeApiKey(key);
-    setStored(key);
     setValue("");
     setError(null);
     setSaved(true);
@@ -44,7 +37,6 @@ export function ApiKeyPanel() {
 
   function remove() {
     clearApiKey();
-    setStored(null);
     setSaved(false);
   }
 

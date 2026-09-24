@@ -1,14 +1,14 @@
 # Prep API — Apache configuration for cPanel (go54)
 
 # Route everything to the front controller.
-RewriteEngine On
-RewriteCond %{REQUEST_FILENAME} !-f
-RewriteCond %{REQUEST_FILENAME} !-d
-RewriteRule ^ index.php [QSA,L]
-
-# The signature header must survive to PHP. Some cPanel/FCGI setups strip
-# non-standard headers, so re-expose them explicitly.
 <IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteCond %{REQUEST_FILENAME} !-f
+  RewriteCond %{REQUEST_FILENAME} !-d
+  RewriteRule ^ index.php [QSA,L]
+
+  # Some cPanel/FCGI setups drop non-standard headers before PHP sees them,
+  # which would make every signed request look unsigned. Re-expose them.
   RewriteCond %{HTTP:X-Prep-Signature} ^(.+)$
   RewriteRule .* - [E=HTTP_X_PREP_SIGNATURE:%1]
   RewriteCond %{HTTP:X-Prep-Timestamp} ^(.+)$
@@ -17,14 +17,15 @@ RewriteRule ^ index.php [QSA,L]
   RewriteRule .* - [E=HTTP_X_PREP_USER:%1]
 </IfModule>
 
-# Never serve configuration or source directly.
-<FilesMatch "\.(env|sql|md)$">
+# Never serve configuration or schema.
+<FilesMatch "\.(env|sql|md|example)$">
   Require all denied
 </FilesMatch>
 
-RedirectMatch 404 ^/api/(lib|routes)/
-
-# This API is called server-to-server only; browsers have no business here.
-Header always set X-Content-Type-Options "nosniff"
-Header always set X-Frame-Options "DENY"
-Header always set Referrer-Policy "no-referrer"
+# mod_headers is usually present, but a missing module is a hard 500 without
+# this guard — and that would take the whole API down.
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "no-referrer"
+</IfModule>

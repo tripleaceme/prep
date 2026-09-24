@@ -8,6 +8,37 @@
 
 declare(strict_types=1);
 
+/**
+ * GET /health — deployment check.
+ *
+ * Reports whether PHP is new enough, the database connects, and the schema has
+ * been imported. Signed like every other route, so it can be specific without
+ * telling the world how the host is configured.
+ */
+function prep_route_health(): never
+{
+    $tables = [];
+    $dbError = null;
+
+    try {
+        $stmt = prep_db()->query('SHOW TABLES');
+        $tables = $stmt ? $stmt->fetchAll(PDO::FETCH_COLUMN) : [];
+    } catch (Throwable $e) {
+        $dbError = $e->getMessage();
+    }
+
+    $expected = ['users', 'auth_tokens', 'interviews', 'reports', 'coding_attempts', 'activity_days'];
+    $missing = array_values(array_diff($expected, $tables));
+
+    prep_json([
+        'ok'            => $dbError === null && $missing === [],
+        'php'           => PHP_VERSION,
+        'database'      => $dbError === null ? 'connected' : 'failed',
+        'databaseError' => $dbError,
+        'missingTables' => $missing,
+    ]);
+}
+
 /** GET /profile */
 function prep_route_get_profile(string $userId): never
 {

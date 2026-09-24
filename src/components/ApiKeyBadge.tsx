@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
 import { KeyRound } from "lucide-react";
-import { readApiKey, subscribeApiKey } from "@/lib/apiKey";
+import { useHasApiKey } from "@/hooks/useApiKey";
 
 /**
  * Sits where the reference product shows a credit balance. Prep has no
@@ -11,24 +10,7 @@ import { readApiKey, subscribeApiKey } from "@/lib/apiKey";
  * because that, not a balance, is what decides if an interview can start.
  */
 export function ApiKeyBadge() {
-  // Start unknown so the server and first client render agree; localStorage is
-  // only readable after mount.
-  const [connected, setConnected] = useState<boolean | null>(null);
-
-  useEffect(() => {
-    const sync = () => setConnected(readApiKey() !== null);
-    sync();
-    return subscribeApiKey(sync);
-  }, []);
-
-  if (connected === null) {
-    return (
-      <span className="inline-flex items-center gap-1.5 text-xs text-[var(--text-faint)]">
-        <KeyRound className="size-3.5" />
-        Checking…
-      </span>
-    );
-  }
+  const connected = useHasApiKey();
 
   return (
     <Link
