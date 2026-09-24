@@ -33,6 +33,7 @@ function prep_route_analytics(): never
     // Each step is a count of distinct users, so the drop-off between them is
     // real people rather than events.
     $registered = (int) $one($db, 'SELECT COUNT(*) FROM users');
+    $verified   = (int) $one($db, 'SELECT COUNT(*) FROM users WHERE email_verified_at IS NOT NULL');
     $onboarded  = (int) $one($db, 'SELECT COUNT(*) FROM users WHERE onboarded_at IS NOT NULL');
     $started    = (int) $one($db, 'SELECT COUNT(DISTINCT user_id) FROM interviews');
     $completed  = (int) $one(
@@ -138,6 +139,7 @@ function prep_route_analytics(): never
         $db,
         "SELECT u.email, u.display_name, u.field, u.created_at,
                 u.onboarded_at IS NOT NULL AS onboarded,
+                u.email_verified_at IS NOT NULL AS verified,
                 u.current_streak, u.readiness,
                 (SELECT COUNT(*) FROM interviews i
                   WHERE i.user_id = u.id AND i.status = 'completed') AS completed_interviews
@@ -149,6 +151,7 @@ function prep_route_analytics(): never
     prep_json([
         'funnel' => [
             'registered' => $registered,
+            'verified'   => $verified,
             'onboarded'  => $onboarded,
             'started'    => $started,
             'completed'  => $completed,

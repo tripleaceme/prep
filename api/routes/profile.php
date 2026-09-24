@@ -44,7 +44,8 @@ function prep_route_get_profile(string $userId): never
 {
     $stmt = prep_db()->prepare(
         'SELECT id, email, display_name, career_stage, employer_type, goal, field,
-                onboarded_at, readiness, current_streak, longest_streak, last_active_on
+                onboarded_at, email_verified_at, readiness, current_streak,
+                longest_streak, last_active_on
            FROM users WHERE id = ? LIMIT 1'
     );
     $stmt->execute([$userId]);
@@ -55,6 +56,7 @@ function prep_route_get_profile(string $userId): never
     }
 
     $user['onboarded'] = $user['onboarded_at'] !== null;
+    $user['verified']  = $user['email_verified_at'] !== null;
     prep_json(['profile' => $user]);
 }
 

@@ -51,11 +51,67 @@ function prep_send_reset_link(string $email, string $url): bool
     </div>
     HTML;
 
+    return prep_send_email($email, $subject, $html, $text);
+}
+
+function prep_send_verification_link(string $email, string $url): bool
+{
+    $hours   = PREP_VERIFY_TTL_HOURS;
+    $subject = 'Confirm your email for Prep';
+
+    $text = <<<TXT
+    Confirm your email
+
+    You're already signed in and can use Prep right away — confirming just lets
+    us reach you if you ever need to reset your password.
+
+    {$url}
+
+    This link works once and expires in {$hours} hours.
+
+    If you didn't create a Prep account, you can ignore this email and nothing
+    further will happen.
+
+    Prep — Behind The Data Academy
+    TXT;
+
+    $safeUrl = htmlspecialchars($url, ENT_QUOTES, 'UTF-8');
+    $html = <<<HTML
+    <div style="background:#0a0c0b;padding:40px 20px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+      <div style="max-width:480px;margin:0 auto;background:#101413;border:1px solid #222a28;border-radius:16px;padding:32px">
+        <h1 style="margin:0 0 8px;color:#e8eeec;font-size:22px">Confirm your email</h1>
+        <p style="margin:0 0 24px;color:#9aa8a4;font-size:15px;line-height:1.6">
+          You're already signed in and can use Prep right away — confirming just
+          lets us reach you if you ever need to reset your password.
+        </p>
+        <a href="{$safeUrl}"
+           style="display:inline-block;background:#0c877b;color:#ffffff;text-decoration:none;
+                  padding:14px 28px;border-radius:12px;font-weight:600;font-size:15px">
+          Confirm my email
+        </a>
+        <p style="margin:24px 0 0;color:#6b7975;font-size:13px;line-height:1.6">
+          This link works once and expires in {$hours} hours. If you didn't
+          create a Prep account, ignore this email and nothing further happens.
+        </p>
+      </div>
+    </div>
+    HTML;
+
+    return prep_send_email($email, $subject, $html, $text);
+}
+
+/** Shared transport: Resend when configured, PHP mail() otherwise. */
+function prep_send_email(
+    string $to,
+    string $subject,
+    string $html,
+    string $text
+): bool {
     $from = prep_env('MAIL_FROM', 'Prep <no-reply@behindthedata.tech>');
     $resendKey = $_ENV['RESEND_API_KEY'] ?? '';
 
     if ($resendKey !== '') {
-        return prep_send_via_resend($resendKey, $from, $email, $subject, $html, $text);
+        return prep_send_via_resend($resendKey, $from, $to, $subject, $html, $text);
     }
 
     $headers = [
@@ -63,7 +119,7 @@ function prep_send_reset_link(string $email, string $url): bool
         'MIME-Version: 1.0',
         'Content-Type: text/html; charset=UTF-8',
     ];
-    return mail($email, $subject, $html, implode("\r\n", $headers));
+    return mail($to, $subject, $html, implode("\r\n", $headers));
 }
 
 function prep_send_via_resend(

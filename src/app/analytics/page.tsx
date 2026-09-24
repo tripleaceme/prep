@@ -12,6 +12,7 @@ export const metadata = { title: "Analytics", robots: { index: false, follow: fa
 interface Analytics {
   funnel: {
     registered: number;
+    verified: number;
     onboarded: number;
     started: number;
     completed: number;
@@ -38,6 +39,7 @@ interface Analytics {
     field: string | null;
     created_at: string;
     onboarded: number;
+    verified: number;
     current_streak: number;
     readiness: number;
     completed_interviews: number;
@@ -116,7 +118,7 @@ export default async function AnalyticsPage() {
         <StatTile
           label="ACCOUNTS"
           value={funnel.registered.toLocaleString()}
-          sub={`${funnel.onboarded} finished onboarding`}
+          sub={`${funnel.verified} confirmed · ${funnel.onboarded} onboarded`}
         />
         <StatTile
           label="ACTIVE THIS WEEK"
@@ -150,6 +152,11 @@ export default async function AnalyticsPage() {
                 label: "Registered",
                 value: funnel.registered,
                 note: "Created an account",
+              },
+              {
+                label: "Confirmed their email",
+                value: funnel.verified,
+                note: "Clicked the link — we can reach them if they get locked out",
               },
               {
                 label: "Finished onboarding",
@@ -294,6 +301,11 @@ export default async function AnalyticsPage() {
                   >
                     <td className="py-2.5 pr-4">
                       <span className="font-medium">{user.email}</span>
+                      {!user.verified ? (
+                        <span className="ml-2 rounded-full bg-[var(--warn-dim)] px-2 py-0.5 text-[10px] font-bold text-[var(--warn)]">
+                          UNCONFIRMED
+                        </span>
+                      ) : null}
                       {!user.onboarded ? (
                         <span className="ml-2 rounded-full bg-[var(--warn-dim)] px-2 py-0.5 text-[10px] font-bold text-[var(--warn)]">
                           NO ONBOARDING

@@ -62,6 +62,13 @@ match (true) {
     $method === 'POST' && $path === 'auth/reset'
         => prep_route_reset_password($body),
 
+    $method === 'POST' && $path === 'auth/verify-email'
+        => prep_route_verify_email($body),
+
+    // Actor-scoped, so nobody can trigger mail to an address they don't own.
+    $method === 'POST' && $path === 'auth/resend-verification'
+        => prep_route_resend_verification(prep_actor()),
+
     // Guarded by the admin session in the Next.js app, not by prep_actor():
     // analytics is not scoped to a user.
     $method === 'GET'  && $path === 'analytics'

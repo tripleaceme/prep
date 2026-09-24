@@ -49,9 +49,14 @@ function prep_env(string $key, ?string $default = null): string
 
 prep_load_env(__DIR__ . '/../.env');
 
-// How long a magic link stays valid. Short, because email is not a secure
-// channel and a stale link in an inbox is a standing risk.
+// Password reset links are short-lived: email is not a secure channel, and a
+// stale reset link sitting in an inbox is a standing risk.
 const PREP_TOKEN_TTL_MINUTES = 15;
+
+// Verification links are not. They grant nothing beyond confirming an address
+// the user already controls, and people genuinely do check their email the
+// next morning — a 15-minute window would just generate support requests.
+const PREP_VERIFY_TTL_HOURS = 48;
 
 // Rejects replayed requests from Vercel outside this window, in seconds.
 const PREP_SIGNATURE_WINDOW = 300;

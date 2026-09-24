@@ -139,11 +139,11 @@ RESEND_API_KEY=
 
 Replace `behindt_...` with the real prefixed names from A2. Save.
 
-### A8. Email, for password resets
+### A8. Email, for resets and confirmations
 
-Password reset is the only thing that sends email, and it is the one place
-where deliverability decides whether a user is locked out permanently. Shared
-hosts get filtered to spam routinely.
+Two things send email: password resets, and the confirm-your-email link sent
+at registration. Deliverability decides whether a locked-out user can ever get
+back in, and shared hosts get filtered to spam routinely.
 
 You already have a Resend account from PhD Scout. In Resend, verify
 `behindthedata.tech` as a sending domain (it gives you DNS records to add in
@@ -257,10 +257,11 @@ credentials from B3. You should see your own signup in the funnel.
 
 Worth knowing before you open this to the public:
 
-1. **No email verification.** Anyone can register with an address they don't
-   own. Fine for a free tool; revisit before there's anything to lose. Note the
-   `auth_tokens.purpose` column already allows `email_verify`, so adding it
-   needs no migration.
+1. **Email confirmation is a soft gate.** An unconfirmed account still works
+   in full — it just carries a banner. That is deliberate: blocking the app on
+   a delivered email would lock people out whenever mail gets filtered. To make
+   it a hard gate, check `profile.verified` in `src/app/(dash)/layout.tsx` and
+   redirect instead of rendering the banner.
 2. **Analytics starts at registration.** It cannot tell you how many people saw
    the landing page and left without signing up. Switch on Vercel Analytics in
    the project settings for that — no code, free at this scale.

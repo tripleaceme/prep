@@ -13,7 +13,13 @@ import {
 const inputClass =
   "w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3.5 outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--brand-bright)]";
 
-export function AuthScreen({ mode }: { mode: "login" | "register" }) {
+export function AuthScreen({
+  mode,
+  notice,
+}: {
+  mode: "login" | "register";
+  notice?: React.ReactNode;
+}) {
   const isRegister = mode === "register";
   const [state, formAction, pending] = useActionState<AuthResult | null, FormData>(
     isRegister ? registerAction : loginAction,
@@ -26,6 +32,8 @@ export function AuthScreen({ mode }: { mode: "login" | "register" }) {
       <div className="flex items-center justify-center px-6 py-12">
         <div className="w-full max-w-[400px]">
           <PrepMark className="mb-10" href="/" />
+
+          {notice}
 
           <h1 className="text-[32px] font-bold">
             {isRegister ? "Create your account" : "Welcome back"}

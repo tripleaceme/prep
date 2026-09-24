@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import { callApi } from "@/lib/api";
 import { readSession } from "@/lib/session";
+import { VerifiedNotice } from "@/components/VerifiedNotice";
 import { redirect } from "next/navigation";
 
 export const metadata = { title: "Home" };
@@ -59,7 +60,12 @@ const START_HERE = [
   },
 ];
 
-export default async function DashboardPage() {
+export default async function DashboardPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ verified?: string }>;
+}) {
+  const { verified } = await searchParams;
   const session = await readSession();
   if (!session) redirect("/login");
 
@@ -85,6 +91,8 @@ export default async function DashboardPage() {
 
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-10 lg:px-10">
+      <VerifiedNotice status={verified} />
+
       <h1 className="text-[34px] font-bold">
         {greeting()},{" "}
         <span className="text-[var(--brand-bright)]">{name}</span>
