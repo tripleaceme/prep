@@ -13,8 +13,9 @@
  * config.local.php directly runs the file, which returns an array to nobody and
  * prints not one character.
  *
- * .env is still read if present, but only as a fallback, and /health reports it
- * as exposed so the unsafe case can never sit there unnoticed.
+ * A leftover .env beside index.php is still read so an in-progress deployment
+ * does not break mid-switch, but /health reports it as exposed and refuses to
+ * pass until it is gone.
  */
 
 declare(strict_types=1);
@@ -22,28 +23,22 @@ declare(strict_types=1);
 /**
  * Finds the config file.
  *
- * `exposed` is true only for a plain .env, which a web server will hand over
- * as text. A .php config is never flagged: it cannot leak by being requested.
+ * There is exactly one supported location: config.local.php beside index.php.
+ *
+ * A leftover .env in the same folder is still read, purely so an existing
+ * deployment keeps working during the switch — but it is reported as `exposed`
+ * so /health refuses to pass while it is there. It is a migration aid, not an
+ * alternative.
  */
 function prep_locate_config(string $apiDir): array
 {
-    // A .php file in the web root is safe — it gets executed, not served.
+    // A .php file in the web root is safe: the server executes it rather than
+    // handing it over, so requesting it directly prints nothing.
     if (is_readable($apiDir . '/config.local.php')) {
-        return [
-            'path'     => $apiDir . '/config.local.php',
-            'kind'     => 'php',
-            'exposed'  => false,
-        ];
+        return ['path' => $apiDir . '/config.local.php', 'kind' => 'php', 'exposed' => false];
     }
 
-    // Legacy/alternative: a .env anywhere the web server cannot reach.
-    foreach ([dirname($apiDir) . '/prep-config/.env', dirname($apiDir) . '/.prep-env'] as $path) {
-        if (is_readable($path)) {
-            return ['path' => $path, 'kind' => 'env', 'exposed' => false];
-        }
-    }
-
-    // A .env beside index.php. Works, but this host will serve it publicly.
+    // Leftover from before the switch. This host serves it as plain text.
     if (is_readable($apiDir . '/.env')) {
         return ['path' => $apiDir . '/.env', 'kind' => 'env', 'exposed' => true];
     }

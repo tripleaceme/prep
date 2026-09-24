@@ -106,7 +106,7 @@ if (payload.envExposed) {
 
 if (payload.databaseError) {
   console.error(`\n✗ Database error: ${payload.databaseError}`);
-  console.error("  Check DB_NAME, DB_USER and DB_PASS in api/.env.");
+  console.error("  Check DB_NAME, DB_USER and DB_PASS in api/config.local.php.");
   process.exit(1);
 }
 

@@ -180,10 +180,14 @@ in a browser. You should get a **completely blank page**. If you can read your
 own credentials, PHP is not executing in that folder — stop and fix that before
 going any further.
 
-> A plain `.env` still works if you ever prefer one, but only outside the web
-> root. `/health` and `scripts/check-api.mjs` both fail loudly if they find one
-> sitting beside `index.php`, so the unsafe arrangement cannot come back
-> unnoticed.
+> There is no `.env` on go54 at all — `config.local.php` is the only config
+> file the API reads. (A leftover `.env` is still loaded so an in-progress
+> deployment doesn't break mid-switch, but `/health` refuses to pass while one
+> exists. Delete it.)
+>
+> Don't confuse this with `.env.local` in the repo root: that one is the
+> **Next.js** side, it holds different keys, it never goes on go54, and on
+> Vercel it is replaced by dashboard environment variables.
 
 ### A8. Email, for resets and confirmations
 
@@ -292,7 +296,7 @@ credentials from B3. You should see your own signup in the funnel.
 | **Empty 500 on every URL, no error text** | `lib/` or `routes/` didn't get uploaded. `index.php` alone cannot run — it `require`s them on its first lines, and a missing one is a fatal error with no output. Re-do A5 and upload all eleven files. Confirm with `api/_diag.php`. |
 | `The API returned HTML rather than JSON` | `PREP_API_URL` points at the wrong folder, or `.htaccess` didn't upload. Check hidden files are visible in File Manager. |
 | `Unsigned request` | The `X-Prep-*` headers are being stripped. Confirm `.htaccess` is present in the API root and `mod_rewrite` is on. |
-| `Bad signature` | `API_SHARED_SECRET` differs between `api/.env` and Vercel. Re-paste both; watch for trailing spaces. |
+| `Bad signature` | `API_SHARED_SECRET` differs between `api/config.local.php` on go54 and wherever the caller reads it from — `.env.local` for `check-api.mjs`, the Vercel dashboard for the live app. Re-paste; watch for trailing spaces and stray quotes. |
 | `Signature expired` | The go54 server clock is more than 5 minutes off. Raise it with support. |
 | `Prep requires PHP 8.1 or newer` | Go back to A1. |
 | `Missing tables` | The schema import in A3 didn't run. Re-import `db/schema.sql`. |
