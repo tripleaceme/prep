@@ -26,6 +26,11 @@ interface DashboardResponse {
   reports: unknown[];
 }
 
+/** "Ayoade Abel Adegbite" → "Ayoade". A greeting uses the name, not the record. */
+function firstName(full: string): string {
+  return full.trim().split(/\s+/)[0] || full;
+}
+
 function greeting(): string {
   const hour = new Date().getHours();
   if (hour < 12) return "Good morning";
@@ -84,8 +89,9 @@ export default async function DashboardPage({
     // actions below all still work.
   }
 
-  const name =
-    data.profile?.display_name?.trim() || session.email.split("@")[0];
+  const name = firstName(
+    data.profile?.display_name?.trim() || session.email.split("@")[0],
+  );
   const streak = data.profile?.current_streak ?? 0;
   const readiness = data.profile?.readiness ?? 0;
 

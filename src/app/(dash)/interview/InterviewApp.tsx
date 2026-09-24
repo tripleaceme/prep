@@ -543,7 +543,7 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
               how hard it should be, and how long you have.
             </p>
 
-            <div className="field-grid">
+            <div className="field-grid-3">
               <div className="field">
                 <label htmlFor="trackSelect">Track</label>
                 <select
@@ -556,22 +556,23 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
                 </select>
               </div>
 
-              {track === "technical" ? (
-                <div className="field">
-                  <label htmlFor="levelSelect">Interview level</label>
-                  <select
-                    id="levelSelect"
-                    value={level}
-                    onChange={(e) => setLevel(e.target.value)}
-                  >
-                    {LEVELS.map((value) => (
-                      <option key={value} value={value}>
-                        {value}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              ) : null}
+              {/* Level applies to both tracks — a business interview has a
+                  recruiter screen and later rounds just as a technical one
+                  does, and hiding it made the row jump about. */}
+              <div className="field">
+                <label htmlFor="levelSelect">Interview level</label>
+                <select
+                  id="levelSelect"
+                  value={level}
+                  onChange={(e) => setLevel(e.target.value)}
+                >
+                  {LEVELS.map((value) => (
+                    <option key={value} value={value}>
+                      {value}
+                    </option>
+                  ))}
+                </select>
+              </div>
 
               <div className="field">
                 <label htmlFor="difficultySelect">Difficulty</label>
@@ -589,7 +590,9 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
                   ))}
                 </select>
               </div>
+            </div>
 
+            <div className="field-grid-2">
               <div className="field">
                 <label htmlFor="durationSelect">Duration</label>
                 <select
@@ -617,11 +620,6 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
                   <option value="immediate">After each answer</option>
                   <option value="end">At the end of the session</option>
                 </select>
-                <div className="hint">
-                  {timing === "immediate"
-                    ? "Spoken feedback in the interviewer's voice, right after you answer."
-                    : "A written report once the interview is over."}
-                </div>
               </div>
             </div>
 

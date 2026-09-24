@@ -77,7 +77,10 @@
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  padding: 22px 0;
+  /* 64px, matching the app sidebar header and the history rail head, so the
+     three dividers read as one line straight across the screen. */
+  height: 64px;
+  padding: 0;
   border-bottom: 1px solid var(--line);
   margin-bottom: 36px;
   /* Stays visible while the step below scrolls under it. */
@@ -148,11 +151,14 @@
   width: 288px;
   flex-shrink: 0;
   height: 100dvh;
-  overflow-y: auto;
+  overflow: hidden;
   background: var(--surface);
   /* Right-hand rail, so the divider is on its left edge. */
   border-left: 1px solid var(--line);
-  padding: 16px;
+  /* No padding on the rail itself: the head must reach both edges so its
+     divider lines up with the other two columns. Padding lives on the
+     children instead. */
+  padding: 0;
   order: 2;
 }
 .legacy-shell .drawer-backdrop {
@@ -200,11 +206,12 @@
 .legacy-shell .history-sidebar-head {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
   gap: 8px;
+  height: 64px;
+  flex-shrink: 0;
+  padding: 0 16px;
   border-bottom: 1px solid var(--line);
-  padding-bottom: 14px;
-  margin-bottom: 14px;
 }
 .legacy-shell .history-sidebar-head h3 {
   font-size: 17px;
@@ -248,6 +255,7 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  padding: 16px;
 }
 .legacy-shell .history-empty {
   font-size: 13.5px;
@@ -280,8 +288,8 @@
   margin-bottom: 6px;
 }
 .legacy-shell .history-clear {
-  margin-top: 16px;
-  width: 100%;
+  flex-shrink: 0;
+  margin: 0 16px 16px;
 }
 
 /* ---------- Screens ---------- */
@@ -415,13 +423,24 @@
 /* ---------- Compact configure step ----------
    Selects instead of chip rows and radio stacks: the same choices in a third
    of the height, so step 2 fits without the column scrolling at all. */
-.legacy-shell .field-grid {
+.legacy-shell .field-grid-3 {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+.legacy-shell .field-grid-2 {
   display: grid;
   gap: 18px;
   grid-template-columns: repeat(2, minmax(0, 1fr));
 }
+@media (max-width: 860px) {
+  .legacy-shell .field-grid-3 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
 @media (max-width: 560px) {
-  .legacy-shell .field-grid {
+  .legacy-shell .field-grid-3,
+  .legacy-shell .field-grid-2 {
     grid-template-columns: 1fr;
   }
 }

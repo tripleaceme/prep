@@ -72,7 +72,10 @@ export function Sidebar({
 
   return (
     <aside className="flex h-dvh w-[260px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
-      <div className="border-b border-[var(--border)] px-5 py-5">
+      {/* h-16 is the shared header height. The interview topbar and the
+          history rail use the same number, so their dividers form one
+          unbroken line across all three columns. */}
+      <div className="flex h-16 shrink-0 items-center border-b border-[var(--border)] px-5">
         <PrepMark href="/dashboard" />
       </div>
 

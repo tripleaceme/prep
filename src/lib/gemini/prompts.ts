@@ -138,7 +138,7 @@ export type Track = "business" | "technical";
 export interface AiInterviewConfig {
   jobDescription: string;
   track: Track;
-  /** Technical track only. */
+  /** Applies to both tracks: a business interview has stages too. */
   level: string;
   difficulty: "Easy" | "Medium" | "Hard";
   /** Minutes. */
@@ -157,8 +157,7 @@ export const PERSONA_ROLES: Record<Track, string> = {
 
 export function buildAiSystemInstruction(config: AiInterviewConfig): string {
   const role = PERSONA_ROLES[config.track];
-  const levelLine =
-    config.track === "technical" ? `Interview stage: ${config.level}. ` : "";
+  const levelLine = `Interview stage: ${config.level}. `;
   const addressLine = config.addressAs
     ? `Address the candidate as ${config.addressAs}. `
     : "";
