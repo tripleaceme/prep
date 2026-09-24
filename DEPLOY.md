@@ -130,8 +130,8 @@ On your Mac, run this twice and keep both values:
 openssl rand -hex 32
 ```
 
-- The **first** value is `API_SHARED_SECRET`. It goes in *both* `api/.env` on
-  go54 and in Vercel. They must match character for character.
+- The **first** value is `API_SHARED_SECRET`. It goes in *both* the `.env` you
+  create in A7 and in Vercel. They must match character for character.
 - The **second** value is `SESSION_SECRET`. It goes in Vercel only. Changing it
   later signs everyone out, which is the intended emergency lever.
 
