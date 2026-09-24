@@ -30,11 +30,12 @@ yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# Real environment files never get committed. The *.example templates must,
-# because DEPLOY.md tells you to copy them — Next's default `.env*` was
-# swallowing them.
+# Real environment files never get committed. The .env.local.example template
+# must, because DEPLOY.md tells you to copy it — Next's default `.env*` was
+# swallowing it. The negation is deliberately narrow: a broader `!.env*.example`
+# let a Finder duplicate ("\.env copy.example") slip into the repo.
 .env*
-!.env*.example
+!.env.local.example
 
 # vercel
 .vercel
@@ -46,8 +47,9 @@ next-env.d.ts
 # Local environment
 .env
 .env.local
+# The API has no .env template on purpose: credentials belong in
+# api/config.local.php, because a .env in the web root is served as text.
 api/.env
-!api/.env.example
 
 # Live API credentials. The .example template IS committed.
 api/config.local.php
