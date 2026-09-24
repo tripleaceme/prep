@@ -93,6 +93,16 @@ if (!response.ok) {
 
 console.log(`  PHP version   ${payload.php}`);
 console.log(`  Database      ${payload.database}`);
+console.log(`  Config file   ${payload.envPath ?? "unknown"}`);
+
+if (payload.envExposed) {
+  console.error("\n\u2717 SECURITY: .env is inside the web root.");
+  console.error("  This host serves static files without consulting .htaccess,");
+  console.error("  so it is very likely readable over HTTPS. Check now:");
+  console.error(`      curl -s -o /dev/null -w '%{http_code}\\n' ${BASE.replace(/\/api\/?$/, "")}/.env`);
+  console.error("  Move it outside the web root and rotate every secret in it.");
+  process.exit(1);
+}
 
 if (payload.databaseError) {
   console.error(`\n✗ Database error: ${payload.databaseError}`);

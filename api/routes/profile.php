@@ -31,11 +31,14 @@ function prep_route_health(): never
     $missing = array_values(array_diff($expected, $tables));
 
     prep_json([
-        'ok'            => $dbError === null && $missing === [],
+        // An exposed .env is a failure even when everything else works.
+        'ok'            => $dbError === null && $missing === [] && !PREP_ENV_EXPOSED,
         'php'           => PHP_VERSION,
         'database'      => $dbError === null ? 'connected' : 'failed',
         'databaseError' => $dbError,
         'missingTables' => $missing,
+        'envExposed'    => PREP_ENV_EXPOSED,
+        'envPath'       => PREP_ENV_PATH,
     ]);
 }
 

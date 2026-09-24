@@ -120,10 +120,32 @@ openssl rand -hex 32
 - The **second** value is `SESSION_SECRET`. It goes in Vercel only. Changing it
   later signs everyone out, which is the intended emergency lever.
 
-### A7. Create `api/.env`
+### A7. Create the `.env` file — OUTSIDE the web root
 
-In File Manager, inside the same folder, click **+ File**, name it `.env`, then
-**Edit** it and paste:
+⚠️ **Do not put this beside `index.php`.** This host runs nginx in front of
+Apache, and nginx serves static files itself without ever reading `.htaccess`.
+A `.env` inside the web root is readable at `https://api.behindthedata.tech/.env`
+— database password and all. The `.htaccess` deny rule does not save you.
+
+In File Manager, go **one level above** the document root — if your API is at
+`/home/behindt/api.behindthedata.tech`, that means `/home/behindt`. Create a
+folder called `prep-config`, and inside it a file called `.env`:
+
+```
+/home/behindt/
+├── prep-config/
+│   └── .env          ← here: no URL can reach this
+└── api.behindthedata.tech/
+    ├── index.php
+    ├── lib/
+    └── routes/
+```
+
+The API looks there first and falls back to `api/.env` only if nothing is
+found. `/health` and `scripts/check-api.mjs` both fail loudly if it ever finds
+the fallback, so this cannot silently regress.
+
+Paste this into that file:
 
 ```
 DB_HOST=localhost

@@ -2,18 +2,53 @@
 /**
  * Prep API — configuration.
  *
- * Reads api/.env (never committed). Keep this file, and the whole api/
- * directory, outside public_html if your plan allows it; if it must live
- * inside, the bundled .htaccess blocks direct access to .env and lib/.
+ * The .env file is looked for ONE LEVEL ABOVE the document root first, and
+ * only falls back to sitting beside index.php.
+ *
+ * That order is deliberate and was learned the hard way. On this host nginx
+ * sits in front of Apache and serves static files itself, without ever reading
+ * .htaccess — so a `FilesMatch` deny on .env protects nothing, and the file was
+ * being served publicly with the database password in it. A file the web server
+ * cannot reach needs no rule to protect it.
  */
 
 declare(strict_types=1);
 
-function prep_load_env(string $path): void
+/**
+ * Finds .env, preferring a location outside the web root.
+ *
+ * Returns the path, and whether it is in a web-reachable directory — the
+ * health check reports the unsafe case loudly rather than letting it sit.
+ */
+function prep_locate_env(string $apiDir): array
 {
-    if (!is_readable($path)) {
+    $candidates = [
+        // Preferred: one level above the document root, unreachable over HTTP.
+        dirname($apiDir) . '/prep-config/.env',
+        dirname($apiDir) . '/.prep-env',
+        // Fallback: beside index.php. Works, but is only as private as the
+        // web server's configuration — which on this host is not enough.
+        $apiDir . '/.env',
+    ];
+
+    foreach ($candidates as $index => $path) {
+        if (is_readable($path)) {
+            return ['path' => $path, 'exposed' => $index === count($candidates) - 1];
+        }
+    }
+
+    return ['path' => null, 'exposed' => false];
+}
+
+function prep_load_env(?string $path): void
+{
+    if ($path === null || !is_readable($path)) {
         http_response_code(500);
-        exit('Server is not configured.');
+        header('Content-Type: application/json');
+        exit(json_encode([
+            'error' => 'Server is not configured: no .env file found. Expected it at '
+                . '../prep-config/.env (preferred) or beside index.php.',
+        ]));
     }
 
     foreach (file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES) as $line) {
@@ -47,7 +82,12 @@ function prep_env(string $key, ?string $default = null): string
     return $value;
 }
 
-prep_load_env(__DIR__ . '/../.env');
+$prepEnv = prep_locate_env(dirname(__DIR__));
+prep_load_env($prepEnv['path']);
+
+// Surfaced by /health so an exposed .env is reported rather than assumed safe.
+define('PREP_ENV_EXPOSED', $prepEnv['exposed']);
+define('PREP_ENV_PATH', (string) $prepEnv['path']);
 
 // Password reset links are short-lived: email is not a secure channel, and a
 // stale reset link sitting in an inbox is a standing risk.
