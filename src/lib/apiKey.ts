@@ -54,7 +54,12 @@ export function subscribeApiKey(onChange: () => void): () => void {
   };
 }
 
-/** A Google AI Studio key looks like `AIza…` and is ~39 characters. */
-export function looksLikeGeminiKey(value: string): boolean {
-  return /^AIza[\w-]{30,}$/.test(value.trim());
-}
+/*
+ * There is deliberately no key-format check here.
+ *
+ * The original app only checked the field was non-empty, and that was right:
+ * Google does not document a stable shape for these keys and can change it
+ * whenever it likes. A regex guessing at "AIza + 35 characters" rejected a
+ * perfectly good key, which is a worse failure than letting a bad one through
+ * — Google rejects a bad key on the first request, with a real message.
+ */

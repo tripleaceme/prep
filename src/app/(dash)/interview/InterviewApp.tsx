@@ -321,17 +321,22 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
   if (needsKey) {
     return (
       <div className="app">
-        <div className="screen" style={{ paddingTop: 60 }}>
-          <div className="eyebrow">AI key needed</div>
-          <h2 className="screen-title">Add your Gemini key to start.</h2>
-          <p className="screen-sub">
-            Prep runs the interview from your browser using your own key, which
-            is why it stays free. Google&apos;s free tier is enough for practice.
-          </p>
-          <div className="btn-row">
-            <Link className="btn btn-primary" href="/settings">
-              Add your key
-            </Link>
+        <div className="app-scroll">
+          <div className="app-inner">
+            <div className="screen">
+              <div className="eyebrow">AI key needed</div>
+              <h2 className="screen-title">Add your Gemini key to start.</h2>
+              <p className="screen-sub">
+                Prep runs the interview from your browser using your own key,
+                which is why it stays free. Google&apos;s free tier is enough
+                for practice.
+              </p>
+              <div className="btn-row">
+                <Link className="btn btn-primary" href="/settings">
+                  Add your key
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -377,7 +382,9 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
           </div>
         </div>
 
-        {error ? <div className="error-banner">{error}</div> : null}
+        <div className="app-scroll">
+          <div className="app-inner">
+            {error ? <div className="error-banner">{error}</div> : null}
 
         {/* ---------------- Screen 1: job description ---------------- */}
         {screen === 1 ? (
@@ -796,6 +803,8 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
             </div>
           </section>
         ) : null}
+          </div>
+        </div>
       </div>
 
       <HistoryRail

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Check, ExternalLink, KeyRound, Trash2 } from "lucide-react";
-import { clearApiKey, looksLikeGeminiKey, writeApiKey } from "@/lib/apiKey";
+import { clearApiKey, writeApiKey } from "@/lib/apiKey";
 import { useApiKey } from "@/hooks/useApiKey";
 
 export function ApiKeyPanel() {
@@ -19,12 +19,6 @@ export function ApiKeyPanel() {
 
     if (!key) {
       setError("Paste your key first.");
-      return;
-    }
-    if (!looksLikeGeminiKey(key)) {
-      setError(
-        "That doesn't look like a Gemini key — they start with \"AIza\". Check you copied the whole thing.",
-      );
       return;
     }
 
@@ -52,12 +46,6 @@ export function ApiKeyPanel() {
         </span>
         <div>
           <h2 className="text-lg font-bold">Your Gemini API key</h2>
-          <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
-            Prep runs interviews directly from your browser using your own key.
-            That is why it&apos;s free and why nothing you say in an interview
-            reaches our servers. The key is stored in this browser only — we
-            never receive it.
-          </p>
         </div>
       </div>
 
@@ -117,12 +105,6 @@ export function ApiKeyPanel() {
         Get a free key from Google AI Studio
         <ExternalLink className="size-3.5" />
       </a>
-
-      <p className="mt-6 border-t border-[var(--border)] pt-5 text-xs leading-relaxed text-[var(--text-faint)]">
-        Anyone with access to this browser&apos;s developer tools can read the
-        key, so use a key created for Prep rather than one tied to a production
-        project — and revoke it in AI Studio if you ever share the machine.
-      </p>
     </div>
   );
 }

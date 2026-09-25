@@ -59,16 +59,29 @@
   height: 100dvh;
   overflow: hidden;
 }
+/* The centre column fills the space between the two rails. It is a flex
+   column so the header can span the full width while the reading content
+   below stays centred and narrow. */
 .legacy-shell .app {
   flex: 1 1 auto;
   min-width: 0;
+  display: flex;
+  flex-direction: column;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* Only this scrolls, and it sits below the divider — so the line never moves
+   and never has a scrollbar running through it. */
+.legacy-shell .app-scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+.legacy-shell .app-inner {
   max-width: 720px;
   margin: 0 auto;
-  padding: 0 24px 60px;
-  /* The only scroll container. A long configure step scrolls here; the rail
-     and the app nav stay put. */
-  height: 100dvh;
-  overflow-y: auto;
+  padding: 36px 24px 60px;
 }
 
 /* ---------- Top bar ---------- */
@@ -77,17 +90,14 @@
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
-  /* 64px, matching the app sidebar header and the history rail head, so the
-     three dividers read as one line straight across the screen. */
+  /* 64px, matching the app sidebar header and the history rail head. Sitting
+     outside the centred reading column, its border runs the full width of this
+     column, so the three dividers join into one unbroken line. */
   height: 64px;
-  padding: 0;
+  flex-shrink: 0;
+  padding: 0 24px;
   border-bottom: 1px solid var(--line);
-  margin-bottom: 36px;
-  /* Stays visible while the step below scrolls under it. */
-  position: sticky;
-  top: 0;
   background: var(--ink);
-  z-index: 5;
 }
 /* Pushes the step dots to the right when the drawer toggle is present. */
 .legacy-shell .history-toggle {

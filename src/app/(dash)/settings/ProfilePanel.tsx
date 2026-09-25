@@ -149,9 +149,7 @@ export function ProfilePanel({
         <div className="text-sm text-[var(--text-muted)]">
           <p className="font-semibold text-[var(--text)]">Profile picture</p>
           <p className="mt-1 max-w-[42ch] leading-relaxed">
-            Click the circle to upload one. It&apos;s cropped to a square and
-            shrunk in your browser before it&apos;s sent, so nothing large — or
-            location data from your phone — ever leaves your machine.
+            Click the circle to upload one.
           </p>
         </div>
       </div>

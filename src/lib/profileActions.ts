@@ -35,6 +35,12 @@ export async function updateDisplayName(name: string): Promise<ProfileResult> {
     revalidatePath("/", "layout");
     return { ok: true };
   } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return {
+        error:
+          "The server doesn't have the profile endpoint yet — re-upload the api/ folder to go54.",
+      };
+    }
     return {
       error:
         error instanceof ApiError ? error.message : "Could not save that name.",
@@ -64,6 +70,13 @@ export async function updateAvatar(image: string): Promise<ProfileResult> {
     revalidatePath("/", "layout");
     return { ok: true, avatarUrl: (await assetUrl(result.avatar_url)) ?? undefined };
   } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      // The route exists in this repo but not on the server yet.
+      return {
+        error:
+          "The server doesn't have the avatar endpoint yet — re-upload the api/ folder to go54, and run the avatar_url migration in db/migrations/.",
+      };
+    }
     return {
       error:
         error instanceof ApiError
