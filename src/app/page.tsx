@@ -36,6 +36,75 @@ const LADDER = [
   },
 ];
 
+/** "Don't just get a score" — the outcomes section from the original landing. */
+const OUTCOMES = [
+  {
+    title: "Knowledge gaps",
+    body: "Identify concepts you recognise but can't yet explain confidently.",
+  },
+  {
+    title: "Reasoning feedback",
+    body: "See how well you apply concepts, explain trade-offs and work through unfamiliar situations.",
+  },
+  {
+    title: "Targeted review",
+    body: "Get specific concepts and topics to revisit instead of a generic list of things to study.",
+  },
+  {
+    title: "Another attempt",
+    body: "Practise again after you've closed the gaps and see whether your answers have improved.",
+  },
+];
+
+/**
+ * Carried over from the original landing page. Two answers are deliberately
+ * NOT verbatim: the old copy said "no account is needed" and that sessions
+ * stay in your browser, and neither is true any more. Restoring those as-is
+ * would have shipped two false claims.
+ */
+const FAQ = [
+  {
+    q: "Is Prep free?",
+    a: [
+      "Yes. Prep itself is free, with no credits and no subscription. You bring your own Gemini API key, and Google's free tier is enough for practice.",
+      "You do need an account, so your reports and progress follow you between devices.",
+    ],
+  },
+  {
+    q: "Can I use my own job description?",
+    a: [
+      "Yes. That's one of the main reasons Prep exists. Paste the job description for the role you're preparing for and Prep uses it to shape the interview around the position.",
+      "You can also create a simulated role from a title, company and industry.",
+    ],
+  },
+  {
+    q: "Is Prep only for Analytics Engineers?",
+    a: [
+      "Prep is designed for data and analytics roles, including analytics engineering, data engineering, analytics and business intelligence. The tracks and interview configuration adapt to the role you're preparing for.",
+    ],
+  },
+  {
+    q: "What's the difference between the Business and Technical tracks?",
+    a: [
+      "The Business track focuses on industry context, business judgment and how you apply data to business problems. The Technical track focuses on the technical knowledge and tools the role requires.",
+      "Both use industry context, because the way data is used in fintech, FMCG and e-commerce can be very different.",
+    ],
+  },
+  {
+    q: "What interview levels can I practise?",
+    a: [
+      "Every stage of the process, from an initial recruiter screen through to technical and more advanced technical rounds.",
+    ],
+  },
+  {
+    q: "What happens to my CV and my answers?",
+    a: [
+      "Your CV and job descriptions are read in your browser and sent straight to Google using your own key — they never pass through a Prep server.",
+      "What we do store is the report at the end of a session, so you can reopen it later. Check Google's current terms before using anything genuinely sensitive.",
+    ],
+  },
+];
+
 const STEPS = [
   {
     title: "Get a Gemini API key",
@@ -59,8 +128,26 @@ export default function LandingPage() {
   return (
     <>
       <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(10,12,11,0.85)] backdrop-blur">
-        <div className="mx-auto flex max-w-[1140px] items-center justify-between px-6 py-4">
+        <div className="mx-auto flex max-w-[1140px] items-center justify-between gap-6 px-6 py-4">
           <PrepMark href="/" />
+
+          {/* Hidden below md rather than becoming a burger: four anchors on a
+              single-page site are not worth a drawer. */}
+          <nav className="hidden items-center gap-7 text-sm text-[var(--text-muted)] md:flex">
+            <a href="#how" className="transition-colors hover:text-[var(--text)]">
+              How it works
+            </a>
+            <a href="#tracks" className="transition-colors hover:text-[var(--text)]">
+              Tracks
+            </a>
+            <a href="#why" className="transition-colors hover:text-[var(--text)]">
+              Why Prep
+            </a>
+            <a href="#faq" className="transition-colors hover:text-[var(--text)]">
+              FAQ
+            </a>
+          </nav>
+
           <Link
             href="/login"
             className="rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
@@ -99,7 +186,10 @@ export default function LandingPage() {
         </section>
 
         {/* Why generic practice isn't enough */}
-        <section className="border-y border-[var(--border)] bg-[var(--surface)]">
+        <section
+          id="why"
+          className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface)]"
+        >
           <div className="mx-auto max-w-[1140px] px-6 py-20">
             <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">
               Generic interview questions aren&apos;t enough.
@@ -134,7 +224,7 @@ export default function LandingPage() {
         </section>
 
         {/* Tracks — the thing no competitor has */}
-        <section className="mx-auto max-w-[1140px] px-6 py-20">
+        <section id="tracks" className="mx-auto max-w-[1140px] scroll-mt-20 px-6 py-20">
           <h2 className="max-w-[26ch] text-[32px] font-bold sm:text-[40px]">
             Practice what the interviewer will actually test.
           </h2>
@@ -166,6 +256,36 @@ export default function LandingPage() {
                 </ul>
               </div>
             ))}
+          </div>
+        </section>
+
+        {/* Outcomes */}
+        <section
+          id="outcomes"
+          className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface)]"
+        >
+          <div className="mx-auto max-w-[1140px] px-6 py-20">
+            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">
+              Don&apos;t just get a score. Know what to work on.
+            </h2>
+            <p className="mt-5 max-w-[68ch] leading-relaxed text-[var(--text-muted)]">
+              A useful practice session should leave you with a clearer idea of
+              what you know, what you don&apos;t, and what to do next.
+            </p>
+
+            <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+              {OUTCOMES.map((item) => (
+                <div
+                  key={item.title}
+                  className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6"
+                >
+                  <h3 className="font-bold">{item.title}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                    {item.body}
+                  </p>
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -201,7 +321,7 @@ export default function LandingPage() {
         </section>
 
         {/* How it works */}
-        <section className="mx-auto max-w-[1140px] px-6 py-20">
+        <section id="how" className="mx-auto max-w-[1140px] scroll-mt-20 px-6 py-20">
           <h2 className="text-[32px] font-bold sm:text-[40px]">
             Your next interview doesn&apos;t have to be your first practice run.
           </h2>
@@ -246,6 +366,58 @@ export default function LandingPage() {
               Start a Mock Interview
               <ArrowRight className="size-4" />
             </Link>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section
+          id="faq"
+          className="scroll-mt-20 border-t border-[var(--border)] bg-[var(--surface)]"
+        >
+          <div className="mx-auto max-w-[820px] px-6 py-20">
+            <p className="text-sm font-semibold text-[var(--brand-bright)]">
+              FAQ
+            </p>
+            <h2 className="mt-3 text-[32px] font-bold sm:text-[40px]">
+              Good to know before you start.
+            </h2>
+
+            <div className="mt-10 divide-y divide-[var(--border)] border-y border-[var(--border)]">
+              {FAQ.map((item, i) => (
+                <details key={item.q} className="group py-5" open={i === 0}>
+                  <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
+                    {item.q}
+                    <span
+                      aria-hidden
+                      className="shrink-0 text-[var(--text-faint)] transition-transform group-open:rotate-45"
+                    >
+                      +
+                    </span>
+                  </summary>
+                  {item.a.map((paragraph, j) => (
+                    <p
+                      key={j}
+                      className="mt-3 leading-relaxed text-[var(--text-muted)]"
+                    >
+                      {paragraph}
+                    </p>
+                  ))}
+                </details>
+              ))}
+            </div>
+
+            <p className="mt-8 text-sm text-[var(--text-faint)]">
+              Get a free key at{" "}
+              <a
+                href="https://aistudio.google.com/apikey"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="font-semibold text-[var(--brand-bright)] hover:underline"
+              >
+                aistudio.google.com/apikey
+              </a>
+              .
+            </p>
           </div>
         </section>
       </main>
