@@ -28,6 +28,7 @@ import {
   type Track,
 } from "@/lib/gemini/prompts";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
+import { useI18n } from "@/lib/i18n/context";
 import { jdToHtml } from "@/lib/jdToHtml";
 import { completeInterview, startInterview } from "@/lib/interviewActions";
 import { HistoryRail, type HistoryEntry } from "./HistoryRail";
@@ -52,6 +53,7 @@ function tierClass(tier: string): string {
 
 export function InterviewApp({ history }: { history: HistoryEntry[] }) {
   const router = useRouter();
+  const { lang, locale } = useI18n();
 
   /* ---- Screen 1: job description ------------------------------------- */
   const [screen, setScreen] = useState(1);
@@ -103,8 +105,10 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
   const previousIdRef = useRef<string | null>(null);
   const configRef = useRef<AiInterviewConfig | null>(null);
 
+  // The locale matters: without it a French answer is transcribed as garbled
+  // English, and the whole session is judged on the transcription.
   const { supported, listening, transcript, start, stop, reset } =
-    useSpeechRecognition();
+    useSpeechRecognition(locale);
 
   // Voice writes into the same box you can type in, so a mis-transcription is
   // editable before sending. Adjusting during render rather than in an effect.
@@ -219,6 +223,7 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
       addressAs: addressAs.trim(),
       timing,
       personaName: cast,
+      lang,
     };
     configRef.current = config;
 
@@ -414,7 +419,7 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
             </div>
 
             {tab === "paste" ? (
-              <div className="field">
+              <div className="field field-fill">
                 <label htmlFor="jdPaste">Job description</label>
                 <textarea
                   id="jdPaste"
@@ -528,7 +533,7 @@ export function InterviewApp({ history }: { history: HistoryEntry[] }) {
               </div>
             )}
 
-            <div className="btn-row">
+            <div className="btn-row btn-row-end">
               <button
                 type="button"
                 className="btn btn-primary"

@@ -187,7 +187,7 @@ export async function callInteraction(
   if (data === null) {
     throw new Error(
       lastCapacityMessage
-        ? `Every Gemini model we try is busy right now. Google said: "${lastCapacityMessage}" — wait a minute and try again.`
+        ? `Every Gemini model we try is busy right now. Google said: "${lastCapacityMessage}". Wait a minute and try again.`
         : "Gemini did not respond.",
     );
   }

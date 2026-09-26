@@ -1,6 +1,12 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, Check, Mic, Target, ClipboardList } from "lucide-react";
+import { useState } from "react";
+import { Menu, X } from "lucide-react";
 import { PrepMark } from "@/components/PrepMark";
+import { LanguageSelect } from "@/components/LanguageSelect";
+import { useT } from "@/lib/i18n/context";
 import { HeroWalkthrough } from "@/components/HeroWalkthrough";
 import { TRACKS } from "@/lib/tracks";
 
@@ -126,36 +132,84 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
+  const t = useT();
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  const NAV = [
+    { href: "#how", label: "How it works" },
+    { href: "#tracks", label: "Tracks" },
+    { href: "#why", label: "Why Prep" },
+    { href: "#faq", label: "FAQ" },
+  ];
+
   return (
     <>
-      <header className="sticky top-0 z-10 border-b border-[var(--border)] bg-[rgba(10,12,11,0.85)] backdrop-blur">
-        <div className="mx-auto flex max-w-[1140px] items-center justify-between gap-6 px-6 py-4">
+      <header className="sticky top-0 z-20 border-b border-[var(--border)] bg-[rgba(10,12,11,0.9)] backdrop-blur">
+        <div className="mx-auto flex max-w-[1140px] items-center justify-between gap-4 px-6 py-4">
           <PrepMark href="/" />
 
-          {/* Hidden below md rather than becoming a burger: four anchors on a
-              single-page site are not worth a drawer. */}
           <nav className="hidden items-center gap-7 text-sm text-[var(--text-muted)] md:flex">
-            <a href="#how" className="transition-colors hover:text-[var(--text)]">
-              How it works
-            </a>
-            <a href="#tracks" className="transition-colors hover:text-[var(--text)]">
-              Tracks
-            </a>
-            <a href="#why" className="transition-colors hover:text-[var(--text)]">
-              Why Prep
-            </a>
-            <a href="#faq" className="transition-colors hover:text-[var(--text)]">
-              FAQ
-            </a>
+            {NAV.map((item) => (
+              <a
+                key={item.href}
+                href={item.href}
+                className="transition-colors hover:text-[var(--text)]"
+              >
+                {t(item.label)}
+              </a>
+            ))}
           </nav>
 
-          <Link
-            href="/login"
-            className="rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
-          >
-            Start a Mock Interview
-          </Link>
+          <div className="flex items-center gap-2">
+            <div className="hidden md:block">
+              <LanguageSelect compact />
+            </div>
+            <Link
+              href="/login"
+              className="hidden rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-[var(--brand-hover)] sm:inline-flex"
+            >
+              {t("Start a Mock Interview")}
+            </Link>
+
+            {/* Below md the anchors and the language picker move in here,
+                rather than simply disappearing as they did before. */}
+            <button
+              type="button"
+              onClick={() => setMenuOpen((o) => !o)}
+              aria-expanded={menuOpen}
+              aria-label={menuOpen ? "Close menu" : "Open menu"}
+              className="grid size-10 place-items-center rounded-[var(--radius-sm)] border border-[var(--border)] text-[var(--text-muted)] transition-colors hover:text-[var(--text)] md:hidden"
+            >
+              {menuOpen ? <X className="size-5" /> : <Menu className="size-5" />}
+            </button>
+          </div>
         </div>
+
+        {menuOpen ? (
+          <div className="border-t border-[var(--border)] bg-[var(--surface)] md:hidden">
+            <nav className="mx-auto flex max-w-[1140px] flex-col px-6 py-2">
+              {NAV.map((item) => (
+                <a
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => setMenuOpen(false)}
+                  className="border-b border-[var(--border)] py-3.5 text-[var(--text-muted)] transition-colors last:border-0 hover:text-[var(--text)]"
+                >
+                  {t(item.label)}
+                </a>
+              ))}
+              <div className="flex flex-wrap items-center gap-3 py-4">
+                <LanguageSelect />
+                <Link
+                  href="/login"
+                  className="rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white sm:hidden"
+                >
+                  {t("Start a Mock Interview")}
+                </Link>
+              </div>
+            </nav>
+          </div>
+        ) : null}
       </header>
 
       <main>
@@ -168,21 +222,13 @@ export default function LandingPage() {
               <p className="text-sm font-semibold tracking-wide text-[var(--brand-bright)]">
                 Free · No credits · Bring your own AI key
               </p>
-              <h1 className="mt-5 max-w-[17ch] text-[42px] font-bold leading-[1.08] sm:text-[56px]">
-                Practice the interview before it costs you the offer.
-              </h1>
-              <p className="mt-6 max-w-[54ch] text-lg leading-relaxed text-[var(--text-muted)]">
-                A realistic voice interview simulator for data and analytics
-                roles. Paste the job description, answer questions out loud, and
-                find out what you actually know before the interviewer does.
-              </p>
+              <h1 className="mt-5 max-w-[17ch] text-[42px] font-bold leading-[1.08] sm:text-[56px]">{t("Practice the interview before it costs you the offer.")}</h1>
+              <p className="mt-6 max-w-[54ch] text-lg leading-relaxed text-[var(--text-muted)]">{t("A realistic voice interview simulator for data and analytics roles. Paste the job description, answer questions out loud, and find out what you actually know before the interviewer does.")}</p>
               <div className="mt-8 flex flex-wrap items-center gap-4">
                 <Link
                   href="/login"
                   className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-7 py-4 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
-                >
-                  Start a Mock Interview
-                  <ArrowRight className="size-4" />
+                >{t("Start a Mock Interview")}<ArrowRight className="size-4" />
                 </Link>
                 <span className="text-sm text-[var(--text-faint)]">
                   No card, no credits — you bring your own key.
@@ -200,9 +246,7 @@ export default function LandingPage() {
           className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface)]"
         >
           <div className="mx-auto max-w-[1140px] px-6 py-20">
-            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">
-              Generic interview questions aren&apos;t enough.
-            </h2>
+            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">{t("Generic interview questions aren't enough.")}</h2>
             <p className="mt-5 max-w-[68ch] leading-relaxed text-[var(--text-muted)]">
               You can ask an AI to interview you. But a generic conversation
               doesn&apos;t know what the role you&apos;re applying for actually
@@ -221,9 +265,9 @@ export default function LandingPage() {
                     <span className="grid size-11 place-items-center rounded-[var(--radius-sm)] bg-[var(--brand-dim)]">
                       <Icon className="size-5 text-[var(--brand-bright)]" />
                     </span>
-                    <h3 className="mt-5 text-lg font-bold">{p.title}</h3>
+                    <h3 className="mt-5 text-lg font-bold">{t(p.title)}</h3>
                     <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                      {p.body}
+                      {t(p.body)}
                     </p>
                   </div>
                 );
@@ -234,9 +278,7 @@ export default function LandingPage() {
 
         {/* Tracks — the thing no competitor has */}
         <section id="tracks" className="mx-auto max-w-[1140px] scroll-mt-20 px-6 py-20">
-          <h2 className="max-w-[26ch] text-[32px] font-bold sm:text-[40px]">
-            Practice what the interviewer will actually test.
-          </h2>
+          <h2 className="max-w-[26ch] text-[32px] font-bold sm:text-[40px]">{t("Practice what the interviewer will actually test.")}</h2>
           <p className="mt-5 max-w-[68ch] leading-relaxed text-[var(--text-muted)]">
             Data roles aren&apos;t interviewed like software roles. Prep is
             split by the domains you&apos;ll actually be questioned on, and each
@@ -249,9 +291,9 @@ export default function LandingPage() {
                 key={track.slug}
                 className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6"
               >
-                <h3 className="text-lg font-bold">{track.name}</h3>
+                <h3 className="text-lg font-bold">{t(track.name)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                  {track.blurb}
+                  {t(track.blurb)}
                 </p>
                 <ul className="mt-4 flex flex-wrap gap-2">
                   {track.topics.slice(0, 3).map((topic) => (
@@ -274,13 +316,8 @@ export default function LandingPage() {
           className="scroll-mt-20 border-y border-[var(--border)] bg-[var(--surface)]"
         >
           <div className="mx-auto max-w-[1140px] px-6 py-20">
-            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">
-              Don&apos;t just get a score. Know what to work on.
-            </h2>
-            <p className="mt-5 max-w-[68ch] leading-relaxed text-[var(--text-muted)]">
-              A useful practice session should leave you with a clearer idea of
-              what you know, what you don&apos;t, and what to do next.
-            </p>
+            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">{t("Don't just get a score. Know what to work on.")}</h2>
+            <p className="mt-5 max-w-[68ch] leading-relaxed text-[var(--text-muted)]">{t("A useful practice session should leave you with a clearer idea of what you know, what you don't, and what to do next.")}</p>
 
             <div className="mt-12 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
               {OUTCOMES.map((item) => (
@@ -288,9 +325,9 @@ export default function LandingPage() {
                   key={item.title}
                   className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-6"
                 >
-                  <h3 className="font-bold">{item.title}</h3>
+                  <h3 className="font-bold">{t(item.title)}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                    {item.body}
+                    {t(item.body)}
                   </p>
                 </div>
               ))}
@@ -301,9 +338,7 @@ export default function LandingPage() {
         {/* Understanding ladder */}
         <section className="border-y border-[var(--border)] bg-[var(--surface)]">
           <div className="mx-auto max-w-[1140px] px-6 py-20">
-            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">
-              Recognition isn&apos;t the same as understanding.
-            </h2>
+            <h2 className="max-w-[24ch] text-[32px] font-bold sm:text-[40px]">{t("Recognition isn't the same as understanding.")}</h2>
             <p className="mt-5 max-w-[68ch] leading-relaxed text-[var(--text-muted)]">
               Prep looks beyond whether you&apos;ve heard of a concept. The goal
               is to understand how confidently you can explain it and apply it
@@ -319,9 +354,9 @@ export default function LandingPage() {
                   <span className="text-sm font-bold text-[var(--brand-bright)]">
                     {String(i + 1).padStart(2, "0")}
                   </span>
-                  <h3 className="mt-3 text-lg font-bold">{rung.level}</h3>
+                  <h3 className="mt-3 text-lg font-bold">{t(rung.level)}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                    {rung.body}
+                    {t(rung.body)}
                   </p>
                 </li>
               ))}
@@ -331,9 +366,7 @@ export default function LandingPage() {
 
         {/* How it works */}
         <section id="how" className="mx-auto max-w-[1140px] scroll-mt-20 px-6 py-20">
-          <h2 className="text-[32px] font-bold sm:text-[40px]">
-            Your next interview doesn&apos;t have to be your first practice run.
-          </h2>
+          <h2 className="text-[32px] font-bold sm:text-[40px]">{t("Your next interview doesn't have to be your first practice run.")}</h2>
 
           <ol className="mt-12 grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
             {STEPS.map((step, i) => (
@@ -341,9 +374,9 @@ export default function LandingPage() {
                 <span className="grid size-9 place-items-center rounded-full bg-[var(--brand-dim)] text-sm font-bold text-[var(--brand-bright)]">
                   {i + 1}
                 </span>
-                <h3 className="mt-4 font-bold">{step.title}</h3>
+                <h3 className="mt-4 font-bold">{t(step.title)}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                  {step.body}
+                  {t(step.body)}
                 </p>
               </li>
             ))}
@@ -387,15 +420,13 @@ export default function LandingPage() {
             <p className="text-sm font-semibold text-[var(--brand-bright)]">
               FAQ
             </p>
-            <h2 className="mt-3 text-[32px] font-bold sm:text-[40px]">
-              Good to know before you start.
-            </h2>
+            <h2 className="mt-3 text-[32px] font-bold sm:text-[40px]">{t("Good to know before you start.")}</h2>
 
             <div className="mt-10 divide-y divide-[var(--border)] border-y border-[var(--border)]">
               {FAQ.map((item, i) => (
                 <details key={item.q} className="group py-5" open={i === 0}>
                   <summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-semibold">
-                    {item.q}
+                    {t(item.q)}
                     <span
                       aria-hidden
                       className="shrink-0 text-[var(--text-faint)] transition-transform group-open:rotate-45"
@@ -408,7 +439,7 @@ export default function LandingPage() {
                       key={j}
                       className="mt-3 leading-relaxed text-[var(--text-muted)]"
                     >
-                      {paragraph}
+                      {t(paragraph)}
                     </p>
                   ))}
                 </details>

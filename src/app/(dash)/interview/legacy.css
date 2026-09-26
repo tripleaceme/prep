@@ -81,7 +81,18 @@
 .legacy-shell .app-inner {
   max-width: 720px;
   margin: 0 auto;
-  padding: 36px 24px 60px;
+  padding: 36px 24px 40px;
+  /* Fills the scroll area so a step can size itself to the space available
+     rather than to a fixed height that happens to overflow. */
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+.legacy-shell .screen {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
 }
 
 /* ---------- Top bar ---------- */
@@ -471,9 +482,24 @@
   outline: none;
 }
 
-/* The job description is the whole point of step 1, so give it real room. */
+/* The job description takes whatever height is left after the heading, tabs
+   and buttons, rather than a fixed 46vh that pushed the step just past the
+   viewport and put a scrollbar on step one. */
+.legacy-shell .field-fill {
+  display: flex;
+  min-height: 0;
+  flex: 1;
+  flex-direction: column;
+}
 .legacy-shell .jd-textarea {
-  min-height: 46vh;
+  flex: 1;
+  min-height: 140px;
+}
+/* The action row sits at the bottom of the step, not immediately under the
+   field, so it lands in the same place whichever tab is showing. */
+.legacy-shell .btn-row-end {
+  margin-top: auto;
+  padding-top: 24px;
 }
 
 /* ---------- Toggle / chips ---------- */

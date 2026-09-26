@@ -4,6 +4,7 @@ import { readSession } from "@/lib/session";
 import { assetUrl } from "@/lib/profileActions";
 import { ApiKeyPanel } from "./ApiKeyPanel";
 import { ProfilePanel } from "./ProfilePanel";
+import { LanguageSelect } from "@/components/LanguageSelect";
 
 export const metadata = { title: "Settings" };
 
@@ -46,7 +47,22 @@ export default async function SettingsPage() {
           when a key is saved would drag the profile panel taller with it. */}
       <div className="mt-6 grid items-start gap-5 lg:grid-cols-2">
         <ProfilePanel initialName={name} initialAvatar={avatar} email={email} />
-        <ApiKeyPanel />
+
+        <div className="space-y-5">
+          <ApiKeyPanel />
+
+          <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
+            <h2 className="text-lg font-bold">Language</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
+              One setting, not two. Choosing French or German switches the
+              interface <em>and</em> the interview — the questions, the spoken
+              feedback, and what the microphone listens for.
+            </p>
+            <div className="mt-4">
+              <LanguageSelect />
+            </div>
+          </section>
+        </div>
       </div>
     </main>
   );

@@ -218,7 +218,7 @@ export function CvRevamp() {
               <textarea
                 value={jobPost}
                 onChange={(e) => setJobPost(e.target.value)}
-                placeholder="Paste the full job post — title, responsibilities, and the skills they ask for. The more you paste, the better the match."
+                placeholder="Paste the full job post. Title, responsibilities, and the skills they ask for. The more you paste, the better the match."
                 className={`${inputClass} mt-4 min-h-[160px] flex-1 resize-none`}
               />
             </div>
@@ -232,7 +232,7 @@ export function CvRevamp() {
               }`}
             >
               {error ??
-                "Read in this browser and sent straight to Google with your own key."}
+                "Paste your CV and the job post above, then click Revamp my CV."}
             </p>
             <button
               type="button"

@@ -43,7 +43,7 @@ const START_HERE = [
     href: "/cv",
     icon: FileText,
     title: "Revamp my CV",
-    body: "Paste the job post and your current CV. Get it rewritten to match the role — in seconds, no templates to wrestle.",
+    body: "Paste the job post and your current CV. Get it rewritten to match the role in seconds.",
     cta: "Revamp my CV",
     needsKey: true,
   },
@@ -59,7 +59,7 @@ const START_HERE = [
     href: "/mock",
     icon: Dumbbell,
     title: "Sharpen a specific skill",
-    body: "Focused practice by domain — data modelling, orchestration, pipelines, quality, architecture and governance.",
+    body: "Focused practice by domain: data modelling, orchestration, pipelines, quality, architecture and governance.",
     cta: "Pick a track",
     needsKey: false,
   },
@@ -104,7 +104,7 @@ export default async function DashboardPage({
         <span className="text-[var(--brand-bright)]">{name}</span>
       </h1>
       <p className="mt-2 text-[var(--text-muted)]">
-        Let&apos;s get you ready for your next interview — start below.
+        Let&apos;s get you ready for your next interview.
       </p>
 
       <section className="mt-9">

@@ -7,6 +7,7 @@
  */
 
 import { getTrack, type TrackSlug } from "@/lib/tracks";
+import { interviewInstruction, type Lang } from "@/lib/i18n/dictionary";
 
 export interface InterviewSetup {
   kind: "ai" | "mock";
@@ -147,6 +148,8 @@ export interface AiInterviewConfig {
   addressAs: string;
   timing: "immediate" | "end";
   personaName: string;
+  /** Interface language. The interview follows it, not just the buttons. */
+  lang: Lang;
 }
 
 /** The interviewer's job title, by track — as in the original. */
@@ -179,14 +182,19 @@ export function buildAiSystemInstruction(config: AiInterviewConfig): string {
     "Do not answer your own questions. Do not use markdown formatting. " +
     (config.timing === "immediate"
       ? "After the candidate answers, first give brief (1-2 sentence) spoken feedback rating their answer as Surface, Working, or Strong knowledge, then ask your next question in the same reply."
-      : "After the candidate answers, simply ask your next question. Do not give feedback yet.")
+      : "After the candidate answers, simply ask your next question. Do not give feedback yet.") +
+    interviewInstruction(config.lang)
   );
 }
 
 export function buildAiReviewInstruction(config: AiInterviewConfig): string {
   return (
     `You are now an interview coach reviewing the mock ${config.track} interview that just took place ` +
-    "for the role in the job description above. Base your evaluation only on what the candidate actually said."
+    "for the role in the job description above. Base your evaluation only on what the candidate actually said." +
+    interviewInstruction(config.lang) +
+    // The report is parsed as JSON, so the keys and the tier words must stay
+    // English even when the prose around them is translated.
+    " The JSON keys and the tier values (Surface, Working, Strong) must stay exactly as specified in English; only the human-readable text is translated."
   );
 }
 
