@@ -3,6 +3,7 @@ import { DBT_PROBLEMS } from "./dbt";
 import { DIMENSIONAL_PROBLEMS } from "./dimensional";
 import { ORCHESTRATION_PROBLEMS } from "./orchestration";
 import { PERFORMANCE_PROBLEMS } from "./performance";
+import { PIPELINE_DESIGN_PROBLEMS } from "./pipeline-design";
 import { PYTHON_PROBLEMS } from "./python";
 import { QUALITY_PROBLEMS } from "./quality";
 import { SQL_PROBLEMS } from "./sql";
@@ -20,6 +21,7 @@ export const PROBLEMS: Problem[] = [
   ...(QUALITY_PROBLEMS as Problem[]),
   ...ORCHESTRATION_PROBLEMS,
   ...PERFORMANCE_PROBLEMS,
+  ...PIPELINE_DESIGN_PROBLEMS,
   ...ARCHITECTURE_PROBLEMS,
 ];
 
