@@ -58,6 +58,43 @@ INSERT INTO stg_customers VALUES
   (4,'Marta Silva','PT',TIMESTAMP '2024-04-02 10:00:00');
 `;
 
+
+/* A subscription business, carried across the modelling case studies so the
+   scenario builds rather than resetting at every question. */
+const BILLING_FIXTURE = `
+CREATE OR REPLACE TABLE stg_subscriptions (
+  subscription_id INTEGER, account_id INTEGER, plan VARCHAR,
+  started_on DATE, cancelled_on DATE, mrr DECIMAL(10,2)
+);
+INSERT INTO stg_subscriptions VALUES
+  (1,10,'starter',DATE '2024-01-05',DATE '2024-05-31',29.00),
+  (2,11,'growth', DATE '2024-01-18',DATE '2024-04-02',99.00),
+  (3,12,'starter',DATE '2024-02-02',DATE '2024-02-27',29.00),
+  (4,13,'scale',  DATE '2024-02-14',NULL,299.00),
+  (5,14,'growth', DATE '2024-03-01',NULL,99.00),
+  (6,10,'growth', DATE '2024-06-01',NULL,99.00);
+
+CREATE OR REPLACE TABLE stg_accounts (
+  account_id INTEGER, company VARCHAR, segment VARCHAR, country VARCHAR
+);
+INSERT INTO stg_accounts VALUES
+  (10,'Oyelaran Foods','smb','NG'),
+  (11,'Bakare Logistics','smb','NG'),
+  (12,'Chen Retail','smb','SG'),
+  (13,'Silva Industries','enterprise','PT'),
+  (14,'Adeyemi Health','mid','NG');
+
+CREATE OR REPLACE TABLE raw_plan_history (
+  account_id INTEGER, plan VARCHAR, valid_from DATE, loaded_at TIMESTAMP
+);
+INSERT INTO raw_plan_history VALUES
+  (10,'starter',DATE '2024-01-05',TIMESTAMP '2024-01-05 02:00:00'),
+  (10,'growth', DATE '2024-06-01',TIMESTAMP '2024-06-01 02:00:00'),
+  (11,'growth', DATE '2024-01-18',TIMESTAMP '2024-01-18 02:00:00'),
+  (13,'growth', DATE '2024-02-14',TIMESTAMP '2024-02-14 02:00:00'),
+  (13,'scale',  DATE '2024-04-01',TIMESTAMP '2024-04-01 02:00:00');
+`;
+
 export const DBT_PROBLEMS: DbtProblem[] = [
   {
     kind: "dbt",
@@ -177,5 +214,136 @@ where rn = 1
 order by customer_id`,
     orderMatters: true,
     hint: "row_number() over (partition by the key order by the timestamp desc), then keep rn = 1.",
+  },
+  {
+    kind: "dbt",
+    slug: "dbt-case-account-summary",
+    title: "Case study: the account table everyone keeps rebuilding",
+    category: "dbt-modelling",
+    difficulty: "medium",
+    refs: { stg_subscriptions: "stg_subscriptions", stg_accounts: "stg_accounts" },
+    prompt: [
+      "Three analysts have each written their own version of 'active revenue per account', and the three numbers disagree. You've been asked to settle it with one model everybody uses.",
+      "Write `dim_accounts`: one row per account, with `account_id`, `company`, `segment`, `active_subscriptions` and `active_mrr`.",
+      "Active means `cancelled_on` is null. Accounts with nothing active still belong in the table — a dimension that drops rows is how the disagreement started. Show 0 for them.",
+      "Order by `account_id`.",
+    ],
+    setup: BILLING_FIXTURE,
+    starter: `{{ config(materialized='table') }}
+
+select
+    a.account_id,
+    a.company,
+    a.segment
+    -- the two measures
+from {{ ref('stg_accounts') }} a
+-- join the subscriptions
+`,
+    solution: `select
+    a.account_id,
+    a.company,
+    a.segment,
+    count(s.subscription_id) as active_subscriptions,
+    coalesce(sum(s.mrr), 0) as active_mrr
+from stg_accounts a
+left join stg_subscriptions s
+  on s.account_id = a.account_id
+ and s.cancelled_on is null
+group by a.account_id, a.company, a.segment
+order by a.account_id`,
+    orderMatters: true,
+    hint: "The active test belongs in the ON clause. Put it in WHERE and the left join collapses to an inner one, which is exactly the bug that made the three numbers differ.",
+  },
+  {
+    kind: "dbt",
+    slug: "dbt-case-plan-scd2",
+    title: "Case study: track how plans changed over time",
+    category: "dbt-modelling",
+    difficulty: "hard",
+    prompt: [
+      "Sales wants to know what plan an account was on when a given deal closed. Today the warehouse only holds the current plan, so every historical question is unanswerable.",
+      "`raw_plan_history` has one row per plan change, with `account_id`, `plan` and `valid_from`.",
+      "Write `dim_account_plans` as a type 2 dimension: `account_id`, `plan`, `valid_from`, `valid_to` and `is_current`.",
+      "`valid_to` is the day before the next change for that account, and null for the current row. `is_current` is true for the latest row per account.",
+      "Order by `account_id`, then `valid_from`. This is the single most common modelling question asked of analytics engineers, so it is worth being fluent in.",
+    ],
+    refs: { raw_plan_history: "raw_plan_history" },
+    setup: BILLING_FIXTURE,
+    starter: `with changes as (
+    select
+        account_id,
+        plan,
+        valid_from,
+        -- when does the next version start?
+    from {{ source('raw', 'raw_plan_history') }}
+)
+
+select
+    account_id,
+    plan,
+    valid_from
+    -- valid_to and is_current
+from changes
+`,
+    solution: `with changes as (
+    select
+        account_id,
+        plan,
+        valid_from,
+        lead(valid_from) over (partition by account_id order by valid_from) as next_from
+    from raw_plan_history
+)
+select
+    account_id,
+    plan,
+    valid_from,
+    case when next_from is null then null else next_from - 1 end as valid_to,
+    next_from is null as is_current
+from changes
+order by account_id, valid_from`,
+    orderMatters: true,
+    hint: "LEAD gives the next valid_from per account. Subtract a day from it for valid_to, and a null LEAD marks the current row.",
+  },
+  {
+    kind: "dbt",
+    slug: "dbt-case-monthly-revenue-grain",
+    title: "Case study: revenue by month, not by subscription",
+    category: "dbt-modelling",
+    difficulty: "hard",
+    prompt: [
+      "Finance wants a monthly revenue table. The subscriptions model has one row per subscription with a start and an end, which is the wrong grain — nobody can chart it.",
+      "Write `fct_monthly_revenue` at one row per `month` per `plan`, covering January to June 2024, with `month` (first day of the month), `plan` and `mrr` — the total `mrr` of subscriptions live at any point in that month.",
+      "A subscription is live in a month if it started on or before the month's end and had not cancelled before the month's start.",
+      "Order by `month`, then `plan`. Reshaping a row-per-entity table into a row-per-period table is the everyday work of a modelling role.",
+    ],
+    refs: { stg_subscriptions: "stg_subscriptions" },
+    setup: BILLING_FIXTURE,
+    starter: `with months as (
+    -- generate the six month starts as one row each
+    select null as month
+)
+
+select
+    m.month,
+    s.plan
+    -- the measure
+from months m
+-- join the subscriptions on an overlap, not an equality
+`,
+    solution: `with months as (
+    select unnest(generate_series(date '2024-01-01', date '2024-06-01', interval 1 month))::date as month
+)
+select
+    m.month,
+    s.plan,
+    sum(s.mrr) as mrr
+from months m
+join stg_subscriptions s
+  on s.started_on <= (m.month + interval 1 month - interval 1 day)
+ and (s.cancelled_on is null or s.cancelled_on >= m.month)
+group by m.month, s.plan
+order by m.month, s.plan`,
+    orderMatters: true,
+    hint: "Build a month spine first with generate_series, then join subscriptions to it on an overlap condition rather than on equality.",
   },
 ];

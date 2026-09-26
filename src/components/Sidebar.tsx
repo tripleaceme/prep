@@ -49,7 +49,7 @@ const NAV: NavItem[] = [
     icon: Dumbbell,
     children: [
       { href: "/mock", label: "Practice Tracks" },
-      { href: "/coding", label: "Coding Problems", tag: "FREE" },
+      { href: "/coding", label: "Coding Problems" },
     ],
   },
   { href: "/reports", label: "My Reports", icon: History },

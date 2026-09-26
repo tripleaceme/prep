@@ -47,7 +47,7 @@ export default async function SettingsPage() {
           panel taller with it.
           Profile and key sit side by side; language spans both, since it is
           one setting rather than a column of its own. */}
-      <div className="mt-6 grid items-start gap-5 lg:grid-cols-2">
+      <div className="mt-6 grid gap-5 lg:grid-cols-2">
         <ProfilePanel initialName={name} initialAvatar={avatar} email={email} />
         <ApiKeyPanel />
 

@@ -127,3 +127,59 @@ export const CATEGORIES: {
       "The questions with no single right answer — where the interviewer is listening for trade-offs.",
   },
 ];
+
+/* ------------------------------------------------------------------------ */
+/* Groups                                                                    */
+/*                                                                           */
+/* Categories are fine-grained — window functions, dbt modelling — but a      */
+/* flat list of every problem in every category is a wall to scroll rather    */
+/* than something to choose from. Groups sit above them: you pick a subject,  */
+/* then see its problems.                                                     */
+/* ------------------------------------------------------------------------ */
+
+export type Group = "sql" | "modelling" | "pipelines" | "architecture";
+
+export const GROUPS: {
+  value: Group;
+  label: string;
+  blurb: string;
+  categories: Category[];
+}[] = [
+  {
+    value: "sql",
+    label: "SQL",
+    blurb:
+      "From a first filter through to window functions — the questions a screen actually opens with.",
+    categories: ["sql-fundamentals", "joins-aggregation", "window-functions"],
+  },
+  {
+    value: "modelling",
+    label: "Data Modelling",
+    blurb:
+      "dbt models, grain, slowly changing dimensions. Your ref() calls resolve and the SQL runs.",
+    categories: ["dbt-modelling"],
+  },
+  {
+    value: "pipelines",
+    label: "Pipelines",
+    blurb:
+      "Transform logic, watermarks and idempotency in Python — plus pipelines producing wrong numbers.",
+    categories: ["python-pipelines", "pipeline-debugging"],
+  },
+  {
+    value: "architecture",
+    label: "Architecture & Design",
+    blurb:
+      "The questions with no single right answer, where the interviewer is listening for trade-offs.",
+    categories: ["architecture"],
+  },
+];
+
+export function getGroup(value: string) {
+  return GROUPS.find((g) => g.value === value);
+}
+
+/** Which group a category belongs to. */
+export function groupOfCategory(category: Category): Group {
+  return GROUPS.find((g) => g.categories.includes(category))?.value ?? "sql";
+}

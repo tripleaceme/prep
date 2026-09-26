@@ -63,7 +63,135 @@ INSERT INTO product_sales VALUES
   ('Support Basic','Services',330),('Support Plus','Services',290);
 `;
 
+
+/* Case-study fixtures ------------------------------------------------------
+   A single subscription business, reused across several problems, so the
+   scenario carries over instead of restarting with every question. */
+
+const SUBSCRIPTIONS_FIXTURE = `
+CREATE OR REPLACE TABLE subscriptions (
+  subscription_id INTEGER, account_id INTEGER, plan VARCHAR,
+  started_on DATE, cancelled_on DATE, mrr DECIMAL(10,2)
+);
+INSERT INTO subscriptions VALUES
+  (1,10,'starter',DATE '2024-01-05',NULL,29.00),
+  (2,11,'growth', DATE '2024-01-18',DATE '2024-04-02',99.00),
+  (3,12,'starter',DATE '2024-02-02',DATE '2024-02-27',29.00),
+  (4,13,'scale',  DATE '2024-02-14',NULL,299.00),
+  (5,14,'growth', DATE '2024-03-01',NULL,99.00),
+  (6,15,'starter',DATE '2024-03-20',DATE '2024-06-11',29.00),
+  (7,16,'growth', DATE '2024-04-04',NULL,99.00),
+  (8,17,'scale',  DATE '2024-05-09',DATE '2024-05-30',299.00);
+
+CREATE OR REPLACE TABLE usage_events (
+  account_id INTEGER, occurred_at TIMESTAMP, feature VARCHAR
+);
+INSERT INTO usage_events VALUES
+  (10,TIMESTAMP '2024-05-01 09:00:00','query'),
+  (10,TIMESTAMP '2024-05-01 09:04:00','query'),
+  (10,TIMESTAMP '2024-05-01 10:30:00','export'),
+  (11,TIMESTAMP '2024-05-01 11:00:00','query'),
+  (13,TIMESTAMP '2024-05-02 08:00:00','dashboard'),
+  (13,TIMESTAMP '2024-05-02 08:20:00','query'),
+  (13,TIMESTAMP '2024-05-02 12:00:00','query'),
+  (14,TIMESTAMP '2024-05-03 14:00:00','export');
+`;
+
 export const SQL_PROBLEMS: (SqlProblem | DbtProblem)[] = [
+  {
+    kind: "sql",
+    slug: "select-and-filter",
+    title: "Your first query: pick columns, not everything",
+    category: "sql-fundamentals",
+    difficulty: "easy",
+    prompt: [
+      "Start here if you haven't written much SQL. The `orders` table has `order_id`, `customer_id`, `ordered_on`, `status` and `amount`.",
+      "`SELECT *` is fine while you're exploring, but a query that feeds a report should name its columns — so that adding a column upstream doesn't silently change what the report shows.",
+      "Return just `order_id`, `ordered_on` and `amount` for orders over 100, newest first.",
+    ],
+    setup: ORDERS_FIXTURE,
+    starter: "SELECT *\nFROM orders\n",
+    solution: `SELECT order_id, ordered_on, amount
+FROM orders
+WHERE amount > 100
+ORDER BY ordered_on DESC`,
+    orderMatters: true,
+    hint: "Replace the star with the three columns, filter with WHERE, then ORDER BY ordered_on DESC for newest first.",
+  },
+  {
+    kind: "sql",
+    slug: "count-and-distinct",
+    title: "Counting rows and counting things",
+    category: "sql-fundamentals",
+    difficulty: "easy",
+    prompt: [
+      "Ten orders were placed, but not by ten different customers. Confusing those two numbers is the most common mistake in a first analytics job.",
+      "Return one row with three columns: `orders` (how many rows are in `orders`), `customers` (how many distinct `customer_id` values appear) and `statuses` (how many distinct `status` values).",
+    ],
+    setup: ORDERS_FIXTURE,
+    starter: "SELECT\n  COUNT(*) AS orders\n  -- two more counts\nFROM orders\n",
+    solution: `SELECT
+  COUNT(*) AS orders,
+  COUNT(DISTINCT customer_id) AS customers,
+  COUNT(DISTINCT status) AS statuses
+FROM orders`,
+    // One row out, so there is nothing to order.
+    orderMatters: false,
+    hint: "COUNT(*) counts rows; COUNT(DISTINCT col) counts unique values in a column.",
+  },
+  {
+    kind: "sql",
+    slug: "null-safe-filter",
+    title: "The filter that quietly drops rows",
+    category: "sql-fundamentals",
+    difficulty: "easy",
+    prompt: [
+      "A colleague's query excludes cancelled orders with `WHERE status != 'cancelled'`, and the totals came out lower than the finance team expected.",
+      "In SQL, comparing anything to NULL gives neither true nor false — it gives NULL, and a WHERE clause keeps only rows that are true. So any row with a NULL `status` disappears without a warning.",
+      "Return `order_id` and `status` for every order that is not cancelled, including those with no status recorded. Order by `order_id`.",
+    ],
+    setup: `
+CREATE OR REPLACE TABLE orders (
+  order_id INTEGER, status VARCHAR, amount DECIMAL(10,2)
+);
+INSERT INTO orders VALUES
+  (101,'completed',150.00),
+  (102,'cancelled',220.00),
+  (103,NULL,89.50),
+  (104,'completed',310.25),
+  (105,NULL,75.00),
+  (106,'pending',120.00);
+`,
+    starter: "SELECT order_id, status\nFROM orders\nWHERE status != 'cancelled'\n",
+    solution: `SELECT order_id, status
+FROM orders
+WHERE status IS DISTINCT FROM 'cancelled'
+ORDER BY order_id`,
+    orderMatters: true,
+    hint: "Either add OR status IS NULL to the existing filter, or use IS DISTINCT FROM, which treats NULL as just another value.",
+  },
+  {
+    kind: "sql",
+    slug: "group-by-basics",
+    title: "One row per group: find the repeat customers",
+    category: "sql-fundamentals",
+    difficulty: "easy",
+    prompt: [
+      "Most reporting questions are a GROUP BY in disguise: 'per customer', 'per month', 'per country' are all the same shape of query.",
+      "Marketing wants the repeat customers — anyone who has placed more than one order.",
+      "Return `customer_id` and `orders`, for customers with more than one order. Most orders first, and where two customers have the same count, order by `customer_id`.",
+      "Note where the filter goes. WHERE filters rows before grouping; HAVING filters the groups afterwards. 'More than one order' is a fact about a group, so it needs HAVING.",
+    ],
+    setup: ORDERS_FIXTURE,
+    starter: "SELECT customer_id, COUNT(*) AS orders\nFROM orders\nGROUP BY customer_id\n",
+    solution: `SELECT customer_id, COUNT(*) AS orders
+FROM orders
+GROUP BY customer_id
+HAVING COUNT(*) > 1
+ORDER BY orders DESC, customer_id`,
+    orderMatters: true,
+    hint: "GROUP BY customer_id, then HAVING COUNT(*) > 1. The tie-break is a second expression in ORDER BY.",
+  },
   {
     kind: "sql",
     slug: "active-nigerian-customers",
@@ -264,6 +392,111 @@ WHERE rn = 1
 ORDER BY customer_id`,
     orderMatters: true,
     hint: "Partition by the key, order by the timestamp descending, keep rn = 1.",
+  },
+  {
+    kind: "sql",
+    slug: "case-churned-revenue",
+    title: "Case study: how much revenue churned",
+    category: "joins-aggregation",
+    difficulty: "medium",
+    prompt: [
+      "You've joined a subscription business. The board asks a question nobody can answer from the dashboards: how much monthly revenue walked out of the door, and on which plan.",
+      "`subscriptions` has one row per subscription, with `mrr`, `started_on` and a `cancelled_on` that is NULL while the subscription is live.",
+      "Return `plan` and `churned_mrr` — the total `mrr` of cancelled subscriptions — for plans that lost anything at all. Largest loss first.",
+    ],
+    setup: SUBSCRIPTIONS_FIXTURE,
+    starter: "SELECT plan, ...\nFROM subscriptions\n",
+    solution: `SELECT plan, SUM(mrr) AS churned_mrr
+FROM subscriptions
+WHERE cancelled_on IS NOT NULL
+GROUP BY plan
+ORDER BY churned_mrr DESC`,
+    orderMatters: true,
+    hint: "A cancelled subscription is one where cancelled_on is not null — mind that NULL needs IS NOT NULL rather than <> NULL.",
+  },
+  {
+    kind: "sql",
+    slug: "case-survival-days",
+    title: "Case study: how long before they leave",
+    category: "joins-aggregation",
+    difficulty: "medium",
+    prompt: [
+      "The same business wants to know whether cheaper plans churn faster — the sales team believes they do, and wants to stop selling Starter.",
+      "For cancelled subscriptions only, return `plan` and `avg_days` — the average number of days between `started_on` and `cancelled_on`, rounded to one decimal place.",
+      "Order by `avg_days`, shortest life first.",
+    ],
+    setup: SUBSCRIPTIONS_FIXTURE,
+    starter: "SELECT plan, ...\nFROM subscriptions\nWHERE cancelled_on IS NOT NULL\n",
+    solution: `SELECT plan, ROUND(AVG(DATE_DIFF('day', started_on, cancelled_on)), 1) AS avg_days
+FROM subscriptions
+WHERE cancelled_on IS NOT NULL
+GROUP BY plan
+ORDER BY avg_days`,
+    orderMatters: true,
+    hint: "DATE_DIFF('day', start, end) gives the gap in days; average it per plan and round.",
+  },
+  {
+    kind: "sql",
+    slug: "case-monthly-cohorts",
+    title: "Case study: signup cohorts",
+    category: "window-functions",
+    difficulty: "hard",
+    prompt: [
+      "Growth wants cohorts: for each month accounts signed up in, how many are still subscribed today.",
+      "Return `cohort_month` (first day of the signup month), `signups`, and `retained` — how many of that cohort have no `cancelled_on`.",
+      "Order chronologically.",
+    ],
+    setup: SUBSCRIPTIONS_FIXTURE,
+    starter: "SELECT\n  DATE_TRUNC('month', started_on) AS cohort_month,\n  ...\nFROM subscriptions\n",
+    solution: `SELECT
+  DATE_TRUNC('month', started_on) AS cohort_month,
+  COUNT(*) AS signups,
+  COUNT(*) FILTER (WHERE cancelled_on IS NULL) AS retained
+FROM subscriptions
+GROUP BY 1
+ORDER BY 1`,
+    orderMatters: true,
+    hint: "COUNT(*) FILTER (WHERE ...) counts a subset without a second query — or SUM a CASE expression if you prefer.",
+  },
+  {
+    kind: "sql",
+    slug: "case-sessionise-events",
+    title: "Case study: turn events into sessions",
+    category: "window-functions",
+    difficulty: "hard",
+    prompt: [
+      "Product wants session counts, and all you have is `usage_events` — one row per action, with `account_id` and `occurred_at`.",
+      "A session ends after 30 minutes of inactivity: two events more than 30 minutes apart belong to different sessions.",
+      "Return `account_id` and `sessions` — how many distinct sessions each account had — ordered by `account_id`.",
+      "This is the classic sessionisation question, and it comes up constantly for product data roles.",
+    ],
+    setup: SUBSCRIPTIONS_FIXTURE,
+    starter: `WITH gaps AS (
+  SELECT
+    account_id,
+    occurred_at,
+    -- how long since this account's previous event?
+  FROM usage_events
+)
+SELECT account_id, ...
+`,
+    solution: `WITH gaps AS (
+  SELECT
+    account_id,
+    occurred_at,
+    LAG(occurred_at) OVER (PARTITION BY account_id ORDER BY occurred_at) AS previous_at
+  FROM usage_events
+)
+SELECT
+  account_id,
+  SUM(CASE WHEN previous_at IS NULL
+            OR DATE_DIFF('minute', previous_at, occurred_at) > 30
+           THEN 1 ELSE 0 END) AS sessions
+FROM gaps
+GROUP BY account_id
+ORDER BY account_id`,
+    orderMatters: true,
+    hint: "LAG gives the previous event time per account. Every row whose gap exceeds 30 minutes — plus the first — starts a new session, so count those.",
   },
   {
     kind: "sql",

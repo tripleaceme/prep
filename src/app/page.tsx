@@ -231,7 +231,7 @@ export default function LandingPage() {
                 >{t("Start a Mock Interview")}<ArrowRight className="size-4" />
                 </Link>
                 <span className="text-sm text-[var(--text-faint)]">
-                  No card, no credits — you bring your own key.
+                  No card, no credits.
                 </span>
               </div>
             </div>

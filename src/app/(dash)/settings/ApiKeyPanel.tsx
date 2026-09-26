@@ -39,7 +39,7 @@ export function ApiKeyPanel() {
     : null;
 
   return (
-    <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
+    <section className="flex h-full flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
       <div className="flex items-center gap-3">
         <span className="grid size-9 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--brand-dim)]">
           <KeyRound className="size-[18px] text-[var(--brand-bright)]" />
@@ -47,8 +47,7 @@ export function ApiKeyPanel() {
         <h2 className="text-lg font-bold">Your Gemini API key</h2>
       </div>
       <p className="mt-1.5 text-sm text-[var(--text-muted)]">
-        Stored in this browser only. Interviews call Google directly with it,
-        so nothing you say passes through our servers.
+        Interviews call Google directly with it, so nothing you say passes through our servers.
       </p>
 
       {stored ? (
@@ -99,7 +98,7 @@ export function ApiKeyPanel() {
         href="https://aistudio.google.com/apikey"
         target="_blank"
         rel="noopener noreferrer"
-        className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--brand-bright)] hover:underline"
+        className="mt-auto inline-flex items-center gap-1.5 pt-4 text-sm font-semibold text-[var(--brand-bright)] hover:underline"
       >
         Get a free key from Google AI Studio
         <ExternalLink className="size-3.5" />

@@ -100,7 +100,7 @@ export function ProfilePanel({
   }
 
   return (
-    <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
+    <section className="flex h-full flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
       <h2 className="text-lg font-bold">Your profile</h2>
       <p className="mt-1.5 text-sm text-[var(--text-muted)]">
         This is the name and picture shown in the sidebar.
