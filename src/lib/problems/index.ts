@@ -1,6 +1,8 @@
 import { ARCHITECTURE_PROBLEMS } from "./architecture";
 import { DBT_PROBLEMS } from "./dbt";
+import { DIMENSIONAL_PROBLEMS } from "./dimensional";
 import { ORCHESTRATION_PROBLEMS } from "./orchestration";
+import { PERFORMANCE_PROBLEMS } from "./performance";
 import { PYTHON_PROBLEMS } from "./python";
 import { QUALITY_PROBLEMS } from "./quality";
 import { SQL_PROBLEMS } from "./sql";
@@ -13,9 +15,11 @@ export { compileDbt } from "./dbt";
 export const PROBLEMS: Problem[] = [
   ...(SQL_PROBLEMS as Problem[]),
   ...DBT_PROBLEMS,
+  ...DIMENSIONAL_PROBLEMS,
   ...PYTHON_PROBLEMS,
   ...(QUALITY_PROBLEMS as Problem[]),
   ...ORCHESTRATION_PROBLEMS,
+  ...PERFORMANCE_PROBLEMS,
   ...ARCHITECTURE_PROBLEMS,
 ];
 

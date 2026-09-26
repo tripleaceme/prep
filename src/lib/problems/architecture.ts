@@ -66,30 +66,6 @@ export const ARCHITECTURE_PROBLEMS: ArchitectureProblem[] = [
   },
   {
     kind: "architecture",
-    slug: "arch-nobody-trusts-the-data",
-    title: "Nobody trusts the dashboard",
-    category: "architecture",
-    difficulty: "medium",
-    prompt: [
-      "Two teams quote different revenue numbers in the same meeting. Both are reading dashboards you built.",
-      "Where do you start?",
-    ],
-    keyPoints: [
-      "Diagnoses before fixing: the numbers may both be correct and measuring different things.",
-      "Looks for the definitional split — which orders count, which currency, which date, gross or net.",
-      "Names a single owned definition and one model that produces it, rather than patching the two dashboards.",
-      "Adds tests that would have caught the divergence, then a contract on the upstream producer.",
-      "Treats it as a governance problem as much as a data one: someone has to own the definition.",
-    ],
-    modelAnswer: [
-      "I'd resist fixing anything until I knew whether either was wrong. Two different revenue numbers are usually two different definitions, not a bug — cancelled orders included or not, order date against ship date, gross against net of refunds, currency converted at which rate.",
-      "So I'd trace both back to the models behind them and find the line where they diverge. That usually takes an afternoon and it settles the argument, because you can show both teams exactly which decision they each made.",
-      "The fix isn't patching the two dashboards to agree. It's picking one definition, giving it a named owner, building a single model that produces it, and pointing both dashboards at that. Then tests that would have caught the divergence — a reconciliation between the mart and the source, and a freshness check — and a contract with whoever produces the upstream data so the shape can't change without warning.",
-      "The lasting problem here is governance rather than SQL. Until one person owns what revenue means, two correct pipelines will keep producing two numbers.",
-    ],
-  },
-  {
-    kind: "architecture",
     slug: "arch-batch-vs-streaming",
     title: "Do they actually need streaming?",
     category: "architecture",

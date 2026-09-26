@@ -25,11 +25,14 @@ export type Category =
   | "sql-fundamentals"
   | "joins-aggregation"
   | "window-functions"
-  | "pipeline-debugging"
+  | "metrics-logic"
   | "dbt-modelling"
-  | "python-pipelines"
+  | "dimensional-modelling"
+  | "python-data"
+  | "pipeline-etl"
   | "data-quality"
   | "orchestration"
+  | "performance"
   | "architecture";
 
 /**
@@ -162,15 +165,33 @@ export const CATEGORIES: {
       "Write the model. Your ref() calls resolve against real tables and the SQL actually runs.",
   },
   {
-    value: "python-pipelines",
-    label: "Python Pipelines",
+    value: "metrics-logic",
+    label: "Metrics & Business Logic",
     blurb:
-      "The transform logic between extract and load, checked against tests you don't see first.",
+      "Retention, funnels, cohorts and streaks — where the hard part is defining the metric, not writing the query.",
   },
   {
-    value: "pipeline-debugging",
-    label: "Pipeline Debugging",
-    blurb: "A pipeline is producing wrong numbers. Find out why, and fix it.",
+    value: "dimensional-modelling",
+    label: "Dimensional Modelling",
+    blurb: "Grain, facts and dimensions, and reading history out of an SCD.",
+  },
+  {
+    value: "python-data",
+    label: "Python for Data",
+    blurb:
+      "Standard-library Python over messy records: parsing, flattening, deduplicating, sessionising.",
+  },
+  {
+    value: "pipeline-etl",
+    label: "Pipelines & ETL",
+    blurb:
+      "Incremental loads, idempotency, backfills and retries — plus pipelines producing wrong numbers.",
+  },
+  {
+    value: "performance",
+    label: "Performance & Optimisation",
+    blurb:
+      "A query or a job is too slow or too expensive. Diagnose it before you tune it.",
   },
   {
     value: "data-quality",
@@ -203,10 +224,13 @@ export const CATEGORIES: {
 
 export type Group =
   | "sql"
+  | "metrics"
   | "modelling"
+  | "python"
   | "pipelines"
   | "quality"
   | "orchestration"
+  | "performance"
   | "architecture";
 
 export const GROUPS: {
@@ -223,18 +247,32 @@ export const GROUPS: {
     categories: ["sql-fundamentals", "joins-aggregation", "window-functions"],
   },
   {
+    value: "metrics",
+    label: "Metrics & Business Logic",
+    blurb:
+      "Retention, funnels, cohorts, streaks. The query is the easy half; deciding what the metric means is the interview.",
+    categories: ["metrics-logic"],
+  },
+  {
     value: "modelling",
     label: "Data Modelling",
     blurb:
       "dbt models, grain, slowly changing dimensions. Your ref() calls resolve and the SQL runs.",
-    categories: ["dbt-modelling"],
+    categories: ["dbt-modelling", "dimensional-modelling"],
+  },
+  {
+    value: "python",
+    label: "Python for Data",
+    blurb:
+      "Standard library only, over records that are messier than they look. This is the round, not LeetCode.",
+    categories: ["python-data"],
   },
   {
     value: "pipelines",
-    label: "Pipelines",
+    label: "Pipelines & ETL",
     blurb:
-      "Transform logic, watermarks and idempotency in Python — plus pipelines producing wrong numbers.",
-    categories: ["python-pipelines", "pipeline-debugging"],
+      "Watermarks, idempotency, backfills and retries — plus a pipeline quietly producing the wrong number.",
+    categories: ["pipeline-etl"],
   },
   {
     value: "quality",
@@ -249,6 +287,13 @@ export const GROUPS: {
     blurb:
       "Dependency order, schedule windows, retries and backfills. The logic underneath a DAG.",
     categories: ["orchestration"],
+  },
+  {
+    value: "performance",
+    label: "Performance & Optimisation",
+    blurb:
+      "Something is slow or expensive. Interviews test whether you diagnose before you tune.",
+    categories: ["performance"],
   },
   {
     value: "architecture",

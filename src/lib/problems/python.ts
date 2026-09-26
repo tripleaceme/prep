@@ -17,7 +17,7 @@ export const PYTHON_PROBLEMS: PythonProblem[] = [
     kind: "python",
     slug: "py-dedupe-latest",
     title: "Keep the latest record per key",
-    category: "python-pipelines",
+    category: "python-data",
     difficulty: "easy",
     prompt: [
       "A batch has arrived with the same `customer_id` more than once, each with a different `loaded_at`.",
@@ -51,7 +51,7 @@ assert latest_per_customer([]) == [], "an empty batch should return an empty lis
     kind: "python",
     slug: "py-incremental-watermark",
     title: "Pick the rows an incremental load should take",
-    category: "python-pipelines",
+    category: "pipeline-etl",
     difficulty: "medium",
     prompt: [
       "Write `rows_to_load(rows, watermark)` returning the records an incremental run should process.",
@@ -89,7 +89,7 @@ assert rows_to_load(rows, "2024-05-06T07:30:00") == [], \\
     kind: "python",
     slug: "py-idempotent-upsert",
     title: "Make a load idempotent",
-    category: "python-pipelines",
+    category: "pipeline-etl",
     difficulty: "medium",
     prompt: [
       "`upsert(target, batch, key)` merges a batch into an existing table, both lists of dicts.",
@@ -127,7 +127,7 @@ assert target[1]["tier"] == "silver", "upsert must not mutate the table it was g
     kind: "python",
     slug: "py-data-quality-checks",
     title: "Run the data quality checks",
-    category: "python-pipelines",
+    category: "data-quality",
     difficulty: "hard",
     prompt: [
       "Write `run_checks(rows)` returning a list of failures — one dict per problem found, each with `check` and `row_id`.",
@@ -167,7 +167,7 @@ assert run_checks([rows[0]]) == [], "a clean batch reports nothing"
     kind: "python",
     slug: "py-case-backfill-plan",
     title: "Case study: plan a backfill without melting the warehouse",
-    category: "python-pipelines",
+    category: "pipeline-etl",
     difficulty: "medium",
     prompt: [
       "A bug in a transform means ninety days of a daily table are wrong. You need to rerun them, but the platform team has told you plainly: no more than five days in flight at a time, or you take production down with you.",
@@ -212,7 +212,7 @@ assert out == [
     kind: "python",
     slug: "py-case-schema-drift",
     title: "Case study: the upstream team added a column",
-    category: "pipeline-debugging",
+    category: "python-data",
     difficulty: "medium",
     prompt: [
       "Your load broke overnight. The upstream service shipped a release, and the JSON it sends now has a new field, has dropped one you depend on, and has changed another from a number to a string.",
@@ -250,7 +250,7 @@ assert out["removed"] == ["a", "b"], "removed must be sorted by field name"
     kind: "python",
     slug: "py-case-reconcile-counts",
     title: "Case study: source and warehouse disagree",
-    category: "pipeline-debugging",
+    category: "python-data",
     difficulty: "medium",
     prompt: [
       "Finance says the warehouse is short. You need a reconciliation check that runs after every load and says which days are wrong and by how much, rather than a single boolean that tells you nothing.",
@@ -287,7 +287,7 @@ assert reconcile({}, {}) == [], "nothing to reconcile"
     kind: "python",
     slug: "py-case-retry-budget",
     title: "Case study: retry the API without hammering it",
-    category: "python-pipelines",
+    category: "pipeline-etl",
     difficulty: "hard",
     prompt: [
       "Your extractor calls a vendor API that fails intermittently. The naive fix — retry immediately, forever — got your key rate-limited last month.",
@@ -321,5 +321,255 @@ assert should_retry(404) is False, "a missing resource will not appear"
 assert should_retry(200) is False, "success needs no retry"
 `,
     hint: "min(base * 2 ** i, cap) over a range gives the delays. For should_retry, 429 plus the 500 to 599 range — and return real booleans, since the tests use `is True`.",
+  },
+  {
+    kind: "python",
+    slug: "py-parse-log-lines",
+    title: "Parse the log file, quarantine the bad lines",
+    category: "python-data",
+    difficulty: "medium",
+    prompt: [
+      "An application writes one log line per event and you have been asked to load them into the warehouse. Most lines are well formed. Some are not, and a loader that crashes on line 40,000 of 2 million is worse than useless.",
+      "Write `parse_logs(lines)` returning a tuple of two lists: the records that parsed, and the lines that did not.",
+      "A good line is `'<date> <time> <LEVEL> <message>'`, for example `'2024-06-11 14:23:01 ERROR db_connection timeout'`. A record is a dict with `timestamp` (the date and time joined by a space), `level` and `message`.",
+    ],
+    notes: [
+      "`level` is one of `DEBUG`, `INFO`, `WARN` or `ERROR`. A line whose fourth field is anything else is not a valid line.",
+      "A valid line always has at least four fields. The message is everything after the level and may contain spaces.",
+      "Lines may carry leading or trailing whitespace, and blank lines appear. Neither is an error worth reporting — skip blank lines entirely rather than quarantining them.",
+      "Return bad lines exactly as they were given, so whoever looks at the quarantine can see what actually arrived.",
+    ],
+    example: {
+      input: `lines = [
+    "2024-06-11 14:23:01 ERROR db_connection timeout after 30s",
+    "  2024-06-11 14:23:05 INFO request served  ",
+    "",
+    "2024-06-11 14:24:00 TRACE something",
+    "garbage",
+]
+
+good, bad = parse_logs(lines)`,
+      output: `good = [
+    {"timestamp": "2024-06-11 14:23:01",
+     "level": "ERROR",
+     "message": "db_connection timeout after 30s"},
+    {"timestamp": "2024-06-11 14:23:05",
+     "level": "INFO",
+     "message": "request served"},
+]
+
+bad = ["2024-06-11 14:24:00 TRACE something", "garbage"]`,
+    },
+    explanation:
+      "The first two lines parse, and the message keeps its internal spaces while the surrounding whitespace is stripped. The blank line is skipped and appears in neither list, because an empty line is noise rather than a defect worth anybody's attention. The TRACE line is well shaped but its level is not one we accept, so it is quarantined rather than loaded with a level nothing downstream understands. 'garbage' has too few fields. Both bad lines come back exactly as supplied — stripped or repaired versions would hide what the source actually sent.",
+    gotcha:
+      "Splitting the whole line and taking field four as the message. That truncates every message at its first space, and because the result still looks like a valid record it will load quietly and be discovered weeks later.",
+    starter: `def parse_logs(lines):
+    """Split log lines into parsed records and quarantined raw lines.
+
+    Returns: (good, bad) where good is a list of dicts with keys
+    timestamp, level and message, and bad is a list of the original strings.
+    """
+    # your code here
+    return ([], [])
+`,
+    tests: `
+lines = [
+    "2024-06-11 14:23:01 ERROR db_connection timeout after 30s",
+    "  2024-06-11 14:23:05 INFO request served  ",
+    "",
+    "2024-06-11 14:24:00 TRACE something",
+    "garbage",
+]
+good, bad = parse_logs(lines)
+
+assert len(good) == 2, f"expected 2 good records, got {len(good)}"
+assert good[0] == {
+    "timestamp": "2024-06-11 14:23:01",
+    "level": "ERROR",
+    "message": "db_connection timeout after 30s",
+}, f"got {good[0]}"
+assert good[1]["message"] == "request served", f"message must keep inner spaces and lose outer: {good[1]}"
+assert bad == ["2024-06-11 14:24:00 TRACE something", "garbage"], f"got {bad}"
+
+g, b = parse_logs([])
+assert g == [] and b == [], "empty input gives two empty lists"
+
+g, b = parse_logs(["", "   "])
+assert g == [] and b == [], "blank lines are skipped, not quarantined"
+
+g, b = parse_logs(["2024-06-11 14:23:01 WARN disk 91% full"])
+assert g[0]["level"] == "WARN" and g[0]["message"] == "disk 91% full"
+`,
+    hint: "split(maxsplit=3) gives you the four fields you want and leaves the message whole. Check the level against the allowed set before accepting the line.",
+  },
+  {
+    kind: "python",
+    slug: "py-flatten-nested-json",
+    title: "Flatten the nested JSON for loading",
+    category: "python-data",
+    difficulty: "medium",
+    prompt: [
+      "The API returns deeply nested JSON and the warehouse table is flat. You need one column per leaf value before you can load anything.",
+      "Write `flatten(record, separator)` turning a nested dict into a flat one, where each key is the path to that value joined by the separator.",
+      "Return a dict with no nested dicts in it.",
+    ],
+    notes: [
+      "`separator` defaults to `'.'`, so `{'b': {'c': 2}}` becomes `{'b.c': 2}`.",
+      "Nesting can be any depth.",
+      "An empty dict as a value has no leaves, so it contributes nothing to the output. It does not become a key with an empty dict attached.",
+      "Lists are values, not structures to descend into. Leave a list exactly as it is — flattening lists means inventing an index convention, and the warehouse column can hold the JSON.",
+      "Do not modify the dict you were given.",
+    ],
+    example: {
+      input: `flatten({
+    "id": 1,
+    "user": {
+        "name": "Adaeze",
+        "address": {"city": "Lagos", "postcode": "101233"},
+    },
+    "tags": ["a", "b"],
+    "meta": {},
+})`,
+      output: `{
+    "id": 1,
+    "user.name": "Adaeze",
+    "user.address.city": "Lagos",
+    "user.address.postcode": "101233",
+    "tags": ["a", "b"],
+}`,
+    },
+    explanation:
+      "id is already flat and keeps its name. user.address.postcode shows the full path joined, at two levels of nesting. tags stays a list under its original key rather than becoming tags.0 and tags.1 — descending into it would invent a convention the warehouse has not agreed to. meta is absent entirely: an empty dict contains no leaf values, so there is nothing to emit, and a meta key holding an empty dict would defeat the point of flattening.",
+    gotcha:
+      "Recursing one level and stopping. It handles the example in most job descriptions and silently drops anything deeper, so user.address ends up as a dict inside a supposedly flat record.",
+    starter: `def flatten(record, separator="."):
+    """Flatten a nested dict into path -> value.
+
+    record:    dict, possibly nested to any depth.
+    separator: string joining path segments.
+    Returns: a flat dict. Does not modify its argument.
+    """
+    # your code here
+    return {}
+`,
+    tests: `
+out = flatten({
+    "id": 1,
+    "user": {"name": "Adaeze", "address": {"city": "Lagos", "postcode": "101233"}},
+    "tags": ["a", "b"],
+    "meta": {},
+})
+assert out == {
+    "id": 1,
+    "user.name": "Adaeze",
+    "user.address.city": "Lagos",
+    "user.address.postcode": "101233",
+    "tags": ["a", "b"],
+}, f"got {out}"
+
+assert flatten({}) == {}, "an empty record flattens to nothing"
+assert flatten({"a": 1}) == {"a": 1}, "an already flat record is unchanged"
+assert flatten({"a": {"b": {"c": {"d": 4}}}}) == {"a.b.c.d": 4}, "depth is unbounded"
+assert flatten({"a": {"b": 2}}, separator="_") == {"a_b": 2}, "separator is honoured"
+assert flatten({"a": None}) == {"a": None}, "None is a value, not a missing key"
+
+source = {"a": {"b": 1}}
+flatten(source)
+assert source == {"a": {"b": 1}}, "do not mutate the input"
+`,
+    hint: "Recurse. At each level, if the value is a dict, walk into it carrying the path so far; otherwise emit the joined path and the value.",
+  },
+  {
+    kind: "python",
+    slug: "py-sessionise-events",
+    title: "Group events into sessions",
+    category: "python-data",
+    difficulty: "hard",
+    prompt: [
+      "Product analytics wants sessions, and all you have is a stream of individual events. This is the most commonly asked Python question in data interviews, because almost every event table needs it eventually.",
+      "Write `sessionise(events, gap_minutes)` grouping each user's events into sessions.",
+      "Return a list of dicts with `user_id`, `start`, `end` and `event_count`, sorted by `user_id` then `start`.",
+    ],
+    notes: [
+      "`events` is a list of dicts with `user_id` and `occurred_at`, an ISO timestamp string. The two returned timestamps are ISO strings too.",
+      "A session ends after `gap_minutes` of inactivity: two consecutive events more than that far apart belong to different sessions.",
+      "Exactly `gap_minutes` apart is still the same session. Only a strictly larger gap breaks it.",
+      "Events arrive in no particular order, and sessions are per user — one user's events never join another's.",
+      "A session with one event is still a session; its start and end are the same timestamp.",
+    ],
+    example: {
+      input: `events = [
+    {"user_id": 1, "occurred_at": "2024-05-01T09:00:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T09:20:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T10:30:00"},
+    {"user_id": 2, "occurred_at": "2024-05-01T11:00:00"},
+]
+
+sessionise(events, gap_minutes=30)`,
+      output: `[{"user_id": 1, "start": "2024-05-01T09:00:00",
+  "end": "2024-05-01T09:20:00", "event_count": 2},
+ {"user_id": 1, "start": "2024-05-01T10:30:00",
+  "end": "2024-05-01T10:30:00", "event_count": 1},
+ {"user_id": 2, "start": "2024-05-01T11:00:00",
+  "end": "2024-05-01T11:00:00", "event_count": 1}]`,
+    },
+    explanation:
+      "User 1's first two events are 20 minutes apart, inside the 30-minute gap, so they are one session of two events. The third is 70 minutes after the second, which exceeds the gap, so it starts a new session — one that has a single event, with its start and end the same moment. User 2's single event is its own session, and never joins user 1's despite falling between their two sessions in time, because sessions are per user. Note the gap is measured between consecutive events, not from the start of the session: a user clicking every 20 minutes for six hours is in one long session, not eighteen.",
+    gotcha:
+      "Measuring the gap from the session's start rather than from the previous event. That cuts a continuously active user into fixed-length blocks, which is not what a session is.",
+    starter: `from datetime import datetime, timedelta
+
+
+def sessionise(events, gap_minutes=30):
+    """Group each user's events into sessions.
+
+    events: list of dicts with user_id and occurred_at (ISO string).
+    gap_minutes: inactivity that ends a session.
+    Returns: list of dicts with user_id, start, end, event_count,
+    sorted by user_id then start.
+    """
+    # your code here
+    return []
+`,
+    tests: `
+events = [
+    {"user_id": 1, "occurred_at": "2024-05-01T09:00:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T09:20:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T10:30:00"},
+    {"user_id": 2, "occurred_at": "2024-05-01T11:00:00"},
+]
+out = sessionise(events, gap_minutes=30)
+assert out == [
+    {"user_id": 1, "start": "2024-05-01T09:00:00", "end": "2024-05-01T09:20:00", "event_count": 2},
+    {"user_id": 1, "start": "2024-05-01T10:30:00", "end": "2024-05-01T10:30:00", "event_count": 1},
+    {"user_id": 2, "start": "2024-05-01T11:00:00", "end": "2024-05-01T11:00:00", "event_count": 1},
+], f"got {out}"
+
+assert sessionise([], 30) == [], "no events, no sessions"
+
+shuffled = list(reversed(events))
+assert sessionise(shuffled, 30) == out, "input order must not matter"
+
+exact = [
+    {"user_id": 1, "occurred_at": "2024-05-01T09:00:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T09:30:00"},
+]
+assert sessionise(exact, 30)[0]["event_count"] == 2, "exactly gap_minutes apart is the same session"
+
+over = [
+    {"user_id": 1, "occurred_at": "2024-05-01T09:00:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T09:30:01"},
+]
+assert len(sessionise(over, 30)) == 2, "one second over the gap splits the session"
+
+rolling = [
+    {"user_id": 1, "occurred_at": "2024-05-01T09:00:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T09:25:00"},
+    {"user_id": 1, "occurred_at": "2024-05-01T09:50:00"},
+]
+assert len(sessionise(rolling, 30)) == 1, "the gap is measured from the previous event, not the session start"
+`,
+    hint: "Group by user, sort each group by time, then walk the events keeping the previous timestamp. A gap larger than the limit closes the current session and opens a new one.",
   },
 ];
