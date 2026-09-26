@@ -72,12 +72,15 @@ function prep_route_analytics(): never
           WHERE day >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)'
     );
 
-    // ---- Daily series for the last 30 days --------------------------------
+    // ---- Daily series for the last 60 days --------------------------------
+    // Sixty, not thirty, because the dashboard shows a period against the one
+    // before it. Charting 30 days needs 60 days of data to say whether those
+    // 30 were better or worse than the last 30.
     $signupsByDay = $all(
         $db,
         'SELECT DATE(created_at) AS day, COUNT(*) AS count
            FROM users
-          WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+          WHERE created_at >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
           GROUP BY DATE(created_at)
           ORDER BY day'
     );
@@ -88,7 +91,7 @@ function prep_route_analytics(): never
                 COUNT(*) AS started,
                 SUM(status = 'completed') AS completed
            FROM interviews
-          WHERE started_at >= DATE_SUB(CURDATE(), INTERVAL 30 DAY)
+          WHERE started_at >= DATE_SUB(CURDATE(), INTERVAL 60 DAY)
           GROUP BY DATE(started_at)
           ORDER BY day"
     );

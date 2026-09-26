@@ -21,11 +21,6 @@ export function AnalyticsLogin() {
         </span>
 
         <h1 className="mt-6 text-[30px] font-bold">Prep Analytics</h1>
-        <p className="mt-2 leading-relaxed text-[var(--text-muted)]">
-          Operator access. Sign in with your Prep account — it needs to have
-          been granted admin.
-        </p>
-
         <form action={formAction} className="mt-8 space-y-5">
           <div>
             <label htmlFor="email" className="mb-2 block text-sm font-semibold">
