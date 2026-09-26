@@ -2,11 +2,13 @@
 
 import { useRef, useState } from "react";
 import {
+  ArrowLeft,
+  ArrowRight,
   Check,
   Copy,
   Download,
-  FileText,
   Loader2,
+  RotateCcw,
   Sparkles,
   Upload,
 } from "lucide-react";
@@ -31,6 +33,8 @@ const SYSTEM_INSTRUCTION = [
 const inputClass =
   "w-full rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3.5 outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--brand-bright)]";
 
+const STEPS = ["Your details", "Revamped CV", "What changed"];
+
 export function CvRevamp() {
   const [cvText, setCvText] = useState("");
   const [cvName, setCvName] = useState("");
@@ -40,6 +44,7 @@ export function CvRevamp() {
   const [needsKey, setNeedsKey] = useState(false);
   const [result, setResult] = useState<RevampResult | null>(null);
   const [copied, setCopied] = useState(false);
+  const [step, setStep] = useState(1);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -82,6 +87,7 @@ export function CvRevamp() {
         systemInstruction: SYSTEM_INSTRUCTION,
       });
       setResult(data);
+      setStep(2);
     } catch (err) {
       if (err instanceof MissingKeyError) {
         setNeedsKey(true);
@@ -113,209 +119,281 @@ export function CvRevamp() {
     URL.revokeObjectURL(url);
   }
 
+  function startOver() {
+    setResult(null);
+    setStep(1);
+    setError(null);
+  }
+
   if (needsKey) return <ApiKeyPrompt what="revamping your CV" />;
 
   return (
-    <main className="mx-auto max-w-[1100px] px-6 py-10 lg:px-10">
-      <h1 className="text-[36px] font-bold leading-tight">
-        Revamp the CV you already have.
-      </h1>
-      <p className="mt-4 max-w-[70ch] leading-relaxed text-[var(--text-muted)]">
-        Bring your CV and the job you&apos;re going for, and it gets rewritten to match.
-      </p>
+    // Fixed to the viewport with one scrolling pane inside, so a long CV
+    // scrolls in place rather than stretching the page.
+    <main className="mx-auto flex h-dvh max-w-[1100px] flex-col px-6 py-8 lg:px-10">
+      <header className="flex flex-wrap items-center justify-between gap-4">
+        <h1 className="text-[26px] font-bold">Revamp My CV</h1>
 
-      {/*
-        One container holding both inputs and the action, rather than two cards
-        with a loose button underneath. The button belongs to this form, so it
-        sits in the form's footer — floating it below meant it drifted further
-        down the page every time a textarea grew.
-      */}
-      <section className="mt-8 overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
-        {/* gap-px over the border colour draws the divider between the two
-            columns without either needing a border of its own. */}
-        <div className="grid gap-px bg-[var(--border)] lg:grid-cols-2">
-          <div className="flex flex-col bg-[var(--surface)] p-6">
-            <p className="flex items-center gap-2 font-semibold">
-              <span className="grid size-6 place-items-center rounded-full bg-[var(--brand-dim)] text-xs font-bold text-[var(--brand-bright)]">
-                1
-              </span>
-              Your current CV
+        {/* Steps 2 and 3 stay unreachable until there is something to show,
+            rather than being hidden — so the shape of the flow is visible
+            from the first screen. */}
+        <nav className="flex items-center gap-1.5">
+          {STEPS.map((label, i) => {
+            const n = i + 1;
+            const reachable = n === 1 || result !== null;
+            return (
+              <button
+                key={label}
+                type="button"
+                disabled={!reachable}
+                onClick={() => setStep(n)}
+                className={[
+                  "rounded-full px-3.5 py-1.5 text-sm transition-colors",
+                  step === n
+                    ? "bg-[var(--brand-dim)] font-semibold text-[var(--brand-bright)]"
+                    : reachable
+                      ? "text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+                      : "cursor-not-allowed text-[var(--text-faint)] opacity-50",
+                ].join(" ")}
+              >
+                <span className="mr-1.5 font-mono text-xs">{n}</span>
+                {label}
+              </button>
+            );
+          })}
+        </nav>
+      </header>
+
+      {/* ---------------- Step 1: the inputs ---------------- */}
+      {step === 1 ? (
+        <section className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
+          <div className="grid min-h-0 flex-1 gap-px bg-[var(--border)] lg:grid-cols-2">
+            <div className="flex min-h-0 flex-col bg-[var(--surface)] p-6">
+              <p className="flex items-center gap-2 font-semibold">
+                <span className="grid size-6 place-items-center rounded-full bg-[var(--brand-dim)] text-xs font-bold text-[var(--brand-bright)]">
+                  1
+                </span>
+                Your current CV
+              </p>
+
+              <input
+                ref={fileRef}
+                type="file"
+                accept=".pdf,.txt,.md,application/pdf,text/plain"
+                className="sr-only"
+                onChange={(e) => onFile(e.target.files?.[0])}
+              />
+              <button
+                type="button"
+                onClick={() => fileRef.current?.click()}
+                className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius)] border border-dashed border-[var(--border-strong)] px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
+              >
+                <Upload className="size-4 shrink-0 text-[var(--brand-bright)]" />
+                <span className="min-w-0 flex-1 truncate text-sm font-semibold">
+                  {cvName || "Upload a PDF or TXT"}
+                </span>
+              </button>
+
+              <p className="my-2.5 text-center text-xs text-[var(--text-faint)]">
+                or paste it
+              </p>
+              <textarea
+                value={cvText}
+                onChange={(e) => {
+                  setCvText(e.target.value);
+                  setCvName("");
+                }}
+                placeholder="Paste your CV text here…"
+                className={`${inputClass} min-h-[160px] flex-1 resize-none`}
+              />
+            </div>
+
+            <div className="flex min-h-0 flex-col bg-[var(--surface)] p-6">
+              <p className="flex items-center gap-2 font-semibold">
+                <span className="grid size-6 place-items-center rounded-full bg-[var(--brand-dim)] text-xs font-bold text-[var(--brand-bright)]">
+                  2
+                </span>
+                The job you want
+              </p>
+              <textarea
+                value={jobPost}
+                onChange={(e) => setJobPost(e.target.value)}
+                placeholder="Paste the full job post — title, responsibilities, and the skills they ask for. The more you paste, the better the match."
+                className={`${inputClass} mt-4 min-h-[160px] flex-1 resize-none`}
+              />
+            </div>
+          </div>
+
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-6 py-4">
+            <p
+              role={error ? "alert" : undefined}
+              className={`min-w-0 flex-1 text-sm ${
+                error ? "text-[var(--danger)]" : "text-[var(--text-faint)]"
+              }`}
+            >
+              {error ??
+                "Read in this browser and sent straight to Google with your own key."}
             </p>
-
-            <input
-              ref={fileRef}
-              type="file"
-              accept=".pdf,.txt,.md,application/pdf,text/plain"
-              className="sr-only"
-              onChange={(e) => onFile(e.target.files?.[0])}
-            />
             <button
               type="button"
-              onClick={() => fileRef.current?.click()}
-              className="mt-4 flex w-full items-center gap-3 rounded-[var(--radius)] border border-dashed border-[var(--border-strong)] px-4 py-3 text-left transition-colors hover:bg-[var(--surface-2)]"
+              onClick={revamp}
+              disabled={!ready || busy}
+              className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-3)] disabled:text-[var(--text-faint)]"
             >
-              <Upload className="size-4 shrink-0 text-[var(--brand-bright)]" />
-              <span className="min-w-0 flex-1 truncate text-sm font-semibold">
-                {cvName || "Upload a PDF or TXT"}
-              </span>
+              {busy ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Sparkles className="size-4" />
+              )}
+              {busy ? "Rewriting…" : "Revamp my CV"}
             </button>
-
-            <p className="my-2.5 text-center text-xs text-[var(--text-faint)]">
-              or paste it
-            </p>
-            {/* flex-1 on both textareas is what holds the two columns to the
-                same height — they were rows=8 against rows=16. */}
-            <textarea
-              value={cvText}
-              onChange={(e) => {
-                setCvText(e.target.value);
-                setCvName("");
-              }}
-              placeholder="Paste your CV text here…"
-              className={`${inputClass} min-h-[190px] flex-1 resize-none`}
-            />
           </div>
+        </section>
+      ) : null}
 
-          <div className="flex flex-col bg-[var(--surface)] p-6">
-            <p className="flex items-center gap-2 font-semibold">
-              <span className="grid size-6 place-items-center rounded-full bg-[var(--brand-dim)] text-xs font-bold text-[var(--brand-bright)]">
-                2
-              </span>
-              The job you want
-            </p>
-            <textarea
-              value={jobPost}
-              onChange={(e) => setJobPost(e.target.value)}
-              placeholder="Paste the full job post. The title, responsibilities, and the skills they ask for. The more you paste, the better the match."
-              className={`${inputClass} mt-4 min-h-[190px] flex-1 resize-none`}
-            />
-          </div>
-        </div>
-
-        {/* Helper text and the error share one slot, so surfacing an error
-            cannot change the height of anything. */}
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[var(--border)] px-6 py-4">
-          <p
-            role={error ? "alert" : undefined}
-            className={`min-w-0 flex-1 text-sm ${
-              error ? "text-[var(--danger)]" : "text-[var(--text-faint)]"
-            }`}
-          >
-            {error ??
-              "Read in this browser and sent straight to Google with your own key."}
-          </p>
-          <button
-            type="button"
-            onClick={revamp}
-            disabled={!ready || busy}
-            className="inline-flex shrink-0 items-center justify-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-3)] disabled:text-[var(--text-faint)]"
-          >
-            {busy ? (
-              <Loader2 className="size-4 animate-spin" />
-            ) : (
-              <Sparkles className="size-4" />
-            )}
-            {busy ? "Rewriting…" : "Revamp my CV"}
-          </button>
-        </div>
-      </section>
-
-      {result ? (
-        <div className="mt-12 space-y-8">
-          <section>
-            <div className="flex flex-wrap items-center justify-between gap-3">
-              <h2 className="flex items-center gap-2 text-xl font-bold">
-                <FileText className="size-5 text-[var(--brand-bright)]" />
-                Your revamped CV
-              </h2>
-              <div className="flex gap-2">
-                <button
-                  type="button"
-                  onClick={copyCv}
-                  className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[var(--surface-3)]"
-                >
-                  {copied ? (
-                    <Check className="size-4 text-[var(--brand-bright)]" />
-                  ) : (
-                    <Copy className="size-4" />
-                  )}
-                  {copied ? "Copied" : "Copy"}
-                </button>
-                <button
-                  type="button"
-                  onClick={downloadCv}
-                  className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2.5 text-sm font-semibold transition-colors hover:bg-[var(--surface-3)]"
-                >
-                  <Download className="size-4" />
-                  Download
-                </button>
-              </div>
+      {/* ---------------- Step 2: the rewritten CV ---------------- */}
+      {step === 2 && result ? (
+        <section className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
+          <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-6 py-4">
+            <p className="font-semibold">Your revamped CV</p>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={copyCv}
+                className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface-3)]"
+              >
+                {copied ? (
+                  <Check className="size-4 text-[var(--brand-bright)]" />
+                ) : (
+                  <Copy className="size-4" />
+                )}
+                {copied ? "Copied" : "Copy"}
+              </button>
+              <button
+                type="button"
+                onClick={downloadCv}
+                className="inline-flex items-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface-3)]"
+              >
+                <Download className="size-4" />
+                Download
+              </button>
             </div>
-            <pre className="mt-4 overflow-x-auto whitespace-pre-wrap rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6 font-sans text-sm leading-relaxed">
-              {result.revampedCv}
-            </pre>
-          </section>
+          </div>
 
-          {result.changes?.length ? (
-            <section>
-              <h2 className="text-xl font-bold">What changed, and why</h2>
-              <ul className="mt-4 space-y-3">
-                {result.changes.map((item, i) => (
-                  <li
-                    key={i}
-                    className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5"
-                  >
-                    <p className="font-semibold">{item.change}</p>
-                    <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
-                      {item.why}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          {/* The CV is the only thing that scrolls here. */}
+          <pre className="min-h-0 flex-1 overflow-y-auto whitespace-pre-wrap px-6 py-6 font-sans text-sm leading-relaxed">
+            {result.revampedCv}
+          </pre>
 
-          {result.missingKeywords?.length ? (
-            <section>
-              <h2 className="text-xl font-bold">
-                Terms the job uses that your CV doesn&apos;t
-              </h2>
-              <ul className="mt-4 flex flex-wrap gap-2">
-                {result.missingKeywords.map((keyword, i) => (
-                  <li
-                    key={i}
-                    className="rounded-full bg-[var(--warn-dim)] px-3.5 py-1.5 text-sm text-[var(--warn)]"
-                  >
-                    {keyword}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
+          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[var(--border)] px-6 py-4">
+            <button
+              type="button"
+              onClick={startOver}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+            >
+              <RotateCcw className="size-4" />
+              Start over
+            </button>
+            <button
+              type="button"
+              onClick={() => setStep(3)}
+              className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
+            >
+              What changed
+              <ArrowRight className="size-4" />
+            </button>
+          </div>
+        </section>
+      ) : null}
 
-          {result.honestGaps?.length ? (
-            <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
-              <h2 className="text-xl font-bold">
-                What you genuinely don&apos;t have yet
-              </h2>
-              <p className="mt-2 text-sm text-[var(--text-muted)]">
-                These weren&apos;t added to your CV, because they aren&apos;t
-                true. Worth knowing before the interview.
-              </p>
-              <ul className="mt-4 space-y-2">
-                {result.honestGaps.map((gap, i) => (
-                  <li
-                    key={i}
-                    className="flex gap-3 leading-relaxed text-[var(--text-muted)]"
-                  >
-                    <span className="text-[var(--text-faint)]">—</span>
-                    {gap}
-                  </li>
-                ))}
-              </ul>
-            </section>
-          ) : null}
-        </div>
+      {/* ---------------- Step 3: everything about the rewrite ---------------- */}
+      {step === 3 && result ? (
+        <section className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
+          <div className="min-h-0 flex-1 space-y-8 overflow-y-auto px-6 py-6">
+            {result.changes?.length ? (
+              <div>
+                <h2 className="font-bold">What changed, and why</h2>
+                <ul className="mt-3 space-y-2.5">
+                  {result.changes.map((item, i) => (
+                    <li
+                      key={i}
+                      className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4"
+                    >
+                      <p className="text-sm font-semibold">{item.change}</p>
+                      <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
+                        {item.why}
+                      </p>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {result.missingKeywords?.length ? (
+              <div>
+                <h2 className="font-bold">
+                  Terms the job uses that your CV doesn&apos;t
+                </h2>
+                <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+                  Worth working in honestly, if they genuinely describe what you
+                  did.
+                </p>
+                <ul className="mt-3 flex flex-wrap gap-2">
+                  {result.missingKeywords.map((keyword, i) => (
+                    <li
+                      key={i}
+                      className="rounded-full bg-[var(--warn-dim)] px-3.5 py-1.5 text-sm text-[var(--warn)]"
+                    >
+                      {keyword}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
+            {result.honestGaps?.length ? (
+              <div>
+                <h2 className="font-bold">
+                  What you genuinely don&apos;t have yet
+                </h2>
+                <p className="mt-1.5 text-sm text-[var(--text-muted)]">
+                  These weren&apos;t added to your CV, because they aren&apos;t
+                  true. Worth knowing before the interview.
+                </p>
+                <ul className="mt-3 space-y-2">
+                  {result.honestGaps.map((gap, i) => (
+                    <li
+                      key={i}
+                      className="flex gap-3 text-sm leading-relaxed text-[var(--text-muted)]"
+                    >
+                      <span className="text-[var(--text-faint)]">—</span>
+                      {gap}
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+          </div>
+
+          <div className="flex shrink-0 items-center justify-between gap-3 border-t border-[var(--border)] px-6 py-4">
+            <button
+              type="button"
+              onClick={() => setStep(2)}
+              className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-muted)] transition-colors hover:text-[var(--text)]"
+            >
+              <ArrowLeft className="size-4" />
+              Back to the CV
+            </button>
+            <button
+              type="button"
+              onClick={startOver}
+              className="inline-flex items-center gap-2 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-6 py-3 font-semibold transition-colors hover:bg-[var(--surface-3)]"
+            >
+              <RotateCcw className="size-4" />
+              Revamp another
+            </button>
+          </div>
+        </section>
       ) : null}
     </main>
   );
