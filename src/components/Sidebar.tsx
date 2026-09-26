@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { PrepMark } from "@/components/PrepMark";
 import { ApiKeyBadge } from "@/components/ApiKeyBadge";
+import { useT } from "@/lib/i18n/context";
 
 interface NavChild {
   href: string;
@@ -63,6 +64,7 @@ export function Sidebar({
   avatar?: string | null;
 }) {
   const pathname = usePathname();
+  const t = useT();
   const [open, setOpen] = useState(
     pathname.startsWith("/mock") || pathname.startsWith("/coding"),
   );
@@ -81,7 +83,7 @@ export function Sidebar({
 
       <nav className="flex-1 overflow-y-auto px-3 py-5">
         <p className="px-2 pb-3 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
-          NAVIGATION
+          {t("NAVIGATION")}
         </p>
 
         <ul className="space-y-1">
@@ -104,7 +106,7 @@ export function Sidebar({
                     ].join(" ")}
                   >
                     <Icon className="size-[18px]" />
-                    <span className="flex-1 text-left">{item.label}</span>
+                    <span className="flex-1 text-left">{t(item.label)}</span>
                     {open ? (
                       <ChevronDown className="size-4" />
                     ) : (
@@ -130,7 +132,7 @@ export function Sidebar({
                             ) : (
                               <Dumbbell className="size-4" />
                             )}
-                            <span className="flex-1">{child.label}</span>
+                            <span className="flex-1">{t(child.label)}</span>
                             {child.tag ? (
                               <span className="rounded px-1.5 py-0.5 text-[10px] font-bold tracking-wide text-[var(--brand-bright)]">
                                 {child.tag}
@@ -157,7 +159,7 @@ export function Sidebar({
                   ].join(" ")}
                 >
                   <Icon className="size-[18px]" />
-                  {item.label}
+                  {t(item.label)}
                 </Link>
               </li>
             );
@@ -199,7 +201,7 @@ export function Sidebar({
             className="mt-1 flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 text-[15px] font-medium text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
           >
             <LogOut className="size-[18px]" />
-            Logout
+            {t("Logout")}
           </button>
         </form>
       </div>

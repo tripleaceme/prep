@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { KeyRound } from "lucide-react";
 import { useHasApiKey } from "@/hooks/useApiKey";
+import { useT } from "@/lib/i18n/context";
 
 /**
  * Sits where the reference product shows a credit balance. Prep has no
@@ -11,6 +12,7 @@ import { useHasApiKey } from "@/hooks/useApiKey";
  */
 export function ApiKeyBadge() {
   const connected = useHasApiKey();
+  const t = useT();
 
   return (
     <Link
@@ -23,7 +25,7 @@ export function ApiKeyBadge() {
       ].join(" ")}
     >
       <KeyRound className="size-3.5" />
-      {connected ? "AI key connected" : "AI key absent"}
+      {t(connected ? "AI key connected" : "AI key absent")}
     </Link>
   );
 }

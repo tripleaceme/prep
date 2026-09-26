@@ -21,6 +21,8 @@ export const LANGS: Record<
   de: { endonym: "Deutsch", locale: "de-DE", name: "German" },
 };
 
+import { APP_DE, APP_FR } from "./app-strings";
+
 type Dictionary = Record<string, string>;
 
 const FR: Dictionary = {
@@ -473,7 +475,13 @@ const DE: Dictionary = {
   "Clear all saved session history? This can't be undone.": "Gesamten gespeicherten Verlauf löschen? Das lässt sich nicht rückgängig machen.",
 };
 
-export const DICTIONARIES: Record<Lang, Dictionary> = { en: {}, fr: FR, de: DE };
+// The app strings are merged on top of the original dictionary, so the two
+// can be maintained separately without either shadowing the other.
+export const DICTIONARIES: Record<Lang, Dictionary> = {
+  en: {},
+  fr: { ...FR, ...APP_FR },
+  de: { ...DE, ...APP_DE },
+};
 
 /**
  * Appended to the interviewer's system instruction so the interview itself

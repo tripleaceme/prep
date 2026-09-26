@@ -2,11 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  callInteraction,
-  callInteractionJson,
-  MissingKeyError,
-} from "@/lib/gemini/client";
+import { callInteractionJson, MissingKeyError } from "@/lib/gemini/client";
 import { PERSONA_NAMES, PERSONA_VOICES, speak, stopSpeaking } from "@/lib/gemini/speech";
 import {
   buildAnswerFeedbackPrompt,
