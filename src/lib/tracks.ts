@@ -32,7 +32,7 @@ export const TRACKS: Track[] = [
     slug: "data-modelling",
     name: "Data Modelling",
     blurb:
-      "Dimensional modelling under questioning — grain, slowly changing dimensions, and when a star schema is the wrong answer.",
+      "Dimensional modelling under questioning: grain, slowly changing dimensions, and when a star schema is the wrong answer.",
     minutes: 40,
     questions: 6,
     topics: [

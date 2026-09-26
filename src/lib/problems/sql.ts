@@ -1,63 +1,16 @@
 /**
- * Coding Problems.
+ * SQL problems.
  *
- * Deliberately not LeetCode. Where the reference product ships arrays, strings
- * and two-pointer puzzles, these are the things an analytics or data engineer
- * is actually asked to do at a keyboard: shape a result set, get a window
+ * Deliberately not LeetCode. Where a general-purpose set ships arrays, strings
+ * and two-pointer puzzles, these are what an analytics or data engineer is
+ * actually asked to do at a keyboard: shape a result set, get a window
  * function right, and find why a pipeline is producing wrong numbers.
  *
  * Every problem is self-contained — `setup` builds its own fixture, `solution`
  * produces the expected result, and the two are compared in the browser.
  */
 
-export type Difficulty = "easy" | "medium" | "hard";
-
-export type Category =
-  | "sql-fundamentals"
-  | "joins-aggregation"
-  | "window-functions"
-  | "pipeline-debugging";
-
-export interface Problem {
-  slug: string;
-  title: string;
-  category: Category;
-  difficulty: Difficulty;
-  /** Markdown-free prose; rendered as paragraphs. */
-  prompt: string[];
-  /** Runs before every attempt, building the fixture tables. */
-  setup: string;
-  /** Pre-filled in the editor. */
-  starter: string;
-  /** Produces the expected result set. */
-  solution: string;
-  /** When false, rows may come back in any order. */
-  orderMatters: boolean;
-  hint?: string;
-}
-
-export const CATEGORIES: { value: Category; label: string; blurb: string }[] = [
-  {
-    value: "sql-fundamentals",
-    label: "SQL Fundamentals",
-    blurb: "Filtering, shaping and grouping — the questions that open a screen.",
-  },
-  {
-    value: "joins-aggregation",
-    label: "Joins & Aggregation",
-    blurb: "Getting the grain right when more than one table is involved.",
-  },
-  {
-    value: "window-functions",
-    label: "Window Functions",
-    blurb: "Running totals, ranking, period-over-period and deduplication.",
-  },
-  {
-    value: "pipeline-debugging",
-    label: "Pipeline Debugging",
-    blurb: "A pipeline is producing wrong numbers. Find out why, and fix it.",
-  },
-];
+import type { DbtProblem, SqlProblem } from "./types";
 
 /* Shared fixtures ---------------------------------------------------------- */
 
@@ -110,10 +63,9 @@ INSERT INTO product_sales VALUES
   ('Support Basic','Services',330),('Support Plus','Services',290);
 `;
 
-/* Problems ----------------------------------------------------------------- */
-
-export const PROBLEMS: Problem[] = [
+export const SQL_PROBLEMS: (SqlProblem | DbtProblem)[] = [
   {
+    kind: "sql",
     slug: "active-nigerian-customers",
     title: "Active customers by country",
     category: "sql-fundamentals",
@@ -131,6 +83,7 @@ ORDER BY signed_up_on`,
     orderMatters: true,
   },
   {
+    kind: "sql",
     slug: "orders-by-status",
     title: "Count orders by status",
     category: "sql-fundamentals",
@@ -149,6 +102,7 @@ ORDER BY order_count DESC`,
     hint: "COUNT(*) with GROUP BY, then ORDER BY the aggregate.",
   },
   {
+    kind: "sql",
     slug: "revenue-per-customer",
     title: "Completed revenue per customer",
     category: "joins-aggregation",
@@ -169,6 +123,7 @@ ORDER BY total_revenue DESC`,
     orderMatters: true,
   },
   {
+    kind: "sql",
     slug: "customers-without-orders",
     title: "Customers who never ordered",
     category: "joins-aggregation",
@@ -188,6 +143,7 @@ ORDER BY c.name`,
     hint: "LEFT JOIN then filter for NULL on the right-hand side — or use NOT EXISTS.",
   },
   {
+    kind: "sql",
     slug: "monthly-revenue",
     title: "Revenue by month",
     category: "joins-aggregation",
@@ -207,6 +163,7 @@ ORDER BY 1`,
     hint: "DATE_TRUNC('month', ...) gives you the first day of the month.",
   },
   {
+    kind: "sql",
     slug: "running-total-revenue",
     title: "Running total of daily revenue",
     category: "window-functions",
@@ -227,6 +184,7 @@ ORDER BY revenue_date`,
     hint: "SUM(...) OVER (ORDER BY ...) — the default frame already runs to the current row.",
   },
   {
+    kind: "sql",
     slug: "day-over-day-change",
     title: "Day-over-day change with LAG",
     category: "window-functions",
@@ -244,6 +202,7 @@ ORDER BY revenue_date`,
     orderMatters: true,
   },
   {
+    kind: "sql",
     slug: "top-products-per-category",
     title: "Top 2 products in each category",
     category: "window-functions",
@@ -269,6 +228,7 @@ ORDER BY category, units_sold DESC`,
     hint: "ROW_NUMBER() OVER (PARTITION BY category ORDER BY units_sold DESC), filtered in an outer query.",
   },
   {
+    kind: "sql",
     slug: "deduplicate-latest-record",
     title: "Keep only the latest row per key",
     category: "window-functions",
@@ -306,6 +266,7 @@ ORDER BY customer_id`,
     hint: "Partition by the key, order by the timestamp descending, keep rn = 1.",
   },
   {
+    kind: "sql",
     slug: "fan-out-join",
     title: "The revenue report is double-counting",
     category: "pipeline-debugging",
@@ -348,6 +309,7 @@ ORDER BY customer_id`,
     hint: "The join adds nothing the answer needs. Aggregate at the grain of the fact table you're measuring.",
   },
   {
+    kind: "sql",
     slug: "late-arriving-data",
     title: "The incremental load is dropping rows",
     category: "pipeline-debugging",
@@ -378,6 +340,7 @@ ORDER BY event_id`,
     hint: "Events 4 and 6 are the late arrivals — an event_date watermark would have skipped them entirely.",
   },
   {
+    kind: "sql",
     slug: "scd2-current-row",
     title: "Pick the current row from an SCD2 dimension",
     category: "pipeline-debugging",
@@ -408,11 +371,3 @@ ORDER BY customer_id`,
     hint: "The open-ended row is the current one. Mind that NULL needs IS NULL, not = NULL.",
   },
 ];
-
-export function getProblem(slug: string): Problem | undefined {
-  return PROBLEMS.find((p) => p.slug === slug);
-}
-
-export function problemsByCategory(category: Category): Problem[] {
-  return PROBLEMS.filter((p) => p.category === category);
-}

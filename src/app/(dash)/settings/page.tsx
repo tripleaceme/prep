@@ -53,11 +53,6 @@ export default async function SettingsPage() {
 
           <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
             <h2 className="text-lg font-bold">Language</h2>
-            <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
-              One setting, not two. Choosing French or German switches the
-              interface <em>and</em> the interview — the questions, the spoken
-              feedback, and what the microphone listens for.
-            </p>
             <div className="mt-4">
               <LanguageSelect />
             </div>

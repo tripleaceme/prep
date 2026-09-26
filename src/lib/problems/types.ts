@@ -1,0 +1,129 @@
+/**
+ * Coding problems.
+ *
+ * Four kinds, because "can you do this job" is four different questions for an
+ * analytics or data engineer, and only one of them is SQL:
+ *
+ *   sql           — shape a result set. Runs on DuckDB in the browser.
+ *   dbt           — write a model. The ref() calls are resolved against
+ *                   fixture tables and the model is run, so it is genuinely
+ *                   executed rather than eyeballed.
+ *   python        — write the transform. Runs on Pyodide in the browser,
+ *                   against assertions you don't see until you run them.
+ *   architecture  — explain a decision. Not executable, and pretending
+ *                   otherwise would be worse than admitting it: you write an
+ *                   answer, then compare it against the points a good one
+ *                   makes.
+ *
+ * Nothing here needs an AI key or a server. That is the whole point of this
+ * section — it is the part of Prep that works when you have neither.
+ */
+
+export type Difficulty = "easy" | "medium" | "hard";
+
+export type Category =
+  | "sql-fundamentals"
+  | "joins-aggregation"
+  | "window-functions"
+  | "pipeline-debugging"
+  | "dbt-modelling"
+  | "python-pipelines"
+  | "architecture";
+
+interface BaseProblem {
+  slug: string;
+  title: string;
+  category: Category;
+  difficulty: Difficulty;
+  /** Plain prose; `backticks` become inline code. */
+  prompt: string[];
+  hint?: string;
+}
+
+export interface SqlProblem extends BaseProblem {
+  kind: "sql";
+  /** Builds the fixture tables. Runs before every attempt. */
+  setup: string;
+  starter: string;
+  /** Produces the expected result set. */
+  solution: string;
+  orderMatters: boolean;
+}
+
+export interface DbtProblem extends BaseProblem {
+  kind: "dbt";
+  setup: string;
+  /** Model names the problem may `ref()`, mapped to their fixture table. */
+  refs: Record<string, string>;
+  starter: string;
+  solution: string;
+  orderMatters: boolean;
+}
+
+export interface PythonProblem extends BaseProblem {
+  kind: "python";
+  starter: string;
+  /**
+   * Assertions run after the candidate's code. Hidden until they run, so the
+   * problem is solved rather than pattern-matched against the checks.
+   */
+  tests: string;
+}
+
+export interface ArchitectureProblem extends BaseProblem {
+  kind: "architecture";
+  /** What a strong answer covers. Shown only after they've written theirs. */
+  keyPoints: string[];
+  modelAnswer: string[];
+}
+
+export type Problem =
+  | SqlProblem
+  | DbtProblem
+  | PythonProblem
+  | ArchitectureProblem;
+
+export const CATEGORIES: {
+  value: Category;
+  label: string;
+  blurb: string;
+}[] = [
+  {
+    value: "sql-fundamentals",
+    label: "SQL Fundamentals",
+    blurb: "Filtering, shaping and grouping — the questions that open a screen.",
+  },
+  {
+    value: "joins-aggregation",
+    label: "Joins & Aggregation",
+    blurb: "Getting the grain right when more than one table is involved.",
+  },
+  {
+    value: "window-functions",
+    label: "Window Functions",
+    blurb: "Running totals, ranking, period-over-period and deduplication.",
+  },
+  {
+    value: "dbt-modelling",
+    label: "dbt Modelling",
+    blurb:
+      "Write the model. Your ref() calls resolve against real tables and the SQL actually runs.",
+  },
+  {
+    value: "python-pipelines",
+    label: "Python Pipelines",
+    blurb:
+      "The transform logic between extract and load, checked against tests you don't see first.",
+  },
+  {
+    value: "pipeline-debugging",
+    label: "Pipeline Debugging",
+    blurb: "A pipeline is producing wrong numbers. Find out why, and fix it.",
+  },
+  {
+    value: "architecture",
+    label: "Architecture & Design",
+    blurb:
+      "The questions with no single right answer — where the interviewer is listening for trade-offs.",
+  },
+];

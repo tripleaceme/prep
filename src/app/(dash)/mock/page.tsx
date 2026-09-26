@@ -9,9 +9,7 @@ export default function MockPage() {
     <main className="mx-auto max-w-[1200px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] font-bold">Mock Interviews</h1>
       <p className="mt-3 max-w-[70ch] leading-relaxed text-[var(--text-muted)]">
-        Practice by the domain you&apos;ll actually be questioned on. Each track
-        pushes past definitions — if an answer is generic, you&apos;ll get a
-        scenario and be asked what you&apos;d really do.
+        Practice by the domain you&apos;ll actually be questioned on.
       </p>
 
       <Link
@@ -26,8 +24,7 @@ export default function MockPage() {
             Interviewing for a specific job?
           </span>
           <span className="mt-0.5 block text-sm text-[var(--text-muted)]">
-            Use AI Interview instead — paste the job post and practise against
-            that exact role.
+            Use AI Interview instead.
           </span>
         </span>
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />

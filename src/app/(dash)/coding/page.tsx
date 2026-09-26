@@ -39,9 +39,9 @@ export default async function CodingPage() {
     <main className="mx-auto max-w-[1100px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] font-bold">Coding Problems</h1>
       <p className="mt-3 max-w-[70ch] leading-relaxed text-[var(--text-muted)]">
-        SQL you&apos;d actually be asked to write, plus pipelines producing
-        wrong numbers that you have to fix. Everything runs in your browser on
-        DuckDB — no AI key, no quota, and it keeps working offline.
+        SQL, dbt models, Python pipelines and the design questions that have no
+        single right answer. Everything runs in your browser — no AI key, no
+        quota, and it keeps working offline once loaded.
       </p>
 
       <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm">
