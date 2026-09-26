@@ -1,4 +1,5 @@
 import { ARCHITECTURE_PROBLEMS } from "./architecture";
+import { CODE_REVIEW_DBT, CODE_REVIEW_DESIGN, CODE_REVIEW_SQL } from "./code-review";
 import { DBT_PROBLEMS } from "./dbt";
 import { DIMENSIONAL_PROBLEMS } from "./dimensional";
 import { ORCHESTRATION_PROBLEMS } from "./orchestration";
@@ -16,6 +17,9 @@ export { compileDbt } from "./dbt";
 export const PROBLEMS: Problem[] = [
   ...(SQL_PROBLEMS as Problem[]),
   ...DBT_PROBLEMS,
+  ...(CODE_REVIEW_SQL as Problem[]),
+  ...CODE_REVIEW_DBT,
+  ...CODE_REVIEW_DESIGN,
   ...DIMENSIONAL_PROBLEMS,
   ...PYTHON_PROBLEMS,
   ...(QUALITY_PROBLEMS as Problem[]),
