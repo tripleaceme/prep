@@ -186,7 +186,7 @@ export function CvRevamp() {
             <textarea
               value={jobPost}
               onChange={(e) => setJobPost(e.target.value)}
-              placeholder="Paste the full job post — title, responsibilities, and the skills they ask for. The more you paste, the better the match."
+              placeholder="Paste the full job post. The title, responsibilities, and the skills they ask for. The more you paste, the better the match."
               className={`${inputClass} mt-4 min-h-[190px] flex-1 resize-none`}
             />
           </div>

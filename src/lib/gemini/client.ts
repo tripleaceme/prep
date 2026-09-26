@@ -17,15 +17,37 @@
 import { readApiKey } from "@/lib/apiKey";
 
 /**
- * generateContent's old client-key flow was retired for new users in favour of
- * the Interactions API, and gemini-2.5-flash is no longer available to new
- * keys. This is the previous-generation flash model rather than the newest,
- * because the newest tends to hit capacity limits first. If Google renames
- * models again, this is the one constant to change.
+ * Models to try, in order.
+ *
+ * The original app pinned a single model and picked the previous generation,
+ * on the reasoning that the newest one hits capacity limits first. That was
+ * sound at the time and has since inverted — gemini-3.5-flash is now the one
+ * returning "currently experiencing high demand".
+ *
+ * Rather than swap the pin and wait for it to invert again, requests fall
+ * through this list whenever a model reports itself busy. Any single model
+ * being overloaded is temporary and not worth failing an interview over;
+ * pinning one makes its bad afternoon the user's problem.
  */
-export const GEMINI_MODEL = "gemini-3.5-flash";
+export const GEMINI_MODELS = ["gemini-3.6-flash", "gemini-3.5-flash"] as const;
+
+/** Kept for callers that only need to name the primary model. */
+export const GEMINI_MODEL = GEMINI_MODELS[0];
+
 export const INTERACTIONS_URL =
   "https://generativelanguage.googleapis.com/v1beta/interactions";
+
+/**
+ * Whether an error is the model being busy rather than the request being
+ * wrong. Only these are worth retrying on a different model — a bad key or a
+ * malformed request will fail identically everywhere.
+ */
+function isCapacityError(status: number, message: string): boolean {
+  if (status === 429 || status === 503 || status === 500) return true;
+  return /high demand|overloaded|unavailable|try again later|capacity|resource[_ ]exhausted/i.test(
+    message,
+  );
+}
 
 export class MissingKeyError extends Error {
   constructor() {
@@ -115,34 +137,58 @@ export async function callInteraction(
   const apiKey = readApiKey();
   if (!apiKey) throw new MissingKeyError();
 
-  const body: Record<string, unknown> = { model: GEMINI_MODEL, input };
-  if (systemInstruction) body.system_instruction = systemInstruction;
-  if (previousId) body.previous_interaction_id = previousId;
-
-  const response = await fetch(INTERACTIONS_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      "x-goog-api-key": apiKey,
-    },
-    body: JSON.stringify(body),
-    signal,
-  });
-
-  const rawText = await response.text();
   let data: unknown = null;
-  try {
-    data = rawText ? JSON.parse(rawText) : null;
-  } catch {
-    data = null;
+  let lastCapacityMessage = "";
+
+  // Falls through to the next model only when one reports itself busy. A bad
+  // key or a malformed request fails on the first and stops there, rather than
+  // being retried pointlessly against every model in the list.
+  for (const model of GEMINI_MODELS) {
+    const body: Record<string, unknown> = { model, input };
+    if (systemInstruction) body.system_instruction = systemInstruction;
+    if (previousId) body.previous_interaction_id = previousId;
+
+    const response = await fetch(INTERACTIONS_URL, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify(body),
+      signal,
+    });
+
+    const rawText = await response.text();
+    let parsed: unknown = null;
+    try {
+      parsed = rawText ? JSON.parse(rawText) : null;
+    } catch {
+      parsed = null;
+    }
+
+    if (response.ok) {
+      data = parsed;
+      break;
+    }
+
+    const message =
+      extractErrorMessage(parsed) ||
+      (rawText
+        ? rawText.slice(0, 300)
+        : `Gemini request failed (${response.status})`);
+
+    if (!isCapacityError(response.status, message)) {
+      throw new Error(message);
+    }
+
+    lastCapacityMessage = message;
   }
 
-  if (!response.ok) {
+  if (data === null) {
     throw new Error(
-      extractErrorMessage(data) ||
-        (rawText
-          ? rawText.slice(0, 300)
-          : `Gemini request failed (${response.status})`),
+      lastCapacityMessage
+        ? `Every Gemini model we try is busy right now. Google said: "${lastCapacityMessage}" — wait a minute and try again.`
+        : "Gemini did not respond.",
     );
   }
 

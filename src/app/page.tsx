@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight, Check, Mic, Target, ClipboardList } from "lucide-react";
 import { PrepMark } from "@/components/PrepMark";
+import { HeroWalkthrough } from "@/components/HeroWalkthrough";
 import { TRACKS } from "@/lib/tracks";
 
 const PILLARS = [
@@ -159,29 +160,37 @@ export default function LandingPage() {
 
       <main>
         {/* Hero */}
-        <section className="mx-auto max-w-[1140px] px-6 pb-20 pt-20 sm:pt-28">
-          <p className="text-sm font-semibold tracking-wide text-[var(--brand-bright)]">
-            Free · No credits · Bring your own AI key
-          </p>
-          <h1 className="mt-5 max-w-[19ch] text-[42px] font-bold leading-[1.08] sm:text-[60px]">
-            Practice the interview before it costs you the offer.
-          </h1>
-          <p className="mt-6 max-w-[62ch] text-lg leading-relaxed text-[var(--text-muted)]">
-            A realistic voice interview simulator for data and analytics roles.
-            Paste the job description, answer questions out loud, and find out
-            what you actually know before the interviewer does.
-          </p>
-          <div className="mt-9 flex flex-wrap items-center gap-4">
-            <Link
-              href="/login"
-              className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-7 py-4 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
-            >
-              Start a Mock Interview
-              <ArrowRight className="size-4" />
-            </Link>
-            <span className="text-sm text-[var(--text-faint)]">
-              No card, no credits — you bring your own key.
-            </span>
+        <section className="mx-auto max-w-[1140px] px-6 pb-20 pt-16 sm:pt-20">
+          {/* Copy left, walkthrough right — the original arrangement. Stacks
+              below lg so the walkthrough never squeezes on a phone. */}
+          <div className="grid items-center gap-12 lg:grid-cols-[1fr_minmax(0,460px)]">
+            <div>
+              <p className="text-sm font-semibold tracking-wide text-[var(--brand-bright)]">
+                Free · No credits · Bring your own AI key
+              </p>
+              <h1 className="mt-5 max-w-[17ch] text-[42px] font-bold leading-[1.08] sm:text-[56px]">
+                Practice the interview before it costs you the offer.
+              </h1>
+              <p className="mt-6 max-w-[54ch] text-lg leading-relaxed text-[var(--text-muted)]">
+                A realistic voice interview simulator for data and analytics
+                roles. Paste the job description, answer questions out loud, and
+                find out what you actually know before the interviewer does.
+              </p>
+              <div className="mt-8 flex flex-wrap items-center gap-4">
+                <Link
+                  href="/login"
+                  className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-7 py-4 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
+                >
+                  Start a Mock Interview
+                  <ArrowRight className="size-4" />
+                </Link>
+                <span className="text-sm text-[var(--text-faint)]">
+                  No card, no credits — you bring your own key.
+                </span>
+              </div>
+            </div>
+
+            <HeroWalkthrough />
           </div>
         </section>
 
