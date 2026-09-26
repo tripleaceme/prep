@@ -88,15 +88,17 @@ async function checkEnvCredentials(
 }
 
 export async function checkAdminCredentials(
-  email: string,
+  identifier: string,
   password: string,
 ): Promise<boolean> {
   // The database is asked first, because that is the route an operator
   // normally uses and the environment variables are usually absent.
+  // Addresses are stored lowercase, so the lookup folds case; the env
+  // comparison below deliberately does not.
   try {
     await callApi<{ admin: { id: string } }>("auth/admin-login", {
       method: "POST",
-      body: { email, password },
+      body: { email: identifier.toLowerCase(), password },
     });
     return true;
   } catch (err) {
@@ -109,7 +111,7 @@ export async function checkAdminCredentials(
     }
   }
 
-  return checkEnvCredentials(email, password);
+  return checkEnvCredentials(identifier, password);
 }
 
 export async function createAdminSession(username: string): Promise<void> {

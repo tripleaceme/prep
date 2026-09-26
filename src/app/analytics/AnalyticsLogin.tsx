@@ -31,13 +31,22 @@ export function AnalyticsLogin() {
             <label htmlFor="email" className="mb-2 block text-sm font-semibold">
               Email
             </label>
+            {/*
+              type="text", not type="email", deliberately. Operators normally
+              sign in with a Prep account address, but the break-glass path
+              (ANALYTICS_USERNAME) is a plain username — and the browser's
+              email validation refuses to submit one, which would make the
+              documented fallback unreachable exactly when it is needed.
+              inputMode keeps the phone keyboard sensible for the common case.
+            */}
             <input
               id="email"
               name="email"
-              type="email"
+              type="text"
+              inputMode="email"
               required
               autoFocus
-              autoComplete="email"
+              autoComplete="username"
               autoCapitalize="none"
               spellCheck={false}
               className={inputClass}

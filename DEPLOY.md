@@ -297,7 +297,9 @@ node scripts/make-admin-password.mjs 'a-long-password-you-will-remember'
 ```
 
 It prints both variables to paste in. These are checked only after the database
-has already refused, so leaving them unset is fine and is the normal case.
+has already refused, so leaving them unset is fine and is the normal case. Type
+the username into the Email field on the sign-in form — that field accepts
+either, which is why it is not an `email` input.
 Clear the plaintext from your shell history afterwards:
 
 ```bash
