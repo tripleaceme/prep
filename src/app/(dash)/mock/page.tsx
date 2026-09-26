@@ -1,67 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, Clock, Code2, MessageSquare } from "lucide-react";
-import { TRACKS, type Track } from "@/lib/tracks";
+import { ArrowRight, Code2, MessageSquare } from "lucide-react";
+import { TrackCarousel } from "./TrackCarousel";
 
 export const metadata = { title: "Mock Interview" };
-
-/**
- * Every track in one row you scroll sideways.
- *
- * Six equal cards in a grid made this page taller than the screen, and
- * splitting them into a featured three plus a second section only moved the
- * problem: the second row still added height, and with three cards in it
- * nothing actually scrolled, so the "scroll for more" label was a lie.
- *
- * One row is honest about what these are — six peers, none more important
- * than another — and costs no vertical space at all beyond a single card.
- */
-
-function TrackMeta({ track }: { track: Track }) {
-  return (
-    <div className="flex items-center gap-4 text-xs text-[var(--text-faint)]">
-      <span className="inline-flex items-center gap-1.5">
-        <Clock className="size-3.5" />
-        {track.minutes} min
-      </span>
-      <span className="inline-flex items-center gap-1.5">
-        <MessageSquare className="size-3.5" />
-        {track.questions} questions
-      </span>
-    </div>
-  );
-}
-
-function TrackCard({ track }: { track: Track }) {
-  return (
-    <div className="flex w-[300px] shrink-0 snap-start flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5">
-      <TrackMeta track={track} />
-
-      <h2 className="mt-4 text-lg font-bold">{track.name}</h2>
-      <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--text-muted)]">
-        {track.blurb}
-      </p>
-
-      <ul className="mt-4 flex flex-wrap gap-2">
-        {track.topics.map((topic) => (
-          <li
-            key={topic}
-            className="rounded-full bg-[var(--surface-2)] px-2.5 py-1 text-xs text-[var(--text-faint)]"
-          >
-            {topic}
-          </li>
-        ))}
-      </ul>
-
-      <Link
-        href={`/mock/${track.slug}`}
-        className="mt-6 inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
-      >
-        Start interview
-        <ArrowRight className="size-4" />
-      </Link>
-    </div>
-  );
-}
 
 export default function MockPage() {
   return (
@@ -89,29 +30,13 @@ export default function MockPage() {
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />
       </Link>
 
-      <div className="mt-8 flex items-baseline justify-between gap-4">
-        <h2 className="text-lg font-bold">Choose a domain</h2>
-        <p className="text-sm text-[var(--text-faint)]">
-          {TRACKS.length} tracks &middot; scroll sideways
-        </p>
-      </div>
-
-      {/*
-        The negative margin plus matching padding lets the row bleed to the
-        page edge, so a half-visible card at the right signals there is more.
-        A row that stops neatly at the container reads as finished.
-      */}
-      <div className="-mx-6 mt-4 overflow-x-auto px-6 pb-2 lg:-mx-10 lg:px-10">
-        <div className="flex snap-x gap-4">
-          {TRACKS.map((track) => (
-            <TrackCard key={track.slug} track={track} />
-          ))}
-        </div>
-      </div>
+      {/* Three tracks to a page, so six is two pages rather than a row that
+          runs off the edge. */}
+      <TrackCarousel />
 
       <Link
         href="/coding"
-        className="mt-6 flex items-center gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:bg-[var(--surface-2)]"
+        className="mt-8 flex items-center gap-4 rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:bg-[var(--surface-2)]"
       >
         <span className="grid size-10 shrink-0 place-items-center rounded-[var(--radius-sm)] bg-[var(--brand-dim)]">
           <Code2 className="size-5 text-[var(--brand-bright)]" />
@@ -126,7 +51,6 @@ export default function MockPage() {
         </span>
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />
       </Link>
-
     </main>
   );
 }
