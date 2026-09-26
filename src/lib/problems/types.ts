@@ -32,13 +32,63 @@ export type Category =
   | "orchestration"
   | "architecture";
 
+/**
+ * Every problem is a contract with four parts, because a question that leaves
+ * any of them out reads as vague however clearly the task itself is written:
+ *
+ *   1. What the data is      — `setup`, plus `tableNotes` saying what one row
+ *                              of each table means.
+ *   2. What to compute       — `prompt`, opening with the situation and
+ *                              closing with an imperative task sentence.
+ *   3. What the output is    — exact column names, sort order and rounding,
+ *                              stated in `prompt`; the rows themselves are
+ *                              computed from `solution` and shown.
+ *   4. Why that output       — `explanation`, justifying the rows, including
+ *                              at least one that had to be left out.
+ *
+ * `notes` carries anything a reader could take two ways, defined operationally
+ * rather than left to inference. `gotcha` names the wrong answer most people
+ * reach for, which is the difference between a problem that teaches and one
+ * that merely marks.
+ */
 interface BaseProblem {
   slug: string;
   title: string;
   category: Category;
   difficulty: Difficulty;
-  /** Plain prose; `backticks` become inline code. */
+  /**
+   * The situation, then the task, then what to output. Plain prose;
+   * `backticks` become inline code.
+   */
   prompt: string[];
+  /**
+   * Definitions and assumptions. One sentence each. Two jobs: define any
+   * business term that could be read two ways, and defuse traps the problem
+   * is not trying to set.
+   */
+  notes?: string[];
+  /**
+   * What one row of each fixture table means, keyed by table name, with its
+   * key constraints. Shown against the table rather than buried in the prose.
+   */
+  tableNotes?: Record<string, string>;
+  /**
+   * Why the expected output is what it is. Should justify at least one row
+   * that is absent — an explanation that only narrates the rows present does
+   * not tell you where the edge is.
+   */
+  explanation?: string;
+  /** The single most common wrong answer, and why it is wrong. */
+  gotcha?: string;
+  /**
+   * A worked example, for problems with no fixture tables to show.
+   *
+   * SQL and dbt problems compute theirs by running `solution`, so they do not
+   * need this. Python problems have nothing to run against until the
+   * candidate writes it, which is exactly why leaving the example out made
+   * them unanswerable: you could not see the shape of the input.
+   */
+  example?: { input: string; output: string };
   hint?: string;
 }
 

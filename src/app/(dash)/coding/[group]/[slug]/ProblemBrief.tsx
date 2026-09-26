@@ -27,7 +27,13 @@ function formatPrompt(text: string): string {
  * the data looks like, and a dozen INSERT lines pushed the page past the
  * bottom of the screen.
  */
-function FixtureTables({ sql }: { sql: string }) {
+function FixtureTables({
+  sql,
+  tableNotes,
+}: {
+  sql: string;
+  tableNotes?: Record<string, string>;
+}) {
   const tables = useMemo(() => parseFixture(sql), [sql]);
 
   if (!tables.length) {
@@ -41,13 +47,21 @@ function FixtureTables({ sql }: { sql: string }) {
   return (
     <div className="space-y-5">
       {tables.map((table) => (
-        <DataTable
-          key={table.name}
-          caption={table.name}
-          columns={table.columns.map((c) => c.name)}
-          types={table.columns.map((c) => c.type)}
-          rows={table.rows}
-        />
+        <div key={table.name}>
+          <DataTable
+            caption={table.name}
+            columns={table.columns.map((c) => c.name)}
+            types={table.columns.map((c) => c.type)}
+            rows={table.rows}
+          />
+          {/* What one row means, and the keys. Against the table rather than
+              buried in the prose, because this is where it gets read. */}
+          {tableNotes?.[table.name] ? (
+            <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+              {tableNotes[table.name]}
+            </p>
+          ) : null}
+        </div>
       ))}
     </div>
   );
@@ -69,9 +83,11 @@ function FixtureTables({ sql }: { sql: string }) {
 function ExpectedOutput({
   setup,
   solution,
+  explanation,
 }: {
   setup: string;
   solution: string;
+  explanation?: string;
 }) {
   const [result, setResult] = useState<QueryResult | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -117,11 +133,22 @@ function ExpectedOutput({
         columns={result.columns}
         rows={result.rows as (string | number | null)[][]}
       />
+
+      {explanation ? (
+        <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+          <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
+            WHY THESE ROWS
+          </p>
+          <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+            {explanation}
+          </p>
+        </div>
+      ) : null}
     </div>
   );
 }
 
-type Tab = "question" | "tables" | "expected" | "hint";
+type Tab = "question" | "tables" | "expected" | "example" | "hint";
 
 /**
  * The left-hand column: what you're being asked, and the data you're asked it
@@ -144,7 +171,10 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
           { value: "expected" as const, label: "Expected" },
         ]
       : []),
-    ...(problem.hint ? [{ value: "hint" as const, label: "Hint" }] : []),
+    ...(problem.example ? [{ value: "example" as const, label: "Example" }] : []),
+    ...(problem.hint || problem.gotcha
+      ? [{ value: "hint" as const, label: "Hint" }]
+      : []),
   ];
 
   return (
@@ -195,6 +225,23 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
               />
             ))}
 
+            {problem.notes?.length ? (
+              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
+                  ASSUME
+                </p>
+                <ul className="mt-2 space-y-1.5">
+                  {problem.notes.map((note, i) => (
+                    <li
+                      key={i}
+                      className="text-sm leading-relaxed text-[var(--text-muted)]"
+                      dangerouslySetInnerHTML={{ __html: formatPrompt(note) }}
+                    />
+                  ))}
+                </ul>
+              </div>
+            ) : null}
+
             {problem.kind === "dbt" ? (
               <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-4">
                 <p className="text-sm font-semibold">Models you can ref()</p>
@@ -214,20 +261,73 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
         ) : null}
 
         {tab === "tables" && hasTables ? (
-          <FixtureTables sql={problem.setup} />
+          <FixtureTables
+            sql={problem.setup}
+            tableNotes={problem.tableNotes}
+          />
         ) : null}
 
         {tab === "expected" && hasTables ? (
           <ExpectedOutput
             setup={problem.setup}
             solution={problem.solution}
+            explanation={problem.explanation}
           />
         ) : null}
 
-        {tab === "hint" && problem.hint ? (
-          <p className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm leading-relaxed text-[var(--text-muted)]">
-            {problem.hint}
-          </p>
+        {tab === "example" && problem.example ? (
+          <div className="space-y-4">
+            <div>
+              <p className="mb-2 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
+                INPUT
+              </p>
+              <pre className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4 font-mono text-xs leading-relaxed text-[var(--text-muted)]">
+                {problem.example.input}
+              </pre>
+            </div>
+            <div>
+              <p className="mb-2 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
+                OUTPUT
+              </p>
+              <pre className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4 font-mono text-xs leading-relaxed text-[var(--text-muted)]">
+                {problem.example.output}
+              </pre>
+            </div>
+            {problem.explanation ? (
+              <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
+                  WHY
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                  {problem.explanation}
+                </p>
+              </div>
+            ) : null}
+          </div>
+        ) : null}
+
+        {tab === "hint" ? (
+          <div className="space-y-4">
+            {problem.hint ? (
+              <p className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm leading-relaxed text-[var(--text-muted)]">
+                {problem.hint}
+              </p>
+            ) : null}
+
+            {/* The wrong answer most people reach for. Named outright,
+                because a problem that only marks you wrong teaches less
+                than one that says which wrong you were. */}
+            {problem.gotcha ? (
+              <div className="rounded-[var(--radius)] border border-[var(--warn)] bg-[var(--warn-dim)] p-4">
+                <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--warn)]">
+                  WHERE PEOPLE GO WRONG
+                </p>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                  {problem.gotcha}
+                </p>
+              </div>
+            ) : null}
+          </div>
         ) : null}
       </div>
     </section>
