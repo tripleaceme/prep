@@ -28,6 +28,8 @@ export type Category =
   | "pipeline-debugging"
   | "dbt-modelling"
   | "python-pipelines"
+  | "data-quality"
+  | "orchestration"
   | "architecture";
 
 interface BaseProblem {
@@ -121,6 +123,18 @@ export const CATEGORIES: {
     blurb: "A pipeline is producing wrong numbers. Find out why, and fix it.",
   },
   {
+    value: "data-quality",
+    label: "Data Quality",
+    blurb:
+      "Write the check that catches it. Duplicates, nulls, broken keys, stale tables and numbers that drifted.",
+  },
+  {
+    value: "orchestration",
+    label: "Orchestration",
+    blurb:
+      "Dependencies, schedules, retries and backfills — the logic a scheduler runs on.",
+  },
+  {
     value: "architecture",
     label: "Architecture & Design",
     blurb:
@@ -137,7 +151,13 @@ export const CATEGORIES: {
 /* then see its problems.                                                     */
 /* ------------------------------------------------------------------------ */
 
-export type Group = "sql" | "modelling" | "pipelines" | "architecture";
+export type Group =
+  | "sql"
+  | "modelling"
+  | "pipelines"
+  | "quality"
+  | "orchestration"
+  | "architecture";
 
 export const GROUPS: {
   value: Group;
@@ -165,6 +185,20 @@ export const GROUPS: {
     blurb:
       "Transform logic, watermarks and idempotency in Python — plus pipelines producing wrong numbers.",
     categories: ["python-pipelines", "pipeline-debugging"],
+  },
+  {
+    value: "quality",
+    label: "Data Quality",
+    blurb:
+      "Write the check that catches it — duplicates, orphaned keys, stale tables, numbers that moved.",
+    categories: ["data-quality"],
+  },
+  {
+    value: "orchestration",
+    label: "Orchestration",
+    blurb:
+      "Dependency order, schedule windows, retries and backfills. The logic underneath a DAG.",
+    categories: ["orchestration"],
   },
   {
     value: "architecture",

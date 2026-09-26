@@ -1,6 +1,8 @@
 import { ARCHITECTURE_PROBLEMS } from "./architecture";
 import { DBT_PROBLEMS } from "./dbt";
+import { ORCHESTRATION_PROBLEMS } from "./orchestration";
 import { PYTHON_PROBLEMS } from "./python";
+import { QUALITY_PROBLEMS } from "./quality";
 import { SQL_PROBLEMS } from "./sql";
 import { getGroup, type Category, type Group, type Problem } from "./types";
 
@@ -12,6 +14,8 @@ export const PROBLEMS: Problem[] = [
   ...(SQL_PROBLEMS as Problem[]),
   ...DBT_PROBLEMS,
   ...PYTHON_PROBLEMS,
+  ...(QUALITY_PROBLEMS as Problem[]),
+  ...ORCHESTRATION_PROBLEMS,
   ...ARCHITECTURE_PROBLEMS,
 ];
 

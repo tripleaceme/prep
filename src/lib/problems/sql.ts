@@ -97,6 +97,66 @@ INSERT INTO usage_events VALUES
   (14,TIMESTAMP '2024-05-03 14:00:00','export');
 `;
 
+
+/* Fixtures for the archetype questions — the shapes that come up on every
+   practice site and in most first-round screens. */
+
+const SALARIES_FIXTURE = `
+CREATE OR REPLACE TABLE employees (
+  employee_id INTEGER, name VARCHAR, department VARCHAR, salary INTEGER
+);
+INSERT INTO employees VALUES
+  (1,'Adaeze Okafor','Data',	 95000),
+  (2,'Tunde Bakare','Data',    135000),
+  (3,'Wei Chen','Data',        120000),
+  (4,'Marta Silva','Data',      78000),
+  (5,'Liam Byrne','Platform',  110000),
+  (6,'Bisi Adeyemi','Platform',135000),
+  (7,'Shola Oyelaran','Platform',88000),
+  (8,'Kelvin Mensah','Analytics',92000),
+  (9,'Amara Nwosu','Analytics', 92000);
+`;
+
+const YEARLY_FIXTURE = `
+CREATE OR REPLACE TABLE monthly_sales (
+  sold_on DATE, region VARCHAR, revenue DECIMAL(12,2)
+);
+INSERT INTO monthly_sales VALUES
+  (DATE '2023-01-15','West',1000.00),(DATE '2023-02-11','West',1100.00),
+  (DATE '2023-01-22','East', 800.00),(DATE '2023-02-05','East', 900.00),
+  (DATE '2024-01-09','West',1250.00),(DATE '2024-02-18','West',1045.00),
+  (DATE '2024-01-30','East', 720.00),(DATE '2024-02-14','East',1080.00);
+`;
+
+const FUNNEL_FIXTURE = `
+CREATE OR REPLACE TABLE funnel_events (
+  user_id INTEGER, step VARCHAR, occurred_at TIMESTAMP
+);
+INSERT INTO funnel_events VALUES
+  (1,'visit',   TIMESTAMP '2024-05-01 09:00:00'),
+  (1,'signup',  TIMESTAMP '2024-05-01 09:05:00'),
+  (1,'purchase',TIMESTAMP '2024-05-01 09:20:00'),
+  (2,'visit',   TIMESTAMP '2024-05-01 10:00:00'),
+  (2,'signup',  TIMESTAMP '2024-05-01 10:07:00'),
+  (3,'visit',   TIMESTAMP '2024-05-01 11:00:00'),
+  (4,'visit',   TIMESTAMP '2024-05-02 08:00:00'),
+  (4,'signup',  TIMESTAMP '2024-05-02 08:30:00'),
+  (4,'purchase',TIMESTAMP '2024-05-02 09:00:00'),
+  (5,'visit',   TIMESTAMP '2024-05-02 12:00:00');
+`;
+
+const ACTIVITY_FIXTURE = `
+CREATE OR REPLACE TABLE logins (
+  user_id INTEGER, login_on DATE
+);
+INSERT INTO logins VALUES
+  (1,DATE '2024-05-01'),(1,DATE '2024-05-02'),(1,DATE '2024-05-03'),
+  (1,DATE '2024-05-07'),(1,DATE '2024-05-08'),
+  (2,DATE '2024-05-01'),(2,DATE '2024-05-03'),(2,DATE '2024-05-05'),
+  (3,DATE '2024-05-04'),(3,DATE '2024-05-05'),(3,DATE '2024-05-06'),
+  (3,DATE '2024-05-07');
+`;
+
 export const SQL_PROBLEMS: (SqlProblem | DbtProblem)[] = [
   {
     kind: "sql",
@@ -497,6 +557,181 @@ GROUP BY account_id
 ORDER BY account_id`,
     orderMatters: true,
     hint: "LAG gives the previous event time per account. Every row whose gap exceeds 30 minutes — plus the first — starts a new session, so count those.",
+  },
+  {
+    kind: "sql",
+    slug: "second-highest-salary",
+    title: "The second highest, with ties",
+    category: "window-functions",
+    difficulty: "medium",
+    prompt: [
+      "The most asked SQL interview question there is, and the version people get wrong is the one with ties.",
+      "Return the second highest distinct `salary` in `employees`, as a single column named `salary`.",
+      "Two people share the top salary. The second highest is the next distinct amount below it — so `ORDER BY salary DESC LIMIT 1 OFFSET 1` returns the top salary again, which is the mistake this question exists to catch.",
+    ],
+    setup: SALARIES_FIXTURE,
+    starter: "SELECT ...\nFROM employees\n",
+    solution: `SELECT DISTINCT salary
+FROM employees
+ORDER BY salary DESC
+LIMIT 1 OFFSET 1`,
+    orderMatters: false,
+    hint: "DISTINCT before the ordering collapses the tie, so the offset counts distinct amounts. DENSE_RANK() = 2 works just as well and generalises to the Nth.",
+  },
+  {
+    kind: "sql",
+    slug: "percent-of-total",
+    title: "Share of the total",
+    category: "window-functions",
+    difficulty: "medium",
+    prompt: [
+      "Every 'what percentage of revenue' question is this shape: a value, and the total it belongs to, on the same row.",
+      "Return `department`, `headcount`, `payroll` (the department's total salary) and `pct_of_payroll` — its share of the whole company's payroll, as a percentage rounded to one decimal place.",
+      "Order by `pct_of_payroll` descending.",
+      "The trick is getting the grand total alongside a grouped row without a self-join: a window function over the aggregate does it in one pass.",
+    ],
+    setup: SALARIES_FIXTURE,
+    starter: `SELECT
+  department,
+  COUNT(*) AS headcount,
+  SUM(salary) AS payroll
+  -- the share
+FROM employees
+GROUP BY department
+`,
+    solution: `SELECT
+  department,
+  COUNT(*) AS headcount,
+  SUM(salary) AS payroll,
+  ROUND(SUM(salary) * 100.0 / SUM(SUM(salary)) OVER (), 1) AS pct_of_payroll
+FROM employees
+GROUP BY department
+ORDER BY pct_of_payroll DESC`,
+    orderMatters: true,
+    hint: "SUM(SUM(salary)) OVER () looks strange but is right: the inner SUM aggregates the group, the window then totals those group values.",
+  },
+  {
+    kind: "sql",
+    slug: "year-over-year-growth",
+    title: "Year over year, by region",
+    category: "window-functions",
+    difficulty: "hard",
+    prompt: [
+      "Leadership wants growth, not revenue — the same month last year compared with this one.",
+      "Return `year`, `month`, `region`, `revenue`, and `yoy_pct`: the change from the same month of the previous year, as a percentage rounded to one decimal place.",
+      "Months with no prior year to compare against get NULL. Order by `region`, then `year`, then `month`.",
+      "The subtlety is the partition: comparing to the previous row would compare January to the December before it. You want the previous row *for the same month and region*.",
+    ],
+    setup: YEARLY_FIXTURE,
+    starter: `WITH monthly AS (
+  SELECT
+    YEAR(sold_on) AS year,
+    MONTH(sold_on) AS month,
+    region,
+    SUM(revenue) AS revenue
+  FROM monthly_sales
+  GROUP BY 1, 2, 3
+)
+SELECT ...
+`,
+    solution: `WITH monthly AS (
+  SELECT
+    YEAR(sold_on) AS year,
+    MONTH(sold_on) AS month,
+    region,
+    SUM(revenue) AS revenue
+  FROM monthly_sales
+  GROUP BY 1, 2, 3
+)
+SELECT
+  year,
+  month,
+  region,
+  revenue,
+  ROUND(
+    (revenue - LAG(revenue) OVER (PARTITION BY region, month ORDER BY year))
+      * 100.0
+      / LAG(revenue) OVER (PARTITION BY region, month ORDER BY year),
+    1
+  ) AS yoy_pct
+FROM monthly
+ORDER BY region, year, month`,
+    orderMatters: true,
+    hint: "PARTITION BY region, month ORDER BY year — then LAG reaches the same month a year earlier rather than last month.",
+  },
+  {
+    kind: "sql",
+    slug: "longest-streak",
+    title: "The longest run of consecutive days",
+    category: "window-functions",
+    difficulty: "hard",
+    prompt: [
+      "Streaks are the classic gaps-and-islands problem, and the technique behind them turns up everywhere — consecutive days, contiguous ranges, unbroken periods of a status.",
+      "`logins` has one row per user per day they logged in. Return `user_id` and `longest_streak`, the most consecutive days each user appeared, ordered by `user_id`.",
+      "The trick: number each user's days, then subtract that number from the date. Consecutive days shift by the same amount, so every run shares one value you can group on. Days with a gap land on a different one.",
+    ],
+    setup: ACTIVITY_FIXTURE,
+    starter: `WITH numbered AS (
+  SELECT
+    user_id,
+    login_on,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_on) AS n
+  FROM logins
+)
+SELECT ...
+`,
+    solution: `WITH numbered AS (
+  SELECT
+    user_id,
+    login_on,
+    ROW_NUMBER() OVER (PARTITION BY user_id ORDER BY login_on) AS n
+  FROM logins
+),
+islands AS (
+  -- ROW_NUMBER() is a BIGINT and DuckDB will not subtract one from a DATE,
+  -- so the cast is required rather than cosmetic.
+  SELECT user_id, login_on - CAST(n AS INTEGER) AS grp
+  FROM numbered
+),
+runs AS (
+  SELECT user_id, grp, COUNT(*) AS streak
+  FROM islands
+  GROUP BY user_id, grp
+)
+SELECT user_id, MAX(streak) AS longest_streak
+FROM runs
+GROUP BY user_id
+ORDER BY user_id`,
+    orderMatters: true,
+    hint: "login_on minus the row number is constant within a run of consecutive days — cast the row number to INTEGER first, since DuckDB will not subtract a BIGINT from a DATE. Group on it, count each run, then take the largest per user.",
+  },
+  {
+    kind: "sql",
+    slug: "funnel-conversion",
+    title: "Where the funnel leaks",
+    category: "joins-aggregation",
+    difficulty: "medium",
+    prompt: [
+      "Growth wants the funnel: visit, then signup, then purchase, and the conversion rate at each step.",
+      "`funnel_events` has one row per user per step reached.",
+      "Return `step`, `users` (how many reached it) and `pct_of_visits` — that count as a percentage of the users who visited, rounded to one decimal place. Order by `users` descending.",
+      "Every funnel question is really about the denominator. Dividing each step by the one before gives step-to-step conversion; dividing by the top gives overall. Say which you mean, because they tell different stories.",
+    ],
+    setup: FUNNEL_FIXTURE,
+    starter: "SELECT step, COUNT(DISTINCT user_id) AS users\nFROM funnel_events\nGROUP BY step\n",
+    solution: `SELECT
+  step,
+  COUNT(DISTINCT user_id) AS users,
+  ROUND(
+    COUNT(DISTINCT user_id) * 100.0
+      / MAX(COUNT(DISTINCT user_id)) OVER (),
+    1
+  ) AS pct_of_visits
+FROM funnel_events
+GROUP BY step
+ORDER BY users DESC`,
+    orderMatters: true,
+    hint: "Visits are the largest step, so MAX(...) OVER () across the grouped counts gives the denominator without a second query.",
   },
   {
     kind: "sql",

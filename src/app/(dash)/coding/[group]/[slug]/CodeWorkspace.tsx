@@ -123,19 +123,21 @@ export function CodeWorkspace({
       : undefined;
 
   return (
-    <section>
+    /* Editor and controls are fixed; only the verdict area below scrolls, so
+       a long error or a fifty-row result never moves the editor. */
+    <section className="flex min-h-0 flex-col">
       <CodeMirror
         value={code}
-        height="340px"
+        height="320px"
         theme={oneDark}
         // Python gets no SQL grammar; plain text beats the wrong highlighting.
         extensions={isPython ? [] : [sqlLang()]}
         onChange={setCode}
         basicSetup={{ lineNumbers: true, foldGutter: false }}
-        className="overflow-hidden rounded-[var(--radius)] border border-[var(--border)] text-[13px]"
+        className="shrink-0 overflow-hidden rounded-[var(--radius)] border border-[var(--border)] text-[13px]"
       />
 
-      <div className="mt-4 flex flex-wrap items-center gap-3">
+      <div className="mt-4 flex shrink-0 flex-wrap items-center gap-3">
         <button
           type="button"
           onClick={run}
@@ -172,8 +174,9 @@ export function CodeWorkspace({
         </span>
       </div>
 
+      <div className="mt-1 min-h-0 flex-1 overflow-y-auto">
       {outcome.kind === "correct" ? (
-        <p className="mt-5 flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--brand)] bg-[var(--brand-dim)] p-4 font-semibold text-[var(--brand-bright)]">
+        <p className="mt-4 flex items-center gap-2.5 rounded-[var(--radius)] border border-[var(--brand)] bg-[var(--brand-dim)] p-4 font-semibold text-[var(--brand-bright)]">
           <CheckCircle2 className="size-5" />
           {isPython ? "All checks passed." : "Correct — that's the right result set."}
         </p>
@@ -219,7 +222,7 @@ export function CodeWorkspace({
             YOUR RESULT · {result.rows.length} row
             {result.rows.length === 1 ? "" : "s"}
           </p>
-          <div className="max-h-[320px] overflow-auto rounded-[var(--radius)] border border-[var(--border)]">
+          <div className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)]">
             <table className="w-full border-collapse text-sm">
               <thead className="sticky top-0 bg-[var(--surface-3)]">
                 <tr>
@@ -255,6 +258,7 @@ export function CodeWorkspace({
           </div>
         </div>
       ) : null}
+      </div>
     </section>
   );
 }

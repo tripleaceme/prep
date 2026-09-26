@@ -5,16 +5,16 @@ import { TRACKS, type Track } from "@/lib/tracks";
 export const metadata = { title: "Mock Interview" };
 
 /**
- * The three tracks people ask for most sit in the first row at full size; the
- * rest go in a row you scroll sideways.
+ * Every track in one row you scroll sideways.
  *
- * Six equal cards stacked vertically made this page long enough that the
- * coding link below them was never seen. Sideways is the right axis for "more
- * of the same thing" — it keeps the page one screen tall and keeps what
- * follows the tracks visible.
+ * Six equal cards in a grid made this page taller than the screen, and
+ * splitting them into a featured three plus a second section only moved the
+ * problem: the second row still added height, and with three cards in it
+ * nothing actually scrolled, so the "scroll for more" label was a lie.
+ *
+ * One row is honest about what these are — six peers, none more important
+ * than another — and costs no vertical space at all beyond a single card.
  */
-const FEATURED = TRACKS.slice(0, 3);
-const MORE = TRACKS.slice(3);
 
 function TrackMeta({ track }: { track: Track }) {
   return (
@@ -33,7 +33,7 @@ function TrackMeta({ track }: { track: Track }) {
 
 function TrackCard({ track }: { track: Track }) {
   return (
-    <div className="flex flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
+    <div className="flex w-[300px] shrink-0 snap-start flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5">
       <TrackMeta track={track} />
 
       <h2 className="mt-4 text-lg font-bold">{track.name}</h2>
@@ -55,28 +55,6 @@ function TrackCard({ track }: { track: Track }) {
       <Link
         href={`/mock/${track.slug}`}
         className="mt-6 inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
-      >
-        Start interview
-        <ArrowRight className="size-4" />
-      </Link>
-    </div>
-  );
-}
-
-/** Narrower and flatter, because several of these sit in one scrolling row. */
-function TrackCardCompact({ track }: { track: Track }) {
-  return (
-    <div className="flex w-[300px] shrink-0 snap-start flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5">
-      <TrackMeta track={track} />
-
-      <h3 className="mt-3 font-bold">{track.name}</h3>
-      <p className="mt-1.5 flex-1 text-sm leading-relaxed text-[var(--text-muted)]">
-        {track.blurb}
-      </p>
-
-      <Link
-        href={`/mock/${track.slug}`}
-        className="mt-5 inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] border border-[var(--border)] px-4 py-2.5 text-sm font-semibold transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
       >
         Start interview
         <ArrowRight className="size-4" />
@@ -111,10 +89,24 @@ export default function MockPage() {
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />
       </Link>
 
-      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {FEATURED.map((track) => (
-          <TrackCard key={track.slug} track={track} />
-        ))}
+      <div className="mt-8 flex items-baseline justify-between gap-4">
+        <h2 className="text-lg font-bold">Choose a domain</h2>
+        <p className="text-sm text-[var(--text-faint)]">
+          {TRACKS.length} tracks &middot; scroll sideways
+        </p>
+      </div>
+
+      {/*
+        The negative margin plus matching padding lets the row bleed to the
+        page edge, so a half-visible card at the right signals there is more.
+        A row that stops neatly at the container reads as finished.
+      */}
+      <div className="-mx-6 mt-4 overflow-x-auto px-6 pb-2 lg:-mx-10 lg:px-10">
+        <div className="flex snap-x gap-4">
+          {TRACKS.map((track) => (
+            <TrackCard key={track.slug} track={track} />
+          ))}
+        </div>
       </div>
 
       <Link
@@ -135,27 +127,6 @@ export default function MockPage() {
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />
       </Link>
 
-      {MORE.length ? (
-        <section className="mt-10">
-          <div className="flex items-baseline justify-between gap-4">
-            <h2 className="text-lg font-bold">More domains</h2>
-            <p className="text-sm text-[var(--text-faint)]">Scroll for more</p>
-          </div>
-
-          {/*
-            The negative margin plus matching padding lets the row bleed to the
-            page edge, so a half-visible card at the right signals there is
-            more — a row that stops neatly at the container reads as finished.
-          */}
-          <div className="-mx-6 mt-4 overflow-x-auto px-6 pb-2 lg:-mx-10 lg:px-10">
-            <div className="flex snap-x snap-mandatory gap-4">
-              {MORE.map((track) => (
-                <TrackCardCompact key={track.slug} track={track} />
-              ))}
-            </div>
-          </div>
-        </section>
-      ) : null}
     </main>
   );
 }

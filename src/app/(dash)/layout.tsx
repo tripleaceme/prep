@@ -50,12 +50,29 @@ export default async function DashLayout({
   // Outside the try: redirect() signals by throwing.
   if (needsOnboarding) redirect("/onboarding");
 
+  /*
+    A fixed shell: the document itself never scrolls.
+
+    The whole app is exactly one viewport tall, and anything longer scrolls
+    inside its own region rather than stretching the page. That makes the
+    sidebar permanently reachable, keeps a screen's header where you left it,
+    and — the reason it is done here rather than page by page — means a page
+    that grows past the viewport degrades into an inner scroll instead of
+    silently pushing the layout off the bottom.
+
+    Pages are still expected to fit. This is the floor, not the plan.
+  */
   return (
-    <div className="flex">
+    <div className="flex h-dvh overflow-hidden">
       <Sidebar displayName={displayName} avatar={avatar} />
-      <div className="min-h-dvh flex-1 overflow-x-hidden">
+      <div className="flex min-w-0 flex-1 flex-col overflow-hidden">
         {verified ? null : <VerifyBanner email={email} />}
-        {children}
+        {/* min-h-0 is what lets this shrink inside the flex parent; without
+            it a flex child refuses to go below its content height and the
+            overflow moves back out to the document. */}
+        <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+          {children}
+        </div>
       </div>
     </div>
   );
