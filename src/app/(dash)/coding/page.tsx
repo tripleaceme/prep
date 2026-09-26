@@ -45,8 +45,7 @@ export default async function CodingPage() {
       </div>
 
       <p className="mt-2 max-w-[70ch] shrink-0 leading-relaxed text-[var(--text-muted)]">
-        Pick a subject, then work through its problems. Everything runs in your
-        browser — no AI key, no quota, and it keeps working offline once loaded.
+        Pick a subject, then work through its problems.
       </p>
 
       {/* Subjects first, problems second: a flat list of everything is a wall

@@ -9,6 +9,7 @@ import { resultsMatch, runQuery, type QueryResult } from "@/lib/duckdb";
 import { runPython } from "@/lib/pyodide";
 import { compileDbt, type Problem } from "@/lib/problems";
 import { saveCodingAttempt } from "@/lib/interviewActions";
+import { DataTable } from "./DataTable";
 
 const CodeMirror = dynamic(() => import("@uiw/react-codemirror"), {
   ssr: false,
@@ -222,40 +223,10 @@ export function CodeWorkspace({
             YOUR RESULT · {result.rows.length} row
             {result.rows.length === 1 ? "" : "s"}
           </p>
-          <div className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)]">
-            <table className="w-full border-collapse text-sm">
-              <thead className="sticky top-0 bg-[var(--surface-3)]">
-                <tr>
-                  {result.columns.map((column) => (
-                    <th
-                      key={column}
-                      className="px-4 py-2.5 text-left font-semibold"
-                    >
-                      {column}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {result.rows.map((row, i) => (
-                  <tr key={i} className="border-t border-[var(--border)]">
-                    {row.map((cell, j) => (
-                      <td
-                        key={j}
-                        className="px-4 py-2.5 font-mono text-[13px] text-[var(--text-muted)]"
-                      >
-                        {cell === null ? (
-                          <span className="text-[var(--text-faint)]">NULL</span>
-                        ) : (
-                          String(cell)
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <DataTable
+            columns={result.columns}
+            rows={result.rows as (string | number | null)[][]}
+          />
         </div>
       ) : null}
       </div>

@@ -1,9 +1,11 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { Lightbulb } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { Lightbulb, Loader2 } from "lucide-react";
 import type { Problem } from "@/lib/problems";
 import { parseFixture } from "@/lib/problems/fixtures";
+import { runQuery, type QueryResult } from "@/lib/duckdb";
+import { DataTable } from "./DataTable";
 
 /** Renders the `backticked` identifiers in a prompt as inline code. */
 function formatPrompt(text: string): string {
@@ -39,55 +41,87 @@ function FixtureTables({ sql }: { sql: string }) {
   return (
     <div className="space-y-5">
       {tables.map((table) => (
-        <div key={table.name}>
-          <p className="mb-2 font-mono text-sm font-semibold">{table.name}</p>
-
-          <div className="overflow-x-auto rounded-[var(--radius)] border border-[var(--border)]">
-            <table className="w-full border-collapse text-sm">
-              <thead className="bg-[var(--surface-3)]">
-                <tr>
-                  {table.columns.map((column) => (
-                    <th
-                      key={column.name}
-                      className="whitespace-nowrap px-3 py-2 text-left align-bottom"
-                    >
-                      <span className="block font-semibold">{column.name}</span>
-                      {/* The type is what tells you whether to expect NULLs,
-                          and whether a comparison needs a cast. */}
-                      <span className="block text-[11px] font-normal lowercase text-[var(--text-faint)]">
-                        {column.type}
-                      </span>
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {table.rows.map((row, i) => (
-                  <tr key={i} className="border-t border-[var(--border)]">
-                    {row.map((cell, j) => (
-                      <td
-                        key={j}
-                        className="whitespace-nowrap px-3 py-2 font-mono text-[13px] text-[var(--text-muted)]"
-                      >
-                        {cell === "NULL" ? (
-                          <span className="text-[var(--text-faint)]">NULL</span>
-                        ) : (
-                          cell
-                        )}
-                      </td>
-                    ))}
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <DataTable
+          key={table.name}
+          caption={table.name}
+          columns={table.columns.map((c) => c.name)}
+          types={table.columns.map((c) => c.type)}
+          rows={table.rows}
+        />
       ))}
     </div>
   );
 }
 
-type Tab = "question" | "tables" | "hint";
+/**
+ * The rows a correct answer produces.
+ *
+ * Every established practice platform shows this, and leaving it out was the
+ * single biggest gap in these problems: without it you are guessing at the
+ * shape of the answer — how many rows, in what order, with what column names
+ * — which is guesswork about the question rather than work on the problem.
+ *
+ * It is computed by running the stored solution in the browser rather than
+ * written down beside each problem. Two reasons: there is nothing to keep in
+ * sync when a fixture changes, and a hand-written expected output that drifts
+ * from the checker is worse than none at all.
+ */
+function ExpectedOutput({
+  setup,
+  solution,
+}: {
+  setup: string;
+  solution: string;
+}) {
+  const [result, setResult] = useState<QueryResult | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    runQuery(setup, solution)
+      .then((data) => {
+        if (!cancelled) setResult(data);
+      })
+      .catch((err: unknown) => {
+        if (!cancelled) {
+          setError(err instanceof Error ? err.message : "Could not load it.");
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [setup, solution]);
+
+  if (error) {
+    return (
+      <p className="text-sm leading-relaxed text-[var(--danger)]">{error}</p>
+    );
+  }
+
+  if (!result) {
+    return (
+      <p className="flex items-center gap-2.5 py-8 text-sm text-[var(--text-faint)]">
+        <Loader2 className="size-4 animate-spin" />
+        Working out the expected rows…
+      </p>
+    );
+  }
+
+  return (
+    <div className="space-y-3">
+      <p className="text-sm leading-relaxed text-[var(--text-muted)]">
+        {result.rows.length} row{result.rows.length === 1 ? "" : "s"}, with
+        these exact column names.
+      </p>
+      <DataTable
+        columns={result.columns}
+        rows={result.rows as (string | number | null)[][]}
+      />
+    </div>
+  );
+}
+
+type Tab = "question" | "tables" | "expected" | "hint";
 
 /**
  * The left-hand column: what you're being asked, and the data you're asked it
@@ -104,7 +138,12 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
 
   const tabs: { value: Tab; label: string }[] = [
     { value: "question", label: "Question" },
-    ...(hasTables ? [{ value: "tables" as const, label: "Tables" }] : []),
+    ...(hasTables
+      ? [
+          { value: "tables" as const, label: "Tables" },
+          { value: "expected" as const, label: "Expected" },
+        ]
+      : []),
     ...(problem.hint ? [{ value: "hint" as const, label: "Hint" }] : []),
   ];
 
@@ -176,6 +215,13 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
 
         {tab === "tables" && hasTables ? (
           <FixtureTables sql={problem.setup} />
+        ) : null}
+
+        {tab === "expected" && hasTables ? (
+          <ExpectedOutput
+            setup={problem.setup}
+            solution={problem.solution}
+          />
         ) : null}
 
         {tab === "hint" && problem.hint ? (
