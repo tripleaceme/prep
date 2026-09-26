@@ -83,10 +83,10 @@ export default function MockPage() {
         </span>
         <span className="flex-1">
           <span className="block font-semibold">
-            Prefer to write SQL than talk?
+            Prefer to code than talk?
           </span>
           <span className="mt-0.5 block text-sm text-[var(--text-muted)]">
-            Coding Problems run entirely in your browser — no AI key needed.
+            Coding Problems run entirely in your browser.
           </span>
         </span>
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />

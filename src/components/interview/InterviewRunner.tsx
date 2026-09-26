@@ -1,35 +1,33 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Mic, Send, Square, Volume2 } from "lucide-react";
-import { callInteraction, callInteractionJson, MissingKeyError } from "@/lib/gemini/client";
-import { PERSONA_NAMES, PERSONA_VOICES, speak, stopSpeaking } from "@/lib/gemini/speech";
+import {
+  ArrowRight,
+  BookOpen,
+  CheckCircle2,
+  Loader2,
+  Mic,
+  Search,
+  Send,
+  Square,
+  Volume2,
+  PlayCircle,
+} from "lucide-react";
 import {
   buildReviewInstruction,
   buildSystemInstruction,
-  FIRST_QUESTION_PROMPT,
-  REVIEW_PROMPT,
-  scoreFromReview,
-  tierToUnderstanding,
   type InterviewSetup,
-  type ReviewJson,
 } from "@/lib/gemini/prompts";
 import { useSpeechRecognition } from "@/hooks/useSpeechRecognition";
-import { completeInterview } from "@/lib/interviewActions";
+import { useInterviewSession } from "@/hooks/useInterviewSession";
+import { useI18n } from "@/lib/i18n/context";
+import { UnderstandingBadge } from "@/components/UnderstandingBadge";
 import { ApiKeyPrompt } from "./ApiKeyPrompt";
-
-type Phase = "starting" | "asking" | "answering" | "reviewing" | "error";
-
-interface Turn {
-  role: "interviewer" | "candidate";
-  text: string;
-}
 
 interface Props {
   interviewId: string;
   setup: Omit<InterviewSetup, "personaName" | "personaRole">;
-  /** Shown above the transcript so people know what they're practising. */
   title: string;
   maxQuestions?: number;
 }
@@ -41,212 +39,121 @@ export function InterviewRunner({
   maxQuestions = 6,
 }: Props) {
   const router = useRouter();
+  const { locale, lang } = useI18n();
 
-  // Cast once, in a lazy initialiser rather than during render: calling
-  // Math.random() in the render body is impure and re-rolls every pass.
-  const [persona] = useState(
-    () => PERSONA_NAMES[Math.floor(Math.random() * PERSONA_NAMES.length)],
-  );
-  const voice = PERSONA_VOICES[persona];
+  // Mock tracks never interrupt with feedback between questions. That is what
+  // the end-of-session report is for, and being marked after every answer
+  // breaks the rhythm the interview is meant to rehearse.
+  const timing = "end" as const;
 
   const fullSetup: InterviewSetup = {
     ...setup,
-    personaName: persona,
+    personaName: "the interviewer",
     personaRole:
       setup.kind === "mock" ? "Senior Data Engineer" : "Hiring Manager",
+    timing,
+    lang,
   };
 
-  const [phase, setPhase] = useState<Phase>("starting");
-  const [question, setQuestion] = useState("");
-  const [turns, setTurns] = useState<Turn[]>([]);
+  const [savedReportId, setSavedReportId] = useState<string | null>(null);
+
+  const session = useInterviewSession({
+    interviewId,
+    systemInstruction: buildSystemInstruction(fullSetup),
+    reviewInstruction: buildReviewInstruction(fullSetup),
+    questionCount: maxQuestions,
+    timing,
+    onSaved: setSavedReportId,
+  });
+
   const [answer, setAnswer] = useState("");
-  const [error, setError] = useState<string | null>(null);
-  const [needsKey, setNeedsKey] = useState(false);
-
-  const previousIdRef = useRef<string | null>(null);
-  const questionCountRef = useRef(0);
-  const startedRef = useRef(false);
-
   const { supported, listening, transcript, start, stop, reset } =
-    useSpeechRecognition();
+    useSpeechRecognition(locale);
 
-  // Voice input writes into the same box someone can type in, so they can
-  // correct a mis-transcription before sending. Adjusting state during render
-  // (rather than in an effect) is React's own pattern for this, and avoids the
-  // extra render pass an effect would cost on every interim transcript.
   const [appliedTranscript, setAppliedTranscript] = useState("");
   if (transcript !== appliedTranscript) {
     setAppliedTranscript(transcript);
     if (transcript) setAnswer(transcript);
   }
 
-  const handleFailure = useCallback((err: unknown) => {
-    stopSpeaking();
-    if (err instanceof MissingKeyError) {
-      setNeedsKey(true);
-      setPhase("error");
-      return;
-    }
-    setError(err instanceof Error ? err.message : "Something went wrong.");
-    setPhase("error");
-  }, []);
+  if (session.phase === "needs-key") return <ApiKeyPrompt />;
 
-  const ask = useCallback(
-    async (input: string) => {
-      setPhase("asking");
-      setError(null);
-      try {
-        const result = await callInteraction(input, {
-          systemInstruction: buildSystemInstruction(fullSetup),
-          previousId: previousIdRef.current,
-        });
-        previousIdRef.current = result.id;
-        questionCountRef.current += 1;
-
-        setQuestion(result.text);
-        setTurns((t) => [...t, { role: "interviewer", text: result.text }]);
-        setPhase("answering");
-        void speak(result.text, voice);
-      } catch (err) {
-        handleFailure(err);
-      }
-    },
-    // fullSetup is rebuilt each render but its contents are stable for the
-    // lifetime of the session.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [voice, handleFailure],
-  );
-
-  // Kick off the first question exactly once, even under Strict Mode.
-  useEffect(() => {
-    if (startedRef.current) return;
-    startedRef.current = true;
-    void ask(FIRST_QUESTION_PROMPT);
-    return () => stopSpeaking();
-  }, [ask]);
-
-  function submitAnswer() {
+  function send() {
     const text = answer.trim();
-    if (!text || phase !== "answering") return;
-
+    if (!text) return;
     stop();
-    stopSpeaking();
-    setTurns((t) => [...t, { role: "candidate", text }]);
     setAnswer("");
     reset();
-
-    if (questionCountRef.current >= maxQuestions) {
-      void finish([...turns, { role: "candidate", text }]);
-      return;
-    }
-    void ask(text);
+    void session.submitAnswer(text);
   }
 
-  async function finish(finalTurns: Turn[]) {
-    stop();
-    stopSpeaking();
-    setPhase("reviewing");
-    setError(null);
-
-    try {
-      const { data } = await callInteractionJson<ReviewJson>(REVIEW_PROMPT, {
-        systemInstruction: buildReviewInstruction(fullSetup),
-        previousId: previousIdRef.current,
-      });
-
-      const outcome = await completeInterview({
-        interview_id: interviewId,
-        question_count: questionCountRef.current,
-        report: {
-          overall_score: scoreFromReview(data),
-          understanding: tierToUnderstanding(data.overall ?? "surface"),
-          summary: data.summary ?? "",
-          strengths: data.strengths ?? [],
-          knowledge_gaps: data.perQuestion ?? [],
-          topics_to_review: data.toReview ?? [],
-          transcript: finalTurns,
-        },
-      });
-
-      if ("error" in outcome) {
-        setError(outcome.error);
-        setPhase("error");
-        return;
-      }
-      router.push(`/reports/${outcome.reportId}`);
-    } catch (err) {
-      handleFailure(err);
-    }
-  }
-
-  if (needsKey) return <ApiKeyPrompt />;
-
-  const progress = Math.min(questionCountRef.current, maxQuestions);
+  const report = session.report;
 
   return (
     <main className="mx-auto flex min-h-dvh max-w-[820px] flex-col px-6 py-8 lg:px-10">
       <header className="flex items-center justify-between gap-4 border-b border-[var(--border)] pb-5">
         <div className="min-w-0">
-          <p className="text-xs font-semibold tracking-[0.14em] text-[var(--text-faint)]">
+          <p className="truncate text-xs font-semibold tracking-[0.14em] text-[var(--text-faint)]">
             {title.toUpperCase()}
           </p>
-          <p className="mt-1 truncate text-sm text-[var(--text-muted)]">
-            {persona} · {fullSetup.personaRole}
+          <p className="mt-1 text-sm text-[var(--text-muted)]">
+            {session.persona}
           </p>
         </div>
         <div className="flex shrink-0 items-center gap-4">
           <span className="text-sm text-[var(--text-muted)]">
-            Question {progress} of {maxQuestions}
+            {session.phase === "planning"
+              ? `${session.questionCount} questions`
+              : `Question ${session.questionNumber} of ${session.questionCount}`}
           </span>
-          <button
-            type="button"
-            onClick={() => void finish(turns)}
-            disabled={phase === "reviewing" || turns.length === 0}
-            className="rounded-[var(--radius-sm)] border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)] disabled:opacity-40"
-          >
-            End & review
-          </button>
+          {!report ? (
+            <button
+              type="button"
+              onClick={session.endEarly}
+              disabled={session.phase === "reviewing" || session.turns.length < 2}
+              className="rounded-[var(--radius-sm)] border border-[var(--border)] px-4 py-2 text-sm font-semibold text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)] disabled:opacity-40"
+            >
+              End &amp; review
+            </button>
+          ) : null}
         </div>
       </header>
 
       <div className="mt-1 h-[3px] w-full overflow-hidden rounded-full bg-[var(--surface-3)]">
         <div
           className="h-full rounded-full bg-[var(--brand-bright)] transition-[width] duration-500"
-          style={{ width: `${(progress / maxQuestions) * 100}%` }}
+          style={{
+            width: `${(session.questionNumber / Math.max(session.questionCount, 1)) * 100}%`,
+          }}
         />
       </div>
 
       <section className="flex flex-1 flex-col justify-center py-10">
-        {phase === "starting" || phase === "asking" ? (
+        {session.phase === "planning" ? (
           <p className="flex items-center gap-3 text-lg text-[var(--text-muted)]">
             <Loader2 className="size-5 animate-spin text-[var(--brand-bright)]" />
-            {phase === "starting"
-              ? `${persona} is joining…`
-              : `${persona} is thinking…`}
+            Preparing your questions…
           </p>
         ) : null}
 
-        {phase === "reviewing" ? (
+        {session.phase === "reviewing" && !report ? (
           <p className="flex items-center gap-3 text-lg text-[var(--text-muted)]">
             <Loader2 className="size-5 animate-spin text-[var(--brand-bright)]" />
-            Reviewing your answers…
+            Writing your report…
           </p>
         ) : null}
 
-        {phase === "error" ? (
+        {session.phase === "error" ? (
           <div className="rounded-[var(--radius)] border border-[var(--danger)] bg-[rgba(224,108,96,0.08)] p-5">
             <p className="font-semibold text-[var(--danger)]">
               That didn&apos;t work
             </p>
             <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-              {error}
+              {session.error}
             </p>
             <button
               type="button"
-              onClick={() => {
-                setPhase("answering");
-                setError(null);
-              }}
+              onClick={session.retry}
               className="mt-4 rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-2.5 text-sm font-semibold text-white"
             >
               Try again
@@ -254,26 +161,30 @@ export function InterviewRunner({
           </div>
         ) : null}
 
-        {phase === "answering" && question ? (
+        {session.phase === "asking" && session.question ? (
           <div>
             <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-[var(--brand-bright)]">
               <Volume2 className="size-4" />
-              {persona.toUpperCase()} ASKS
+              QUESTION {session.questionNumber}
             </p>
-            <p className="mt-4 text-[26px] font-semibold leading-[1.35]">
-              {question}
+            {/* break-words matters: a long unbroken token in a generated
+                question would otherwise push the card past its container. */}
+            <p className="mt-4 text-[26px] font-semibold leading-[1.35] break-words hyphens-auto">
+              {session.question}
             </p>
           </div>
         ) : null}
+
+        {report ? <Report report={report} reportId={savedReportId} router={router} /> : null}
       </section>
 
-      {phase === "answering" ? (
+      {session.phase === "asking" ? (
         <div className="border-t border-[var(--border)] pt-5">
           <textarea
             value={answer}
             onChange={(e) => setAnswer(e.target.value)}
             onKeyDown={(e) => {
-              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) submitAnswer();
+              if (e.key === "Enter" && (e.metaKey || e.ctrlKey)) send();
             }}
             rows={4}
             placeholder={
@@ -312,27 +223,129 @@ export function InterviewRunner({
 
             <button
               type="button"
-              onClick={submitAnswer}
+              onClick={send}
               disabled={!answer.trim()}
               className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)] disabled:cursor-not-allowed disabled:opacity-40"
             >
               <Send className="size-4" />
-              {questionCountRef.current >= maxQuestions
+              {session.questionNumber >= session.questionCount
                 ? "Send & finish"
                 : "Send answer"}
             </button>
 
             <span className="text-xs text-[var(--text-faint)]">⌘↵ to send</span>
           </div>
-
-          {!supported ? (
-            <p className="mt-3 text-xs text-[var(--text-faint)]">
-              This browser doesn&apos;t support speech recognition — Chrome and
-              Edge do. You can still type your answers.
-            </p>
-          ) : null}
         </div>
       ) : null}
     </main>
+  );
+}
+
+/** The end-of-session report, shown in place rather than on another page. */
+function Report({
+  report,
+  reportId,
+  router,
+}: {
+  report: import("@/hooks/useInterviewSession").FullReport;
+  reportId: string | null;
+  router: ReturnType<typeof useRouter>;
+}) {
+  return (
+    <div>
+      <p className="flex items-center gap-2 text-xs font-semibold tracking-[0.14em] text-[var(--brand-bright)]">
+        <CheckCircle2 className="size-4" />
+        SESSION COMPLETE
+      </p>
+      <h2 className="mt-3 text-[28px] font-bold">Here&apos;s what to work on.</h2>
+
+      <div className="mt-4">
+        <UnderstandingBadge level={(report.overall ?? "").toLowerCase()} />
+      </div>
+      <p className="mt-4 leading-relaxed text-[var(--text-muted)]">
+        {report.summary}
+      </p>
+
+      {report.perQuestion?.length ? (
+        <div className="mt-8 space-y-3">
+          {report.perQuestion.map((item, i) => (
+            <article
+              key={i}
+              className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5"
+            >
+              <UnderstandingBadge level={item.tier?.toLowerCase()} short />
+              <p className="mt-3 font-semibold leading-relaxed break-words">
+                {item.question}
+              </p>
+              <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
+                {item.note}
+              </p>
+            </article>
+          ))}
+        </div>
+      ) : null}
+
+      {report.resources?.length ? (
+        <div className="mt-8 rounded-[var(--radius)] border border-[var(--brand)] bg-[var(--brand-dim)] p-5">
+          <h3 className="flex items-center gap-2 font-bold">
+            <BookOpen className="size-5 text-[var(--brand-bright)]" />
+            What to study next
+          </h3>
+          <ul className="mt-4 space-y-4">
+            {report.resources.map((resource, i) => (
+              <li key={i}>
+                <p className="font-semibold">{resource.title}</p>
+                <p className="mt-1 text-sm leading-relaxed text-[var(--text-muted)]">
+                  {resource.why}
+                </p>
+                {/* Searches rather than links: a model asked for URLs invents
+                    plausible ones that 404, and a dead link is worse than a
+                    search that works. */}
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <a
+                    href={`https://www.google.com/search?q=${encodeURIComponent(resource.searchQuery)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--surface-2)]"
+                  >
+                    <Search className="size-3.5" />
+                    Read about it
+                  </a>
+                  <a
+                    href={`https://www.youtube.com/results?search_query=${encodeURIComponent(resource.searchQuery)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 rounded-full bg-[var(--surface)] px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-[var(--surface-2)]"
+                  >
+                    <PlayCircle className="size-3.5" />
+                    Watch
+                  </a>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </div>
+      ) : null}
+
+      <div className="mt-8 flex flex-wrap gap-3">
+        <button
+          type="button"
+          onClick={() => router.push("/mock")}
+          className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
+        >
+          Another track
+          <ArrowRight className="size-4" />
+        </button>
+        {reportId ? (
+          <button
+            type="button"
+            onClick={() => router.push(`/reports/${reportId}`)}
+            className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-6 py-3 font-semibold transition-colors hover:bg-[var(--surface-3)]"
+          >
+            Open saved report
+          </button>
+        ) : null}
+      </div>
+    </div>
   );
 }

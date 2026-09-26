@@ -22,6 +22,8 @@ export interface InterviewSetup {
   personaRole: string;
   /** Feedback after each answer, or only at the end. */
   timing?: "immediate" | "end";
+  /** Interface language. The interview follows it. */
+  lang?: Lang;
 }
 
 const SHARED_STYLE = [
@@ -51,6 +53,7 @@ export function buildSystemInstruction(setup: InterviewSetup): string {
       "Push past textbook definitions. When an answer is generic, follow up with a concrete scenario and ask what they would actually do.",
       SHARED_STYLE,
       feedbackRule(timing),
+      interviewInstruction(setup.lang ?? "en"),
     ].join(" ");
   }
 
@@ -65,6 +68,7 @@ export function buildSystemInstruction(setup: InterviewSetup): string {
     setup.focus ? `The candidate asked you to focus on: ${setup.focus}.` : "",
     SHARED_STYLE,
     feedbackRule(timing),
+    interviewInstruction(setup.lang ?? "en"),
   ]
     .filter(Boolean)
     .join(" ");
@@ -225,4 +229,83 @@ export function buildModifyPrompt(current: string, instruction: string): string 
     'Keep using bold section headers (like **Responsibilities**) and "- " bullet points the same way as before. ' +
     "Return only the revised job description text."
   );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Question planning                                                         */
+/*                                                                           */
+/* The whole interview is written up front in one call, rather than a call    */
+/* per turn. Submitting an answer then shows the next question instantly,     */
+/* with nothing to wait for.                                                  */
+/*                                                                           */
+/* The trade-off is real and worth naming: a pre-written set cannot follow up */
+/* on what you actually said. That is the price of the interview never        */
+/* stalling, and for practice it is the right way round — a question you wait */
+/* eight seconds for breaks the rhythm an interview is meant to rehearse.     */
+/* ------------------------------------------------------------------------ */
+
+export function buildQuestionPlanPrompt(count: number): string {
+  return [
+    `Write the full set of ${count} interview questions now, before the interview begins.`,
+    "They must build: open broadly, then go deeper, and finish with the hardest one.",
+    "Each question stands alone — none may refer to a previous answer, since you are writing them all before hearing any.",
+    "Keep each to 2-3 sentences, conversational, the way it would be spoken aloud.",
+    "",
+    "Respond with ONLY valid JSON, no markdown fences, in this exact shape:",
+    '{"questions":["first question","second question"]}',
+  ].join("\n");
+}
+
+export interface QuestionPlan {
+  questions: string[];
+}
+
+/** Per-answer feedback, used only when the candidate asked for it immediately. */
+export function buildAnswerFeedbackPrompt(
+  question: string,
+  answer: string,
+): string {
+  return [
+    "Here is the question you asked and the candidate's answer.",
+    "",
+    `Question: ${question}`,
+    `Answer: ${answer}`,
+    "",
+    "Respond with ONLY valid JSON, no markdown fences, in this exact shape:",
+    '{"tier":"Surface"|"Working"|"Strong","note":"two or three sentences"}',
+    "The note says what a strong answer would have covered that this one did not. Speak to the candidate directly. Do not ask another question.",
+  ].join("\n");
+}
+
+export interface AnswerFeedback {
+  tier: string;
+  note: string;
+}
+
+/**
+ * The end-of-session report.
+ *
+ * `resources` carries a search query rather than a URL on purpose. A model
+ * asked for links produces plausible ones that 404, and sending someone to a
+ * dead page is worse than sending them to a search that works.
+ */
+export const FINAL_REPORT_PROMPT = [
+  "The interview is over. Review the whole transcript above.",
+  "",
+  "Respond with ONLY valid JSON, no markdown fences, in this exact shape:",
+  '{"overall":"Surface"|"Working"|"Strong",',
+  '"summary":"two or three sentences on how it went overall",',
+  '"strengths":["what they genuinely did well"],',
+  '"perQuestion":[{"question":"...","tier":"Surface"|"Working"|"Strong","note":"what a strong answer would have covered that this one did not"}],',
+  '"toReview":["concept to revisit"],',
+  '"resources":[{"title":"what to study","why":"one line on why it matters for this role","searchQuery":"a specific search phrase, e.g. dbt incremental models late arriving data"}]}',
+  "",
+  "Give one perQuestion entry for every question asked, in order. Give three to five resources.",
+  "Never invent a URL — the searchQuery is what gets used.",
+].join("\n");
+
+export interface StudyResource {
+  title: string;
+  why: string;
+  searchQuery: string;
 }

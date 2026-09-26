@@ -40,8 +40,7 @@ export default async function CodingPage() {
       <h1 className="text-[34px] font-bold">Coding Problems</h1>
       <p className="mt-3 max-w-[70ch] leading-relaxed text-[var(--text-muted)]">
         SQL, dbt models, Python pipelines and the design questions that have no
-        single right answer. Everything runs in your browser — no AI key, no
-        quota, and it keeps working offline once loaded.
+        single right answer.
       </p>
 
       <p className="mt-5 inline-flex items-center gap-2 rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm">

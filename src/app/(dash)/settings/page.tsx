@@ -42,15 +42,16 @@ export default async function SettingsPage() {
     <main className="mx-auto max-w-[1180px] px-6 py-8 lg:px-10">
       <h1 className="text-[28px] font-bold">Settings</h1>
 
-      {/* Side by side from the large breakpoint up. `items-start` matters:
-          without it the two panels stretch to match, so the key panel growing
-          when a key is saved would drag the profile panel taller with it. */}
+      {/* `items-start` matters: without it the two panels stretch to match, so
+          the key panel growing when a key is saved would drag the profile
+          panel taller with it.
+          Profile and key sit side by side; language spans both, since it is
+          one setting rather than a column of its own. */}
       <div className="mt-6 grid items-start gap-5 lg:grid-cols-2">
         <ProfilePanel initialName={name} initialAvatar={avatar} email={email} />
+        <ApiKeyPanel />
 
-        <div className="space-y-5">
-          <ApiKeyPanel />
-
+        <div className="lg:col-span-2">
           <section className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
             <h2 className="text-lg font-bold">Language</h2>
             <div className="mt-4">

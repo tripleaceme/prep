@@ -20,14 +20,21 @@ import { INTERACTIONS_URL } from "./client";
  */
 const TTS_MODEL = "gemini-3.1-flash-tts-preview";
 
-/** Gemini's prebuilt voices, with the documented gender per persona. */
+/**
+ * Interviewer names, each paired with a Gemini prebuilt voice.
+ *
+ * Deliberately plain and hard to place. The earlier set read as specifically
+ * Nigerian or specifically South Asian, which quietly tells the candidate
+ * something about who is interviewing them before a word is spoken. These are
+ * short, common in several places, and get out of the way.
+ */
 export const PERSONA_VOICES: Record<string, string> = {
-  Sean: "Charon", // calm, professional male
-  Derek: "Puck", // upbeat, lively male
-  Chidi: "Orus", // male
-  Amara: "Aoede", // warm, melodic female
-  Priya: "Leda", // female
-  Nadia: "Kore", // strong, firm female
+  Alex: "Charon", // calm, professional
+  Sam: "Puck", // upbeat, lively
+  Jordan: "Orus",
+  Robin: "Aoede", // warm, melodic
+  Morgan: "Leda",
+  Casey: "Kore", // strong, firm
 };
 
 export const PERSONA_NAMES = Object.keys(PERSONA_VOICES);
