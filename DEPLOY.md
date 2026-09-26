@@ -80,7 +80,7 @@ First, turn on hidden files — **Settings** (top right) → tick **Show Hidden
 Files (dotfiles)** → Save. Without this you cannot see or create `.htaccess`
 or `.env`.
 
-**Upload all twelve files, including both folders.** `index.php` on its own
+**Upload all thirteen files, including both folders.** `index.php` on its own
 does nothing but crash: its first job is to `require` the files in `lib/` and
 `routes/`, and a missing one is a fatal error that returns an empty HTTP 500
 with no message explaining why.
@@ -101,6 +101,7 @@ When you are finished the folder must look exactly like this:
 │   └── mail.php
 └── routes/
     ├── .htaccess
+    ├── account.php
     ├── analytics.php
     ├── auth.php
     ├── interviews.php
@@ -169,8 +170,12 @@ return [
     'API_SHARED_SECRET' => 'the-first-openssl-value',
     'APP_URL'           => 'https://prep.behindthedata.tech',
 
-    'MAIL_FROM'      => 'Prep <no-reply@behindthedata.tech>',
+    'MAIL_FROM'      => 'Prep <hello@behindthedata.tech>',
+    'MAIL_REPLY_TO'  => 'hello@behindthedata.tech',
     'RESEND_API_KEY' => '',
+
+    // Where "someone deleted their account" notices go. Leave empty for none.
+    'ADMIN_EMAIL'    => 'hello@behindthedata.tech',
 ];
 ```
 
@@ -192,14 +197,19 @@ going any further.
 
 ### A7b. If you already imported the schema
 
-Profile pictures added a column. Run this once in phpMyAdmin → SQL:
+Two columns have been added since. Run both in phpMyAdmin → SQL — new installs
+get them from `schema.sql` and can skip this:
 
 ```sql
+-- 001: profile pictures
 ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255) NULL AFTER display_name;
+
+-- 002: who can open /analytics
+ALTER TABLE users ADD COLUMN is_admin TINYINT(1) NOT NULL DEFAULT 0 AFTER email_verified_at;
 ```
 
-It is also in `db/migrations/001_add_avatar.sql`. New installs get it from
-`schema.sql` and can skip this.
+Both are in `db/migrations/`. Running one twice is harmless — MySQL refuses a
+duplicate column rather than doing anything destructive.
 
 ### A8. Email, for resets and confirmations
 
@@ -251,8 +261,8 @@ Project → **Settings** → **Environment Variables**. Add these for
 | `API_SHARED_SECRET` | the **first** openssl value from A6 |
 | `SESSION_SECRET` | the **second** openssl value from A6 |
 | `NEXT_PUBLIC_SITE_URL` | `https://prep.behindthedata.tech` |
-| `ANALYTICS_USERNAME` | whatever username you want for `/analytics` |
-| `ANALYTICS_PASSWORD_HASH` | output of the command in B3 |
+| `ANALYTICS_USERNAME` | optional — see B3 |
+| `ANALYTICS_PASSWORD_HASH` | optional — see B3 |
 
 If you used `public_html/api` instead of a subdomain, `PREP_API_URL` is
 `https://behindthedata.tech/api`.
@@ -260,19 +270,35 @@ If you used `public_html/api` instead of a subdomain, `PREP_API_URL` is
 Redeploy after adding them — Vercel does not pick up new variables on an
 existing build.
 
-### B3. Analytics credentials
+### B3. Getting into /analytics
 
-The analytics dashboard has its own login, entirely separate from user
-accounts — there is no admin row in the database, so there is nothing to find
-or escalate to. Generate the hash locally:
+Sign in with your own Prep account. Two steps, once:
+
+1. Register at `https://prep.behindthedata.tech/register` like any user.
+2. Grant it admin, in phpMyAdmin → SQL:
+
+```sql
+UPDATE users SET is_admin = 1 WHERE email = 'you@example.com';
+```
+
+Nothing grants admin automatically, so registration alone can never produce an
+operator — the flag only ever gets set by hand.
+
+`/analytics` still issues its own cookie with its own JWT audience, and the app
+never issues a token with that audience. So a stolen user session cannot be
+replayed as an operator one; knowing the admin password is the only way in.
+
+**The break-glass alternative.** If you would rather keep admin out of the
+database entirely — or need a way in when the database is unreachable — set
+both `ANALYTICS_USERNAME` and `ANALYTICS_PASSWORD_HASH` in Vercel:
 
 ```bash
 node scripts/make-admin-password.mjs 'a-long-password-you-will-remember'
 ```
 
-It prints the two environment variables to paste into Vercel. The plaintext is
-never stored anywhere — not in this repo, not in the database, not in Vercel.
-Clear it from your shell history afterwards:
+It prints both variables to paste in. These are checked only after the database
+has already refused, so leaving them unset is fine and is the normal case.
+Clear the plaintext from your shell history afterwards:
 
 ```bash
 history -d $(history 1)
@@ -321,7 +347,7 @@ credentials from B3. You should see your own signup in the funnel.
 
 | What you see | What it means |
 |---|---|
-| **Empty 500 on every URL, no error text** | `lib/` or `routes/` didn't get uploaded. `index.php` alone cannot run — it `require`s them on its first lines, and a missing one is a fatal error with no output. Re-do A5 and upload all eleven files. Confirm with `api/_diag.php`. |
+| **Empty 500 on every URL, no error text** | `lib/` or `routes/` didn't get uploaded. `index.php` alone cannot run — it `require`s them on its first lines, and a missing one is a fatal error with no output. Re-do A5 and upload every file, both folders included. Confirm with `api/_diag.php`. |
 | `The API returned HTML rather than JSON` | `PREP_API_URL` points at the wrong folder, or `.htaccess` didn't upload. Check hidden files are visible in File Manager. |
 | `Unsigned request` | The `X-Prep-*` headers are being stripped. Confirm `.htaccess` is present in the API root and `mod_rewrite` is on. |
 | `Bad signature` | `API_SHARED_SECRET` differs between `api/config.local.php` on go54 and wherever the caller reads it from — `.env.local` for `check-api.mjs`, the Vercel dashboard for the live app. Re-paste; watch for trailing spaces and stray quotes. |

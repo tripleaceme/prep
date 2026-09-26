@@ -25,6 +25,7 @@ require __DIR__ . '/lib/http.php';
 require __DIR__ . '/lib/db.php';
 require __DIR__ . '/lib/mail.php';
 require __DIR__ . '/routes/auth.php';
+require __DIR__ . '/routes/account.php';
 require __DIR__ . '/routes/profile.php';
 require __DIR__ . '/routes/interviews.php';
 require __DIR__ . '/routes/analytics.php';
@@ -68,6 +69,16 @@ match (true) {
     // Actor-scoped, so nobody can trigger mail to an address they don't own.
     $method === 'POST' && $path === 'auth/resend-verification'
         => prep_route_resend_verification(prep_actor()),
+
+    // Checks the password AND the is_admin flag. Kept apart from auth/login so
+    // a normal sign-in can never be mistaken for an operator one.
+    $method === 'POST' && $path === 'auth/admin-login'
+        => prep_route_admin_login($body),
+
+    // Irreversible, and re-checks the password inside the handler — the signed
+    // request and the actor header are not sufficient on their own.
+    $method === 'POST' && $path === 'account/delete'
+        => prep_route_delete_account(prep_actor(), $body),
 
     // Guarded by the admin session in the Next.js app, not by prep_actor():
     // analytics is not scoped to a user.

@@ -45,6 +45,10 @@ return [
     'MAIL_FROM'     => 'Prep <hello@behindthedata.tech>',
     'MAIL_REPLY_TO' => 'hello@behindthedata.tech',
 
+    // Where operator notices go — currently "someone deleted their account".
+    // Leave it empty to send none; deletion still works either way.
+    'ADMIN_EMAIL' => 'hello@behindthedata.tech',
+
     // Strongly recommended. Without it we fall back to PHP mail(), which shared
     // hosts routinely get filtered to spam — and a filtered reset link is a
     // permanently locked account.

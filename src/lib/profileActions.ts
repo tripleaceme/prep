@@ -1,8 +1,9 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { ApiError, callApi } from "@/lib/api";
-import { readSession } from "@/lib/session";
+import { destroySession, readSession } from "@/lib/session";
 
 export interface ProfileResult {
   ok?: boolean;
@@ -84,4 +85,54 @@ export async function updateAvatar(image: string): Promise<ProfileResult> {
           : "Could not upload that picture.",
     };
   }
+}
+
+export interface DeleteResult {
+  error?: string;
+}
+
+/**
+ * Deletes the account, ends the session, and sends them to /goodbye.
+ *
+ * The password is re-checked by the API rather than here — this process has no
+ * hash to compare against, and asking the API keeps one implementation of
+ * "is this the right password" rather than two that can drift apart.
+ *
+ * It redirects rather than returning success. Dropping the session cookie in a
+ * Server Action makes the router refresh the current route, and the proxy
+ * sends every signed-in path to /login once that cookie is gone — so a
+ * confirmation rendered in place would be replaced by the sign-in form before
+ * it could be read. /goodbye is public, so it survives.
+ */
+export async function deleteAccount(password: string): Promise<DeleteResult> {
+  const session = await readSession();
+  if (!session) return { error: "Your session expired. Please sign in again." };
+
+  if (!password) return { error: "Enter your password to confirm." };
+
+  try {
+    await callApi("account/delete", {
+      method: "POST",
+      body: { password },
+      userId: session.userId,
+    });
+  } catch (error) {
+    if (error instanceof ApiError && error.status === 404) {
+      return {
+        error:
+          "The server doesn't have the delete endpoint yet — re-upload the api/ folder to go54.",
+      };
+    }
+    return {
+      error:
+        error instanceof ApiError
+          ? error.message
+          : "Could not delete your account.",
+    };
+  }
+
+  await destroySession();
+  // Outside the try: redirect() signals by throwing, and catching it here
+  // would turn a successful deletion into an error message.
+  redirect("/goodbye");
 }

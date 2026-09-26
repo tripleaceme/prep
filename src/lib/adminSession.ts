@@ -4,14 +4,23 @@ import { randomBytes, scrypt, timingSafeEqual } from "node:crypto";
 import { promisify } from "node:util";
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { ApiError, callApi } from "@/lib/api";
 
 /**
  * Operator login for /analytics.
  *
- * Completely separate from user accounts: different credentials, different
- * cookie, and a different JWT audience. A compromised user session cannot be
- * replayed as an admin one, and there is no admin row in the database to find
- * or escalate to — the credentials live only in Vercel's environment.
+ * Credentials are an ordinary Prep account carrying the `is_admin` flag, so
+ * signing in here uses the same email and password as the app — and password
+ * reset, verification and rate limiting all apply without being rebuilt.
+ *
+ * What stays separate is the session. Analytics issues its own cookie with its
+ * own JWT audience, and the app never issues a token with that audience, so a
+ * stolen user session cannot be replayed as an operator one. Holding the admin
+ * password is the only way in.
+ *
+ * ANALYTICS_USERNAME and ANALYTICS_PASSWORD_HASH still work when both are set.
+ * They are the way back in if the database is unreachable — which is exactly
+ * when you most want to look at the operator tools.
  */
 
 const COOKIE = "prep_admin";
@@ -51,7 +60,12 @@ async function verifyPassword(
   return timingSafeEqual(derived, expected);
 }
 
-export async function checkAdminCredentials(
+/**
+ * The break-glass path: credentials held only in Vercel's environment.
+ *
+ * Returns false when either variable is unset, which is the normal case.
+ */
+async function checkEnvCredentials(
   username: string,
   password: string,
 ): Promise<boolean> {
@@ -71,6 +85,31 @@ export async function checkAdminCredentials(
     timingSafeEqual(userBuffer, expectedBuffer);
 
   return usernameOk && passwordOk;
+}
+
+export async function checkAdminCredentials(
+  email: string,
+  password: string,
+): Promise<boolean> {
+  // The database is asked first, because that is the route an operator
+  // normally uses and the environment variables are usually absent.
+  try {
+    await callApi<{ admin: { id: string } }>("auth/admin-login", {
+      method: "POST",
+      body: { email, password },
+    });
+    return true;
+  } catch (err) {
+    // A 401 is a wrong password or an account without the flag, and is the
+    // expected outcome of a failed attempt. Anything else — the API being
+    // down, a signature mismatch — is worth a log line, because otherwise a
+    // misconfigured deployment is indistinguishable from a typo.
+    if (!(err instanceof ApiError) || err.status !== 401) {
+      console.error("[analytics] admin login could not reach the API:", err);
+    }
+  }
+
+  return checkEnvCredentials(email, password);
 }
 
 export async function createAdminSession(username: string): Promise<void> {

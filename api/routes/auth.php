@@ -377,3 +377,55 @@ function prep_route_resend_verification(string $userId): never
 
     prep_json(['ok' => true]);
 }
+
+/**
+ * Verifies an operator's credentials for /analytics.
+ *
+ * Separate from prep_route_login on purpose. A successful user login must not
+ * be usable to reach analytics, and an account without is_admin must fail here
+ * even when its password is correct — so this route answers a different
+ * question and returns a different payload.
+ */
+function prep_route_admin_login(array $body): never
+{
+    $email    = strtolower(trim((string) ($body['email'] ?? '')));
+    $password = (string) ($body['password'] ?? '');
+
+    if ($email === '' || $password === '') {
+        prep_json(['error' => 'Enter your email and password.'], 422);
+    }
+
+    // Tighter than the user login: an operator account is worth more, and a
+    // legitimate operator does not sign in often.
+    prep_rate_limit('adminlogin:' . $email, 5, 900);
+    prep_rate_limit('adminloginip:' . ($_SERVER['REMOTE_ADDR'] ?? 'unknown'), 15, 900);
+
+    $db = prep_db();
+    $stmt = $db->prepare(
+        'SELECT id, email, password_hash, display_name, is_admin
+           FROM users WHERE email = ? LIMIT 1'
+    );
+    $stmt->execute([$email]);
+    $user = $stmt->fetch();
+
+    $hash = $user['password_hash'] ?? '$2y$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinvalidinv';
+    $passwordOk = password_verify($password, $hash);
+
+    // One message for every failure — wrong address, wrong password, or a real
+    // password on an account without the flag. Distinguishing them would tell
+    // an attacker which accounts are worth attacking.
+    if (!$user || !$passwordOk || (int) $user['is_admin'] !== 1) {
+        if ($user && $passwordOk) {
+            error_log('[prep] analytics login refused for non-admin ' . $email);
+        }
+        prep_json(['error' => 'That email or password is not right.'], 401);
+    }
+
+    prep_json([
+        'admin' => [
+            'id'           => $user['id'],
+            'email'        => $user['email'],
+            'display_name' => $user['display_name'],
+        ],
+    ]);
+}

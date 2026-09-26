@@ -23,6 +23,9 @@ CREATE TABLE IF NOT EXISTS users (
   id                CHAR(36)     NOT NULL,
   email             VARCHAR(255) NOT NULL,
   email_verified_at DATETIME     NULL,
+  -- Grants access to /analytics. Never set by registration — promote an
+  -- account by hand, so an open signup form cannot mint an operator.
+  is_admin          TINYINT(1)   NOT NULL DEFAULT 0,
   password_hash     VARCHAR(255) NOT NULL,
   display_name      VARCHAR(120) NULL,
   -- Path to an uploaded avatar, relative to the API root. Images are resized

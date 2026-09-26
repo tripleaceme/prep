@@ -2,6 +2,14 @@
 /**
  * Generates the ANALYTICS_PASSWORD_HASH value for /analytics.
  *
+ * You probably don't need this. /analytics normally authenticates against a
+ * registered Prep account carrying the is_admin flag — see DEPLOY.md B3.
+ *
+ * What this produces is the break-glass path: credentials held only in
+ * Vercel's environment, checked after the database has already refused. Set it
+ * up if you want a way in when the database is unreachable, which is exactly
+ * when you most want the operator tools.
+ *
  * The plaintext password is never stored anywhere — not in this repo, not in
  * the database, not in Vercel. Only this hash goes into the environment.
  *

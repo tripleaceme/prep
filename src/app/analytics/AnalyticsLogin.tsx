@@ -21,22 +21,23 @@ export function AnalyticsLogin() {
         </span>
 
         <h1 className="mt-6 text-[30px] font-bold">Prep Analytics</h1>
-        <p className="mt-2 text-[var(--text-muted)]">
-          Operator access. This is not a Prep account.
+        <p className="mt-2 leading-relaxed text-[var(--text-muted)]">
+          Operator access. Sign in with your Prep account — it needs to have
+          been granted admin.
         </p>
 
         <form action={formAction} className="mt-8 space-y-5">
           <div>
-            <label htmlFor="username" className="mb-2 block text-sm font-semibold">
-              Username
+            <label htmlFor="email" className="mb-2 block text-sm font-semibold">
+              Email
             </label>
             <input
-              id="username"
-              name="username"
-              type="text"
+              id="email"
+              name="email"
+              type="email"
               required
               autoFocus
-              autoComplete="username"
+              autoComplete="email"
               autoCapitalize="none"
               spellCheck={false}
               className={inputClass}

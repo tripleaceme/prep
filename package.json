@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "check:php": "bash scripts/check-php.sh"
   },
   "dependencies": {
     "@codemirror/lang-sql": "^6.10.0",

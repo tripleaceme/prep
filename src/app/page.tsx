@@ -220,7 +220,7 @@ export default function LandingPage() {
           <div className="grid items-center gap-12 lg:grid-cols-[1fr_minmax(0,460px)]">
             <div>
               <p className="text-sm font-semibold tracking-wide text-[var(--brand-bright)]">
-                Free · No credits · Bring your own AI key
+                Free · No credits · Available in English, French and German
               </p>
               <h1 className="mt-5 max-w-[17ch] text-[42px] font-bold leading-[1.08] sm:text-[56px]">{t("Practice the interview before it costs you the offer.")}</h1>
               <p className="mt-6 max-w-[54ch] text-lg leading-relaxed text-[var(--text-muted)]">{t("A realistic voice interview simulator for data and analytics roles. Paste the job description, answer questions out loud, and find out what you actually know before the interviewer does.")}</p>

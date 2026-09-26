@@ -9,6 +9,9 @@ const PUBLIC_PATHS = [
   "/forgot-password",
   "/reset-password",
   "/auth",
+  // Shown immediately after an account is deleted, when by definition there is
+  // no session left to check.
+  "/goodbye",
   // Analytics gates itself on a separate admin session, so it must not be
   // bounced to the user sign-in page.
   "/analytics",

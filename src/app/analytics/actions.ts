@@ -15,20 +15,24 @@ export async function analyticsLoginAction(
   _prev: LoginResult | null,
   formData: FormData,
 ): Promise<LoginResult> {
-  const username = String(formData.get("username") ?? "").trim();
+  const email = String(formData.get("email") ?? "")
+    .trim()
+    .toLowerCase();
   const password = String(formData.get("password") ?? "");
 
-  if (!username || !password) {
-    return { error: "Enter your username and password." };
+  if (!email || !password) {
+    return { error: "Enter your email and password." };
   }
 
-  const ok = await checkAdminCredentials(username, password);
+  const ok = await checkAdminCredentials(email, password);
   if (!ok) {
-    // Deliberately does not say which half was wrong.
-    return { error: "That username or password is not right." };
+    // One message for every failure: wrong address, wrong password, or a real
+    // password on an account that has not been granted admin. Saying which
+    // would tell someone probing this page which accounts are worth pursuing.
+    return { error: "That email or password is not right." };
   }
 
-  await createAdminSession(username);
+  await createAdminSession(email);
   redirect("/analytics");
 }
 

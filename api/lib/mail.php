@@ -173,3 +173,110 @@ function prep_send_via_resend(
     }
     return true;
 }
+
+/**
+ * Confirms to the account holder that the deletion happened.
+ *
+ * Sent after the row is gone, so it is a receipt rather than a notification —
+ * there is nothing here to click and nothing to undo. It exists because a
+ * silent deletion is indistinguishable from a bug, and because if the person
+ * reading it did not do this, they need to know immediately.
+ */
+function prep_send_account_deleted(string $email, string $name = ''): bool
+{
+    $greeting = $name !== ''
+        ? 'Hi ' . htmlspecialchars($name, ENT_QUOTES, 'UTF-8') . ','
+        : 'Hi,';
+    $plainGreeting = $name !== '' ? 'Hi ' . $name . ',' : 'Hi,';
+    $support = prep_env('MAIL_REPLY_TO', 'hello@behindthedata.tech');
+
+    $subject = 'Your Prep account has been deleted';
+
+    $text = <<<TXT
+    {$plainGreeting}
+
+    Your Prep account has been deleted, along with your interviews, reports and
+    coding attempts. Nothing is recoverable and we no longer hold your details.
+
+    If you didn't do this, reply to this email straight away — {$support}.
+
+    Thanks for using Prep. You're welcome back any time.
+
+    Prep — Behind The Data Academy
+    TXT;
+
+    $safeSupport = htmlspecialchars($support, ENT_QUOTES, 'UTF-8');
+    $html = <<<HTML
+    <div style="background:#0a0c0b;padding:40px 20px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+      <div style="max-width:480px;margin:0 auto;background:#101413;border:1px solid #222a28;border-radius:16px;padding:32px">
+        <h1 style="margin:0 0 8px;color:#e8eeec;font-size:22px">Your account has been deleted</h1>
+        <p style="margin:0 0 16px;color:#9aa8a4;font-size:15px;line-height:1.6">
+          {$greeting}
+        </p>
+        <p style="margin:0 0 16px;color:#9aa8a4;font-size:15px;line-height:1.6">
+          Your Prep account is gone, along with your interviews, reports and
+          coding attempts. Nothing is recoverable, and we no longer hold your
+          details.
+        </p>
+        <p style="margin:0 0 16px;color:#9aa8a4;font-size:15px;line-height:1.6">
+          If you didn't do this, reply to this email straight away —
+          <a href="mailto:{$safeSupport}" style="color:#49c6b6">{$safeSupport}</a>.
+        </p>
+        <p style="margin:24px 0 0;color:#6b7975;font-size:13px;line-height:1.6">
+          Thanks for using Prep. You're welcome back any time.
+        </p>
+      </div>
+    </div>
+    HTML;
+
+    return prep_send_email($email, $subject, $html, $text);
+}
+
+/**
+ * Tells the operator that somebody left.
+ *
+ * Deliberately plain: this is an internal notice, not a product email, and the
+ * useful content is the address, how long they stayed and how much they did
+ * before going. Those three facts are what make a churn pattern visible.
+ */
+function prep_send_admin_account_deleted(
+    string $adminEmail,
+    string $userEmail,
+    int $interviews,
+    string $since
+): bool {
+    $subject = 'Prep: account deleted — ' . $userEmail;
+    $joined  = $since !== '' ? $since : 'unknown';
+
+    $text = <<<TXT
+    A Prep account has been deleted.
+
+    Email:      {$userEmail}
+    Registered: {$joined}
+    Interviews: {$interviews}
+
+    The row and everything cascading from it are gone. This notice is the only
+    remaining record.
+    TXT;
+
+    $safeUser   = htmlspecialchars($userEmail, ENT_QUOTES, 'UTF-8');
+    $safeJoined = htmlspecialchars($joined, ENT_QUOTES, 'UTF-8');
+    $html = <<<HTML
+    <div style="background:#0a0c0b;padding:40px 20px;font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif">
+      <div style="max-width:480px;margin:0 auto;background:#101413;border:1px solid #222a28;border-radius:16px;padding:32px">
+        <h1 style="margin:0 0 16px;color:#e8eeec;font-size:20px">Account deleted</h1>
+        <table style="width:100%;border-collapse:collapse;color:#9aa8a4;font-size:14px">
+          <tr><td style="padding:6px 0;color:#6b7975">Email</td><td style="padding:6px 0">{$safeUser}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7975">Registered</td><td style="padding:6px 0">{$safeJoined}</td></tr>
+          <tr><td style="padding:6px 0;color:#6b7975">Interviews</td><td style="padding:6px 0">{$interviews}</td></tr>
+        </table>
+        <p style="margin:20px 0 0;color:#6b7975;font-size:13px;line-height:1.6">
+          The row and everything cascading from it are gone. This notice is the
+          only remaining record.
+        </p>
+      </div>
+    </div>
+    HTML;
+
+    return prep_send_email($adminEmail, $subject, $html, $text);
+}
