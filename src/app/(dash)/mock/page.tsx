@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { T } from "@/components/T";
 import { ArrowRight, Code2, MessageSquare } from "lucide-react";
 import { TrackCarousel } from "./TrackCarousel";
 
@@ -7,9 +8,9 @@ export const metadata = { title: "Mock Interview" };
 export default function MockPage() {
   return (
     <main className="mx-auto max-w-[1200px] px-6 py-10 lg:px-10">
-      <h1 className="text-[34px] font-bold">Mock Interviews</h1>
+      <h1 className="text-[34px] font-bold"><T>Mock Interviews</T></h1>
       <p className="mt-3 max-w-[70ch] leading-relaxed text-[var(--text-muted)]">
-        Practice by the domain you&apos;ll actually be questioned on.
+        <T>Practice by the domain you&apos;ll actually be questioned on.</T>
       </p>
 
       <Link
@@ -21,10 +22,10 @@ export default function MockPage() {
         </span>
         <span className="flex-1">
           <span className="block font-semibold">
-            Interviewing for a specific job?
+            <T>Interviewing for a specific job?</T>
           </span>
           <span className="mt-0.5 block text-sm text-[var(--text-muted)]">
-            Use AI Interview instead.
+            <T>Use AI Interview instead.</T>
           </span>
         </span>
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />
@@ -43,10 +44,10 @@ export default function MockPage() {
         </span>
         <span className="flex-1">
           <span className="block font-semibold">
-            Prefer to code than talk?
+            <T>Prefer to code than talk?</T>
           </span>
           <span className="mt-0.5 block text-sm text-[var(--text-muted)]">
-            Coding Problems run entirely in your browser.
+            <T>Coding Problems run entirely in your browser.</T>
           </span>
         </span>
         <ArrowRight className="size-5 shrink-0 text-[var(--text-faint)]" />

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { T } from "@/components/T";
 import { redirect } from "next/navigation";
 import { ArrowRight, FileText } from "lucide-react";
 import { callApi } from "@/lib/api";
@@ -37,9 +38,9 @@ export default async function ReportsPage() {
 
   return (
     <main className="mx-auto max-w-[1000px] px-6 py-10 lg:px-10">
-      <h1 className="text-[34px] font-bold">My Reports</h1>
+      <h1 className="text-[34px] font-bold"><T>My Reports</T></h1>
       <p className="mt-3 text-[var(--text-muted)]">
-        Every interview you&apos;ve completed and the gaps it found.
+        <T>Every interview you&apos;ve completed and the gaps it found.</T>
       </p>
 
       {failed ? (
@@ -53,7 +54,7 @@ export default async function ReportsPage() {
           <span className="grid size-14 place-items-center rounded-full bg-[var(--brand-dim)]">
             <FileText className="size-6 text-[var(--brand-bright)]" />
           </span>
-          <h2 className="mt-6 text-xl font-bold">No reports yet</h2>
+          <h2 className="mt-6 text-xl font-bold"><T>No reports yet</T></h2>
           <p className="mt-2 max-w-[46ch] text-sm leading-relaxed text-[var(--text-muted)]">
             Finish your first interview and the report will show up here, with
             what you knew, what you didn&apos;t, and what to review.
@@ -62,7 +63,7 @@ export default async function ReportsPage() {
             href="/interview"
             className="mt-7 inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3.5 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)]"
           >
-            Start your first interview
+            <T>Start your first interview</T>
             <ArrowRight className="size-4" />
           </Link>
         </div>

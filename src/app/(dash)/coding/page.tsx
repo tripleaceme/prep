@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { T } from "@/components/T";
 import { redirect } from "next/navigation";
 import { ArrowRight, CheckCircle2 } from "lucide-react";
 import { callApi } from "@/lib/api";
@@ -33,19 +34,19 @@ export default async function CodingPage() {
   return (
     <main className="mx-auto flex h-full max-w-[1180px] flex-col px-6 py-8 lg:px-10">
       <div className="flex shrink-0 flex-wrap items-center justify-between gap-4">
-        <h1 className="text-[28px] font-bold">Practice</h1>
+        <h1 className="text-[28px] font-bold"><T>Practice</T></h1>
 
         <p className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-2)] px-4 py-2 text-sm">
           <CheckCircle2 className="size-4 text-[var(--brand-bright)]" />
           <span className="font-semibold">{solved.size}</span>
           <span className="text-[var(--text-muted)]">
-            of {PROBLEMS.length} solved
+            <T>of</T> {PROBLEMS.length} <T>solved</T>
           </span>
         </p>
       </div>
 
       <p className="mt-2 max-w-[70ch] shrink-0 leading-relaxed text-[var(--text-muted)]">
-        Pick a subject, then work through its problems.
+        <T>Pick a subject, then work through its problems.</T>
       </p>
 
       {/* Subjects first, problems second: a flat list of everything is a wall
@@ -66,14 +67,16 @@ export default async function CodingPage() {
               className="group flex flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5 transition-colors hover:border-[var(--border-strong)] hover:bg-[var(--surface-2)]"
             >
               <div className="flex items-start justify-between gap-4">
-                <h2 className="font-bold">{group.label}</h2>
+                <h2 className="font-bold">
+                  <T>{group.label}</T>
+                </h2>
                 <span className="shrink-0 text-sm text-[var(--text-faint)]">
-                  {problems.length} problems
+                  {problems.length} <T>problems</T>
                 </span>
               </div>
 
               <p className="mt-2 flex-1 text-sm leading-relaxed text-[var(--text-muted)]">
-                {group.blurb}
+                <T>{group.blurb}</T>
               </p>
 
               <div className="mt-4 flex items-center gap-3">

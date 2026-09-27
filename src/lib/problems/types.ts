@@ -331,7 +331,7 @@ export const GROUPS: {
     value: "architecture",
     label: "Architecture & Design",
     blurb:
-      "System design, scalability, and maintainability..",
+      "System design, scalability, and maintainability.",
     categories: ["architecture"],
   },
 ];

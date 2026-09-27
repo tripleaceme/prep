@@ -1,3 +1,4 @@
+import { T } from "@/components/T";
 import { redirect } from "next/navigation";
 import { callApi } from "@/lib/api";
 import { readSession } from "@/lib/session";
@@ -41,7 +42,7 @@ export default async function SettingsPage() {
 
   return (
     <main className="mx-auto max-w-[1180px] px-6 py-8 lg:px-10">
-      <h1 className="text-[28px] font-bold">Settings</h1>
+      <h1 className="text-[28px] font-bold"><T>Settings</T></h1>
 
       {/* Two columns throughout. The panels stretch to match their row, so
           each pair ends level however much content it holds — a card that
@@ -56,9 +57,9 @@ export default async function SettingsPage() {
         <ApiKeyPanel />
 
         <section className="flex h-full flex-col rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
-          <h2 className="text-lg font-bold">Language</h2>
+          <h2 className="text-lg font-bold"><T>Language</T></h2>
           <p className="mt-1.5 text-sm leading-relaxed text-[var(--text-muted)]">
-            Changes the interface and the language your interviewer speaks.
+            <T>Changes the interface and the language your interviewer speaks.</T>
           </p>
           <div className="mt-auto pt-5">
             <LanguageSelect />

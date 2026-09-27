@@ -102,6 +102,69 @@ export const APP_FR: Dictionary = {
   "Paste your key": "Collez votre clé",
   "Replace key": "Remplacer la clé",
   Connected: "Connectée",
+
+  // Dashboard body copy. The short labels here were already translated for
+  // the nav; these are the sentences the cards carry.
+  "Let's get you ready for your next interview.":
+    "Préparons-vous pour votre prochain entretien.",
+  "Paste the job post and your current CV. Get it rewritten to match the role in seconds.":
+    "Collez l'offre d'emploi et votre CV actuel. Il est réécrit pour correspondre au poste en quelques secondes.",
+  "Type a role, paste a job post, or upload your CV. Answer out loud, then get an honest report on what you actually know.":
+    "Indiquez un poste, collez une offre ou importez votre CV. Répondez à voix haute, puis recevez un bilan honnête de ce que vous maîtrisez vraiment.",
+  "Focused practice by domain: data modelling, orchestration, pipelines, quality, architecture and governance.":
+    "Entraînement ciblé par domaine : modélisation des données, orchestration, pipelines, qualité, architecture et gouvernance.",
+  "Answer real questions out loud and get a full report with scores and honest feedback.":
+    "Répondez à de vraies questions à voix haute et recevez un rapport complet, avec notes et retours francs.",
+  "Rises as you complete interviews and close the gaps they find.":
+    "Augmente à mesure que vous passez des entretiens et comblez les lacunes détectées.",
+
+  // Mock, practice and reports screens
+  "Practice by the domain you'll actually be questioned on.":
+    "Entraînez-vous sur le domaine sur lequel vous serez réellement interrogé.",
+  "Use AI Interview instead.": "Utilisez plutôt l'entretien IA.",
+  "Prefer to code than talk?": "Vous préférez coder que parler ?",
+  "Coding Problems run entirely in your browser.":
+    "Les exercices de code s'exécutent entièrement dans votre navigateur.",
+  Practice: "Entraînement",
+  "Pick a subject, then work through its problems.":
+    "Choisissez un sujet, puis travaillez ses exercices.",
+  of: "sur",
+  solved: "résolus",
+  problems: "exercices",
+  "Every interview you've completed and the gaps it found.":
+    "Chaque entretien que vous avez terminé et les lacunes qu'il a révélées.",
+  "Changes the interface and the language your interviewer speaks.":
+    "Change l'interface et la langue parlée par votre intervieweur.",
+
+  // Practice subjects
+  "Metrics & Business Logic": "Métriques et logique métier",
+  "Data Modelling": "Modélisation des données",
+  "Python for Data": "Python pour la data",
+  "Pipelines & ETL": "Pipelines et ETL",
+  "Data Quality": "Qualité des données",
+  Orchestration: "Orchestration",
+  "Performance & Optimisation": "Performance et optimisation",
+  "Architecture & Design": "Architecture et conception",
+
+  // Practice subject blurbs
+  "From a first filter through to window functions":
+    "Du premier filtre jusqu'aux fonctions de fenêtrage",
+  "Retention, funnels, cohorts, streaks.":
+    "Rétention, entonnoirs, cohortes, séries.",
+  "dbt models, grain, slowly changing dimensions.":
+    "Modèles dbt, granularité, dimensions à évolution lente.",
+  "Understanding the logic of data cleaning, and how to express it in code.":
+    "Comprendre la logique du nettoyage des données et savoir l'exprimer en code.",
+  "Watermarks, idempotency, backfills and retries.":
+    "Filigranes, idempotence, reprises et relances.",
+  "Making the data consistent, complete and correct.":
+    "Rendre les données cohérentes, complètes et justes.",
+  "Dependencies, schedules, retries and backfills. The logic underneath a DAG.":
+    "Dépendances, planification, relances et reprises. La logique sous un DAG.",
+  "Diagnose the bottleneck, then tune it.":
+    "Diagnostiquer le goulet d'étranglement avant de l'optimiser.",
+  "System design, scalability, and maintainability.":
+    "Conception système, passage à l'échelle et maintenabilité.",
 };
 
 export const APP_DE: Dictionary = {
@@ -187,4 +250,66 @@ export const APP_DE: Dictionary = {
   "Paste your key": "Schlüssel einfügen",
   "Replace key": "Schlüssel ersetzen",
   Connected: "Verbunden",
+
+  // Dashboard body copy.
+  "Let's get you ready for your next interview.":
+    "Bereiten wir Sie auf Ihr nächstes Vorstellungsgespräch vor.",
+  "Paste the job post and your current CV. Get it rewritten to match the role in seconds.":
+    "Fügen Sie die Stellenanzeige und Ihren Lebenslauf ein. In Sekunden neu geschrieben, passend zur Stelle.",
+  "Type a role, paste a job post, or upload your CV. Answer out loud, then get an honest report on what you actually know.":
+    "Geben Sie eine Rolle ein, fügen Sie eine Stellenanzeige ein oder laden Sie Ihren Lebenslauf hoch. Antworten Sie laut und erhalten Sie eine ehrliche Auswertung Ihres Wissens.",
+  "Focused practice by domain: data modelling, orchestration, pipelines, quality, architecture and governance.":
+    "Gezieltes Üben nach Bereich: Datenmodellierung, Orchestrierung, Pipelines, Qualität, Architektur und Governance.",
+  "Answer real questions out loud and get a full report with scores and honest feedback.":
+    "Beantworten Sie echte Fragen laut und erhalten Sie einen vollständigen Bericht mit Bewertung und ehrlichem Feedback.",
+  "Rises as you complete interviews and close the gaps they find.":
+    "Steigt, wenn Sie Gespräche abschließen und die dabei gefundenen Lücken schließen.",
+
+  // Mock, practice and reports screens
+  "Practice by the domain you'll actually be questioned on.":
+    "Üben Sie den Bereich, zu dem Sie tatsächlich befragt werden.",
+  "Use AI Interview instead.": "Nutzen Sie stattdessen das KI-Gespräch.",
+  "Prefer to code than talk?": "Lieber programmieren als reden?",
+  "Coding Problems run entirely in your browser.":
+    "Die Programmieraufgaben laufen vollständig in Ihrem Browser.",
+  Practice: "Üben",
+  "Pick a subject, then work through its problems.":
+    "Wählen Sie ein Thema und arbeiten Sie die Aufgaben durch.",
+  of: "von",
+  solved: "gelöst",
+  problems: "Aufgaben",
+  "Every interview you've completed and the gaps it found.":
+    "Jedes abgeschlossene Gespräch und die dabei gefundenen Lücken.",
+  "Changes the interface and the language your interviewer speaks.":
+    "Ändert die Oberfläche und die Sprache Ihres Gesprächspartners.",
+
+  // Practice subjects
+  "Metrics & Business Logic": "Kennzahlen & Geschäftslogik",
+  "Data Modelling": "Datenmodellierung",
+  "Python for Data": "Python für Daten",
+  "Pipelines & ETL": "Pipelines & ETL",
+  "Data Quality": "Datenqualität",
+  Orchestration: "Orchestrierung",
+  "Performance & Optimisation": "Performance & Optimierung",
+  "Architecture & Design": "Architektur & Design",
+
+  // Practice subject blurbs
+  "From a first filter through to window functions":
+    "Vom ersten Filter bis zu Fensterfunktionen",
+  "Retention, funnels, cohorts, streaks.":
+    "Bindung, Funnels, Kohorten, Serien.",
+  "dbt models, grain, slowly changing dimensions.":
+    "dbt-Modelle, Granularität, langsam veränderliche Dimensionen.",
+  "Understanding the logic of data cleaning, and how to express it in code.":
+    "Die Logik der Datenbereinigung verstehen und in Code ausdrücken.",
+  "Watermarks, idempotency, backfills and retries.":
+    "Watermarks, Idempotenz, Nachladen und Wiederholungen.",
+  "Making the data consistent, complete and correct.":
+    "Daten konsistent, vollständig und korrekt machen.",
+  "Dependencies, schedules, retries and backfills. The logic underneath a DAG.":
+    "Abhängigkeiten, Zeitpläne, Wiederholungen und Nachladen. Die Logik hinter einem DAG.",
+  "Diagnose the bottleneck, then tune it.":
+    "Erst den Engpass diagnostizieren, dann optimieren.",
+  "System design, scalability, and maintainability.":
+    "Systemdesign, Skalierbarkeit und Wartbarkeit.",
 };

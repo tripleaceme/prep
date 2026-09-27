@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { T } from "@/components/T";
 import {
   ArrowRight,
   Bot,
@@ -100,16 +101,16 @@ export default async function DashboardPage({
       <VerifiedNotice status={verified} />
 
       <h1 className="text-[34px] font-bold">
-        {greeting()},{" "}
+        <T>{greeting()}</T>,{" "}
         <span className="text-[var(--brand-bright)]">{name}</span>
       </h1>
       <p className="mt-2 text-[var(--text-muted)]">
-        Let&apos;s get you ready for your next interview.
+        <T>Let&apos;s get you ready for your next interview.</T>
       </p>
 
       <section className="mt-9">
         <p className="mb-4 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
-          START HERE
+          <T>START HERE</T>
         </p>
 
         <div className="grid gap-4 lg:grid-cols-3">
@@ -133,16 +134,18 @@ export default async function DashboardPage({
                         : "bg-[var(--brand-dim)] text-[var(--brand-bright)]",
                     ].join(" ")}
                   >
-                    {card.needsKey ? "NEEDS AI KEY" : "NO KEY NEEDED"}
+                    <T>{card.needsKey ? "NEEDS AI KEY" : "NO KEY NEEDED"}</T>
                   </span>
                 </div>
 
-                <h2 className="mt-5 text-lg font-bold">{card.title}</h2>
+                <h2 className="mt-5 text-lg font-bold">
+                  <T>{card.title}</T>
+                </h2>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                  {card.body}
+                  <T>{card.body}</T>
                 </p>
                 <span className="mt-4 inline-flex items-center gap-1.5 text-sm font-semibold text-[var(--brand-bright)]">
-                  {card.cta}
+                  <T>{card.cta}</T>
                   <ArrowRight className="size-4 transition-transform group-hover:translate-x-0.5" />
                 </span>
               </Link>
@@ -160,16 +163,18 @@ export default async function DashboardPage({
         </span>
         <span className="flex-1">
           <span className="block text-lg font-bold">
-            Run your first AI interview
+            <T>Run your first AI interview</T>
           </span>
           <span className="mt-1 block text-sm text-[var(--text-muted)]">
-            Answer real questions out loud and get a full report with scores and
-            honest feedback.
+            <T>
+              Answer real questions out loud and get a full report with scores
+              and honest feedback.
+            </T>
           </span>
         </span>
         <span className="hidden shrink-0 items-center gap-2 rounded-[var(--radius-sm)] bg-[var(--brand)] px-5 py-3 font-semibold text-white sm:inline-flex">
           <Play className="size-4 fill-current" />
-          Start now
+          <T>Start now</T>
         </span>
       </Link>
 
@@ -177,12 +182,12 @@ export default async function DashboardPage({
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
           <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
             <Flame className="size-4 text-[var(--warn)]" />
-            STREAK
+            <T>STREAK</T>
           </p>
           <p className="mt-3 text-[34px] font-bold leading-none">
             {streak}
             <span className="ml-2 text-base font-medium text-[var(--text-muted)]">
-              {streak === 1 ? "day" : "days"}
+              <T>{streak === 1 ? "day" : "days"}</T>
             </span>
           </p>
         </div>
@@ -190,7 +195,7 @@ export default async function DashboardPage({
         <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-6">
           <p className="flex items-center gap-2 text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
             <TrendingUp className="size-4 text-[var(--brand-bright)]" />
-            READINESS
+            <T>READINESS</T>
           </p>
           <div className="mt-3 flex items-center gap-4">
             <div
@@ -209,7 +214,7 @@ export default async function DashboardPage({
             <span className="text-lg font-bold">{readiness}%</span>
           </div>
           <p className="mt-3 text-xs text-[var(--text-faint)]">
-            Rises as you complete interviews and close the gaps they find.
+            <T>Rises as you complete interviews and close the gaps they find.</T>
           </p>
         </div>
       </section>
