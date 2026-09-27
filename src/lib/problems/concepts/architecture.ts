@@ -53,7 +53,8 @@ export const ARCHITECTURE_CONCEPTS = [
 
   // ---- Streaming and real time ---------------------------------------------
   concept("architecture", "hard", "Does this need to be real time?",
-    "How do you work out whether a request for real-time data is real? What questions expose it?"),
+    "How do you work out whether a request for real-time data is real? What questions expose it?",
+    "lambda-kappa"),
   concept("architecture", "hard", "Designing high-volume ingestion",
     "Design ingestion for 200,000 events per second. What are the components, and where does it break first?"),
   concept("architecture", "medium", "What Kafka actually gives you",
@@ -63,9 +64,11 @@ export const ARCHITECTURE_CONCEPTS = [
   concept("architecture", "hard", "Replaying from the log",
     "How would you replay three days of events, and what has to be true downstream for that to be safe?"),
   concept("architecture", "hard", "Serving both a live view and history",
-    "One event stream, two consumers: an operations team that needs seconds, and analysts querying years of history. Design for both without paying to stream everything."),
+    "One event stream, two consumers: an operations team that needs seconds, and analysts querying years of history. Design for both without paying to stream everything.",
+    "lambda-kappa"),
   concept("architecture", "hard", "The five shapes you should be able to draw",
-    "Sketch the common data architecture patterns from memory — lambda, kappa, medallion, CDC into a warehouse, event sourcing — and say when each fits."),
+    "Sketch the common data architecture patterns from memory — lambda, kappa, medallion, CDC into a warehouse, event sourcing — and say when each fits.",
+    "lambda-kappa"),
 
   // ---- Judgement and organisation -----------------------------------------
   concept("architecture", "hard", "Build or buy?",

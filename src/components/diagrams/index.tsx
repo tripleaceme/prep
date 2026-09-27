@@ -572,6 +572,684 @@ function ParquetVsCsv() {
   );
 }
 
+
+function Idempotency() {
+  return (
+    <Figure
+      label="Appending duplicates rows on a rerun; merging leaves the table the same."
+      caption="The test is not whether it runs twice without erroring. It is whether the table is identical afterwards. Append fails that; merge, or delete-and-insert the partition, passes it."
+      viewBox="0 0 380 140"
+    >
+      <Label x={0} y={12} bold>Append</Label>
+      {[0, 1].map((i) => (
+        <rect key={i} x={0} y={22 + i * 16} width={110} height={12} rx={2} fill={FILL} stroke={LINE} />
+      ))}
+      {[0, 1].map((i) => (
+        <rect key={`d${i}`} x={0} y={56 + i * 16} width={110} height={12} rx={2} fill={WARN} opacity={0.85} />
+      ))}
+      <Label x={0} y={100} colour={WARN} size={9}>rerun → 4 rows</Label>
+      <Label x={0} y={113} colour={FAINT} size={9}>the same two, twice</Label>
+
+      <Label x={215} y={12} bold>Merge on a key</Label>
+      {[0, 1].map((i) => (
+        <rect key={i} x={215} y={22 + i * 16} width={110} height={12} rx={2} fill={BRAND} opacity={0.85} />
+      ))}
+      <Label x={215} y={100} colour={BRAND} size={9}>rerun → 2 rows</Label>
+      <Label x={215} y={113} colour={FAINT} size={9}>identical to one run</Label>
+      <path d="M160 46 L200 46" stroke={LINE} />
+      <Label x={180} y={40} anchor="middle" size={8} colour={FAINT}>run twice</Label>
+    </Figure>
+  );
+}
+
+function IncrementalVsFull() {
+  return (
+    <Figure
+      label="A full load rewrites the whole table each run; an incremental load processes only what changed."
+      caption="Incremental is cheaper and introduces the two questions a full reload never has to answer: which rows count as new, and what happens to rows that were deleted upstream."
+      viewBox="0 0 380 130"
+    >
+      <Label x={0} y={12} bold>Full reload</Label>
+      {Array.from({ length: 24 }).map((_, i) => (
+        <rect key={i} x={(i % 8) * 20} y={22 + Math.floor(i / 8) * 14} width={16} height={10} rx={1.5} fill={WARN} opacity={0.8} />
+      ))}
+      <Label x={0} y={84} colour={WARN} size={9}>every row, every night</Label>
+
+      <Label x={215} y={12} bold>Incremental</Label>
+      {Array.from({ length: 24 }).map((_, i) => (
+        <rect
+          key={i}
+          x={215 + (i % 8) * 20}
+          y={22 + Math.floor(i / 8) * 14}
+          width={16}
+          height={10}
+          rx={1.5}
+          fill={i >= 21 ? BRAND : LINE}
+          opacity={i >= 21 ? 0.9 : 0.3}
+        />
+      ))}
+      <Label x={215} y={84} colour={BRAND} size={9}>only what changed</Label>
+      <Label x={215} y={100} colour={FAINT} size={9}>but: what is new, and what was deleted?</Label>
+    </Figure>
+  );
+}
+
+function CdcVsPolling() {
+  return (
+    <Figure
+      label="Polling on a timestamp cannot see a deleted row; reading the change log sees the delete as an event."
+      caption="A deleted row simply stops appearing in a polled query, so the warehouse keeps it forever. The change log records the delete as an event, which is why it is the answer whenever deletes matter."
+      viewBox="0 0 380 140"
+    >
+      <Label x={0} y={12} bold>Polling on updated_at</Label>
+      {["insert", "update", "delete"].map((t, i) => (
+        <g key={i}>
+          <rect x={0} y={24 + i * 22} width={80} height={16} rx={2} fill={FILL} stroke={LINE} />
+          <Label x={6} y={35 + i * 22} size={8}>{t}</Label>
+          {i < 2 ? (
+            <path d={`M82 32 L118 32`} stroke={BRAND} transform={`translate(0 ${i * 22})`} />
+          ) : (
+            <Label x={90} y={35 + i * 22} size={8} colour={WARN}>✕ never seen</Label>
+          )}
+        </g>
+      ))}
+      <Label x={0} y={108} colour={WARN} size={9}>the row just stops appearing</Label>
+      <Label x={0} y={121} colour={FAINT} size={9}>and stays in the warehouse forever</Label>
+
+      <Label x={215} y={12} bold>Reading the log</Label>
+      {["I", "U", "D"].map((t, i) => (
+        <g key={i}>
+          <rect x={215 + i * 34} y={24} width={28} height={28} rx={3} fill={BRAND} opacity={0.85} />
+          <Label x={229 + i * 34} y={43} anchor="middle" size={11} colour="#04110f" bold>{t}</Label>
+        </g>
+      ))}
+      <path d="M215 62 L317 62" stroke={LINE} />
+      <Label x={215} y={108} colour={BRAND} size={9}>the delete is an event too</Label>
+      <Label x={215} y={121} colour={FAINT} size={9}>ordered, and nothing is inferred</Label>
+    </Figure>
+  );
+}
+
+function DeadLetter() {
+  return (
+    <Figure
+      label="Good rows continue through the pipeline; bad rows go to a quarantine with the reason, and the run does not stop."
+      caption="The two instincts are both wrong: failing the run on one bad row means it never finishes, and dropping bad rows silently means nobody learns the feed changed. Quarantine keeps the row and the reason."
+      viewBox="0 0 380 130"
+    >
+      <rect x={0} y={44} width={68} height={28} rx={4} fill={FILL} stroke={LINE} />
+      <Label x={34} y={62} anchor="middle" size={9}>incoming</Label>
+      <path d="M68 58 L104 58" stroke={LINE} />
+      <rect x={104} y={44} width={62} height={28} rx={4} fill={FILL} stroke={LINE} />
+      <Label x={135} y={62} anchor="middle" size={9}>parse</Label>
+
+      <path d="M166 52 C 196 52, 196 26, 228 26" stroke={BRAND} fill="none" />
+      <rect x={228} y={12} width={128} height={28} rx={4} fill={BRAND} opacity={0.85} />
+      <Label x={292} y={30} anchor="middle" size={9} colour="#04110f" bold>loaded</Label>
+
+      <path d="M166 64 C 196 64, 196 92, 228 92" stroke={WARN} fill="none" />
+      <rect x={228} y={78} width={128} height={28} rx={4} fill={WARN} opacity={0.85} />
+      <Label x={292} y={91} anchor="middle" size={8} colour="#1a1204" bold>quarantined</Label>
+      <Label x={292} y={101} anchor="middle" size={7} colour="#1a1204">row + reason + run id</Label>
+
+      <Label x={228} y={122} size={9} colour={FAINT}>the run still finishes</Label>
+    </Figure>
+  );
+}
+
+function DagOrder() {
+  return (
+    <Figure
+      label="Tasks run after everything they depend on; a failure blocks everything downstream of it."
+      caption="A scheduler turns the dependency graph into an order. When a task fails, what matters to everyone waiting is not which task failed but everything downstream that now cannot run."
+      viewBox="0 0 380 130"
+    >
+      {[
+        { x: 0, y: 20, l: "extract", fail: true },
+        { x: 0, y: 72, l: "extract" },
+        { x: 100, y: 20, l: "load", blocked: true },
+        { x: 100, y: 72, l: "load" },
+        { x: 200, y: 46, l: "join", blocked: true },
+        { x: 296, y: 46, l: "report", blocked: true },
+      ].map((n, i) => (
+        <g key={i}>
+          <rect
+            x={n.x}
+            y={n.y}
+            width={72}
+            height={26}
+            rx={4}
+            fill={n.fail ? WARN : n.blocked ? "transparent" : FILL}
+            opacity={n.fail ? 0.9 : 1}
+            stroke={n.blocked ? WARN : LINE}
+            strokeDasharray={n.blocked ? "4 3" : undefined}
+          />
+          <Label
+            x={n.x + 36}
+            y={n.y + 17}
+            anchor="middle"
+            size={9}
+            colour={n.fail ? "#1a1204" : n.blocked ? WARN : FAINT}
+            bold={n.fail}
+          >
+            {n.l}
+          </Label>
+        </g>
+      ))}
+      <path d="M72 33 L100 33" stroke={LINE} />
+      <path d="M72 85 L100 85" stroke={LINE} />
+      <path d="M172 33 C 188 33, 188 59, 200 59" stroke={LINE} fill="none" />
+      <path d="M172 85 C 188 85, 188 59, 200 59" stroke={LINE} fill="none" />
+      <path d="M272 59 L296 59" stroke={LINE} />
+      <Label x={0} y={118} size={9} colour={WARN}>one failure</Label>
+      <Label x={100} y={118} size={9} colour={WARN}>three tasks blocked, one branch fine</Label>
+    </Figure>
+  );
+}
+
+function RetryBackoff() {
+  const delays = [1, 2, 4, 8, 16, 16, 16];
+  return (
+    <Figure
+      label="Each retry waits twice as long as the last, up to a ceiling."
+      caption="Retrying immediately turns one failure into a burst of traffic at a service already struggling. Doubling the wait backs off, the cap stops it growing forever, and jitter stops every client retrying in step."
+      viewBox="0 0 380 120"
+    >
+      <line x1={0} y1={86} x2={360} y2={86} stroke={LINE} />
+      {delays.map((d, i) => (
+        <g key={i}>
+          <rect
+            x={i * 50}
+            y={86 - d * 3.6}
+            width={34}
+            height={d * 3.6}
+            rx={2}
+            fill={d === 16 ? FAINT : BRAND}
+            opacity={d === 16 ? 0.5 : 0.85}
+          />
+          <Label x={i * 50 + 17} y={100} anchor="middle" size={8}>{d}s</Label>
+        </g>
+      ))}
+      <line x1={0} y1={28} x2={360} y2={28} stroke={WARN} strokeDasharray="4 3" />
+      <Label x={360} y={24} anchor="end" size={8} colour={WARN}>cap</Label>
+      <Label x={0} y={114} size={9} colour={FAINT}>attempt 1 … 7</Label>
+    </Figure>
+  );
+}
+
+
+function JoinTypes() {
+  const sets = [
+    { l: "INNER", a: false, mid: true, b: false },
+    { l: "LEFT", a: true, mid: true, b: false },
+    { l: "ANTI", a: true, mid: false, b: false },
+  ];
+  return (
+    <Figure
+      label="Inner keeps only matches; left keeps every row on the left; anti keeps only the rows with no match."
+      caption="An anti-join answers 'who has none of these', and it is the shape behind customers who never ordered, products never sold, and orphaned foreign keys."
+      viewBox="0 0 380 120"
+    >
+      {sets.map((s, i) => (
+        <g key={s.l} transform={`translate(${i * 128} 0)`}>
+          <Label x={52} y={12} anchor="middle" size={9} bold>{s.l}</Label>
+          <circle cx={40} cy={58} r={30} fill={s.a ? BRAND : FILL} opacity={s.a ? 0.55 : 1} stroke={LINE} />
+          <circle cx={70} cy={58} r={30} fill={s.b ? BRAND : FILL} opacity={s.b ? 0.55 : 1} stroke={LINE} />
+          {s.mid ? (
+            <path
+              d="M55 33 A 30 30 0 0 0 55 83 A 30 30 0 0 0 55 33"
+              fill={BRAND}
+              opacity={0.9}
+            />
+          ) : null}
+          <Label x={52} y={108} anchor="middle" size={8}>
+            {s.l === "INNER" ? "matches only" : s.l === "LEFT" ? "all of A" : "A with no B"}
+          </Label>
+        </g>
+      ))}
+    </Figure>
+  );
+}
+
+function WindowVsGroupBy() {
+  return (
+    <Figure
+      label="GROUP BY collapses rows into one per group; a window function keeps every row and adds the aggregate alongside."
+      caption="That is the whole difference. If you need the total and the individual rows in the same result, GROUP BY cannot give you both and a window function can."
+      viewBox="0 0 380 130"
+    >
+      <Label x={0} y={12} bold>GROUP BY</Label>
+      {[0, 1, 2, 3].map((i) => (
+        <rect key={i} x={0} y={22 + i * 14} width={70} height={10} rx={1.5} fill={FILL} stroke={LINE} />
+      ))}
+      <path d="M74 48 L100 48" stroke={LINE} />
+      <rect x={104} y={42} width={60} height={12} rx={2} fill={BRAND} opacity={0.9} />
+      <Label x={134} y={51} anchor="middle" size={8} colour="#04110f" bold>1 row</Label>
+      <Label x={0} y={104} size={9} colour={WARN}>the detail is gone</Label>
+
+      <Label x={215} y={12} bold>Window function</Label>
+      {[0, 1, 2, 3].map((i) => (
+        <g key={i}>
+          <rect x={215} y={22 + i * 14} width={70} height={10} rx={1.5} fill={FILL} stroke={LINE} />
+          <rect x={290} y={22 + i * 14} width={60} height={10} rx={1.5} fill={BRAND} opacity={0.9} />
+        </g>
+      ))}
+      <Label x={215} y={104} size={9} colour={BRAND}>every row, plus the aggregate</Label>
+    </Figure>
+  );
+}
+
+function RankFunctions() {
+  const rows = [
+    { v: 100, rank: 1, dense: 1, rn: 1 },
+    { v: 90, rank: 2, dense: 2, rn: 2 },
+    { v: 90, rank: 2, dense: 2, rn: 3 },
+    { v: 80, rank: 4, dense: 3, rn: 4 },
+  ];
+  return (
+    <Figure
+      label="With a tie, RANK skips a number, DENSE_RANK does not, and ROW_NUMBER gives every row a distinct value."
+      caption="Choosing the wrong one changes the answer whenever there is a tie. Top-three by RANK can return four rows; by ROW_NUMBER it silently drops one of the tied rows."
+      viewBox="0 0 380 130"
+    >
+      {["value", "RANK", "DENSE_RANK", "ROW_NUMBER"].map((h, i) => (
+        <Label key={h} x={i === 0 ? 10 : 60 + i * 95} y={14} anchor={i === 0 ? "start" : "middle"} size={9} bold>
+          {h}
+        </Label>
+      ))}
+      {rows.map((r, i) => {
+        const y = 26 + i * 24;
+        const tie = r.v === 90;
+        return (
+          <g key={i}>
+            <rect x={0} y={y} width={46} height={18} rx={2} fill={tie ? WARN : FILL} opacity={tie ? 0.75 : 1} stroke={LINE} />
+            <Label x={23} y={y + 13} anchor="middle" size={9} colour={tie ? "#1a1204" : FAINT}>{r.v}</Label>
+            {[r.rank, r.dense, r.rn].map((n, j) => (
+              <g key={j}>
+                <rect x={110 + j * 95} y={y} width={40} height={18} rx={2} fill={FILL} stroke={LINE} />
+                <Label x={130 + j * 95} y={y + 13} anchor="middle" size={9} colour={BRAND}>{n}</Label>
+              </g>
+            ))}
+          </g>
+        );
+      })}
+      <Label x={155} y={122} anchor="middle" size={8} colour={WARN}>skips 3</Label>
+      <Label x={345} y={122} anchor="middle" size={8} colour={WARN}>breaks the tie</Label>
+    </Figure>
+  );
+}
+
+function GapsAndIslands() {
+  const days = [1, 2, 3, 7, 8];
+  return (
+    <Figure
+      label="Subtracting a row number from a date gives the same value for every day in a consecutive run."
+      caption="Consecutive days advance by one and so does the row number, so the difference is constant within a run and changes at every gap. Group on that difference and each group is one streak."
+      viewBox="0 0 380 130"
+    >
+      {["day", "row_number", "day − rn"].map((h, i) => (
+        <Label key={h} x={10 + i * 120} y={14} size={9} bold>{h}</Label>
+      ))}
+      {days.map((d, i) => {
+        const y = 26 + i * 19;
+        const grp = d - (i + 1);
+        return (
+          <g key={d}>
+            <rect x={0} y={y} width={60} height={15} rx={2} fill={FILL} stroke={LINE} />
+            <Label x={30} y={y + 11} anchor="middle" size={8}>May {d}</Label>
+            <rect x={120} y={y} width={40} height={15} rx={2} fill={FILL} stroke={LINE} />
+            <Label x={140} y={y + 11} anchor="middle" size={8}>{i + 1}</Label>
+            <rect x={240} y={y} width={40} height={15} rx={2} fill={grp === 0 ? BRAND : WARN} opacity={0.85} />
+            <Label x={260} y={y + 11} anchor="middle" size={8} colour={grp === 0 ? "#04110f" : "#1a1204"} bold>{grp}</Label>
+          </g>
+        );
+      })}
+      <Label x={290} y={45} size={8} colour={BRAND}>run of 3</Label>
+      <Label x={290} y={102} size={8} colour={WARN}>run of 2</Label>
+    </Figure>
+  );
+}
+
+function Funnel() {
+  const steps = [
+    { l: "visit", n: 1000, w: 340 },
+    { l: "signup", n: 420, w: 143 },
+    { l: "purchase", n: 168, w: 57 },
+  ];
+  return (
+    <Figure
+      label="Each funnel step is smaller than the last; the drop between two steps is where the work is."
+      caption="The number that matters is the ratio between two adjacent steps, not the counts. Which denominator you use — the step above, or the top — tells a different story, so the prompt has to say which."
+      viewBox="0 0 380 130"
+    >
+      {steps.map((s, i) => (
+        <g key={s.l}>
+          <rect x={(360 - s.w) / 2} y={12 + i * 38} width={s.w} height={26} rx={3} fill={BRAND} opacity={0.9 - i * 0.2} />
+          <Label x={180} y={29 + i * 38} anchor="middle" size={10} colour="#04110f" bold>
+            {s.l} · {s.n}
+          </Label>
+          {i > 0 ? (
+            <Label x={370} y={29 + i * 38} anchor="end" size={9} colour={WARN}>
+              {Math.round((s.n / steps[i - 1].n) * 100)}%
+            </Label>
+          ) : null}
+        </g>
+      ))}
+      <Label x={0} y={124} size={9} colour={FAINT}>step-to-step conversion, not share of the top</Label>
+    </Figure>
+  );
+}
+
+function Cohorts() {
+  return (
+    <Figure
+      label="A cohort grid: each row is a signup month and each column is how many came back N months later."
+      caption="Reading down a column compares cohorts at the same age, which is the comparison that means something. Reading across a row shows one cohort decaying."
+      viewBox="0 0 380 130"
+    >
+      {["M0", "M1", "M2", "M3"].map((m, i) => (
+        <Label key={m} x={96 + i * 62} y={14} anchor="middle" size={9} bold>{m}</Label>
+      ))}
+      {[
+        { c: "Jan", v: [100, 62, 48, 41] },
+        { c: "Feb", v: [100, 58, 44, 0] },
+        { c: "Mar", v: [100, 71, 0, 0] },
+        { c: "Apr", v: [100, 0, 0, 0] },
+      ].map((row, r) => (
+        <g key={row.c}>
+          <Label x={0} y={38 + r * 24} size={9}>{row.c}</Label>
+          {row.v.map((v, c) => (
+            <g key={c}>
+              <rect
+                x={70 + c * 62}
+                y={26 + r * 24}
+                width={52}
+                height={17}
+                rx={2}
+                fill={v ? BRAND : "transparent"}
+                opacity={v ? v / 130 : 1}
+                stroke={v ? "none" : LINE}
+                strokeDasharray={v ? undefined : "3 3"}
+              />
+              {v ? (
+                <Label x={96 + c * 62} y={38 + r * 24} anchor="middle" size={8} colour="#04110f" bold>
+                  {v}%
+                </Label>
+              ) : null}
+            </g>
+          ))}
+        </g>
+      ))}
+      <Label x={0} y={124} size={9} colour={FAINT}>the empty corner is future, not zero</Label>
+    </Figure>
+  );
+}
+
+function Sessionise() {
+  const events = [4, 22, 40, 150, 168, 300];
+  return (
+    <Figure
+      label="Events closer together than the gap belong to one session; a longer gap starts a new one."
+      caption="The gap is measured between consecutive events, not from the start of the session. A user clicking every twenty minutes for six hours is in one long session, not eighteen."
+      viewBox="0 0 380 110"
+    >
+      <line x1={0} y1={54} x2={360} y2={54} stroke={LINE} />
+      {events.map((x, i) => (
+        <circle key={i} cx={x} cy={54} r={5} fill={BRAND} />
+      ))}
+      <rect x={-4} y={38} width={56} height={32} rx={4} fill={BRAND} opacity={0.15} stroke={BRAND} strokeDasharray="3 3" />
+      <rect x={142} y={38} width={34} height={32} rx={4} fill={BRAND} opacity={0.15} stroke={BRAND} strokeDasharray="3 3" />
+      <rect x={292} y={38} width={16} height={32} rx={4} fill={BRAND} opacity={0.15} stroke={BRAND} strokeDasharray="3 3" />
+      <Label x={24} y={86} anchor="middle" size={8} colour={BRAND}>session 1</Label>
+      <Label x={159} y={86} anchor="middle" size={8} colour={BRAND}>session 2</Label>
+      <Label x={300} y={86} anchor="middle" size={8} colour={BRAND}>session 3</Label>
+      <Label x={95} y={32} anchor="middle" size={8} colour={WARN}>gap &gt; 30 min</Label>
+      <Label x={230} y={32} anchor="middle" size={8} colour={WARN}>gap &gt; 30 min</Label>
+    </Figure>
+  );
+}
+
+
+function NullLogic() {
+  const rows = [
+    { e: "status = 'x'", r: "true / false", keep: true },
+    { e: "NULL = 'x'", r: "NULL", keep: false },
+    { e: "NULL != 'x'", r: "NULL", keep: false },
+    { e: "NULL IS NULL", r: "true", keep: true },
+  ];
+  return (
+    <Figure
+      label="Comparing NULL to anything returns NULL, and a WHERE clause keeps only rows that are true, so those rows disappear."
+      caption="Nothing errors. The rows are simply absent, and the count comes out short — which is why a filter written as != silently drops every row where the value was never recorded."
+      viewBox="0 0 380 125"
+    >
+      {rows.map((r, i) => (
+        <g key={i}>
+          <rect x={0} y={16 + i * 24} width={150} height={18} rx={2} fill={FILL} stroke={LINE} />
+          <Label x={8} y={29 + i * 24} size={9}>{r.e}</Label>
+          <Label x={165} y={29 + i * 24} size={9} colour={FAINT}>→</Label>
+          <rect x={185} y={16 + i * 24} width={92} height={18} rx={2} fill={r.keep ? BRAND : WARN} opacity={0.85} />
+          <Label x={231} y={29 + i * 24} anchor="middle" size={9} colour={r.keep ? "#04110f" : "#1a1204"} bold>
+            {r.r}
+          </Label>
+          <Label x={290} y={29 + i * 24} size={8} colour={r.keep ? BRAND : WARN}>
+            {r.keep ? "row kept" : "row dropped"}
+          </Label>
+        </g>
+      ))}
+    </Figure>
+  );
+}
+
+function BridgeTable() {
+  return (
+    <Figure
+      label="A bridge table sits between two entities that relate many-to-many, holding one row per pair."
+      caption="It resolves the relationship and it introduces a fan-out: summing a measure from either side through the bridge counts it once per pair, so the total comes out high."
+      viewBox="0 0 380 120"
+    >
+      <rect x={0} y={44} width={86} height={30} rx={4} fill={FILL} stroke={LINE} />
+      <Label x={43} y={63} anchor="middle" size={9}>visit</Label>
+      <rect x={140} y={44} width={100} height={30} rx={4} fill={BRAND} opacity={0.9} />
+      <Label x={190} y={58} anchor="middle" size={8} colour="#04110f" bold>bridge</Label>
+      <Label x={190} y={69} anchor="middle" size={7} colour="#04110f">one row per pair</Label>
+      <rect x={294} y={44} width={86} height={30} rx={4} fill={FILL} stroke={LINE} />
+      <Label x={337} y={63} anchor="middle" size={9}>diagnosis</Label>
+
+      <path d="M86 59 L140 59" stroke={LINE} />
+      <path d="M240 59 L294 59" stroke={LINE} />
+      <Label x={113} y={53} anchor="middle" size={8} colour={FAINT}>1 → n</Label>
+      <Label x={267} y={53} anchor="middle" size={8} colour={FAINT}>n ← 1</Label>
+
+      <Label x={0} y={100} size={9} colour={WARN}>cost summed through the bridge is counted once per diagnosis</Label>
+      <Label x={0} y={113} size={9} colour={FAINT}>aggregate first, or allocate — and say which</Label>
+    </Figure>
+  );
+}
+
+function NarrowVsWide() {
+  return (
+    <Figure
+      label="A narrow transformation keeps each partition independent; a wide one moves data between partitions."
+      caption="Narrow work happens where the data already is. Wide work needs a shuffle, which is the network boundary and almost always the expensive step — which is why counting shuffles predicts cost better than counting lines."
+      viewBox="0 0 380 125"
+    >
+      <Label x={0} y={12} bold>Narrow — filter, map</Label>
+      {[0, 1, 2].map((i) => (
+        <g key={i}>
+          <rect x={i * 52} y={24} width={40} height={20} rx={3} fill={FILL} stroke={LINE} />
+          <path d={`M${i * 52 + 20} 46 L${i * 52 + 20} 66`} stroke={BRAND} />
+          <rect x={i * 52} y={68} width={40} height={20} rx={3} fill={BRAND} opacity={0.85} />
+        </g>
+      ))}
+      <Label x={0} y={108} size={9} colour={BRAND}>no data crosses</Label>
+
+      <Label x={215} y={12} bold>Wide — join, groupBy</Label>
+      {[0, 1, 2].map((i) => (
+        <rect key={`t${i}`} x={215 + i * 52} y={24} width={40} height={20} rx={3} fill={FILL} stroke={LINE} />
+      ))}
+      {[0, 1, 2].map((i) =>
+        [0, 1, 2].map((j) => (
+          <path key={`${i}${j}`} d={`M${235 + i * 52} 46 L${235 + j * 52} 66`} stroke={WARN} opacity={0.4} />
+        )),
+      )}
+      {[0, 1, 2].map((i) => (
+        <rect key={`b${i}`} x={215 + i * 52} y={68} width={40} height={20} rx={3} fill={WARN} opacity={0.85} />
+      ))}
+      <Label x={215} y={108} size={9} colour={WARN}>a shuffle: everything crosses</Label>
+    </Figure>
+  );
+}
+
+function LambdaKappa() {
+  return (
+    <Figure
+      label="Lambda runs a batch path and a streaming path side by side; Kappa runs one streaming path and replays it."
+      caption="Lambda buys correctness from the batch layer and pays in two implementations of the same logic that must agree. Kappa buys one implementation and pays in having no separate source of truth to reconcile against."
+      viewBox="0 0 380 130"
+    >
+      <Label x={0} y={12} bold>Lambda</Label>
+      <rect x={0} y={22} width={40} height={50} rx={4} fill={FILL} stroke={LINE} />
+      <Label x={20} y={51} anchor="middle" size={8}>source</Label>
+      <path d="M40 34 L72 34" stroke={LINE} />
+      <path d="M40 60 L72 60" stroke={LINE} />
+      <rect x={72} y={22} width={58} height={24} rx={3} fill={WARN} opacity={0.85} />
+      <Label x={101} y={38} anchor="middle" size={8} colour="#1a1204" bold>speed</Label>
+      <rect x={72} y={50} width={58} height={24} rx={3} fill={BRAND} opacity={0.85} />
+      <Label x={101} y={66} anchor="middle" size={8} colour="#04110f" bold>batch</Label>
+      <path d="M130 34 C 146 34, 146 48, 158 48" stroke={LINE} fill="none" />
+      <path d="M130 62 C 146 62, 146 48, 158 48" stroke={LINE} fill="none" />
+      <rect x={158} y={36} width={34} height={24} rx={3} fill={FILL} stroke={LINE} />
+      <Label x={175} y={52} anchor="middle" size={8}>serve</Label>
+      <Label x={0} y={104} size={9} colour={WARN}>two implementations to keep in agreement</Label>
+
+      <Label x={230} y={12} bold>Kappa</Label>
+      <rect x={230} y={36} width={38} height={24} rx={4} fill={FILL} stroke={LINE} />
+      <Label x={249} y={52} anchor="middle" size={8}>log</Label>
+      <path d="M268 48 L292 48" stroke={LINE} />
+      <rect x={292} y={36} width={44} height={24} rx={3} fill={BRAND} opacity={0.85} />
+      <Label x={314} y={52} anchor="middle" size={8} colour="#04110f" bold>stream</Label>
+      <path d="M336 48 L358 48" stroke={LINE} />
+      <rect x={358} y={36} width={20} height={24} rx={3} fill={FILL} stroke={LINE} />
+      <path d="M314 62 C 314 84, 249 84, 249 64" stroke={FAINT} strokeDasharray="3 3" fill="none" />
+      <Label x={282} y={96} anchor="middle" size={8} colour={FAINT}>replay to correct</Label>
+      <Label x={230} y={118} size={9} colour={BRAND}>one implementation</Label>
+    </Figure>
+  );
+}
+
+function Freshness() {
+  const tables = [
+    { n: "orders", h: 2 },
+    { n: "customers", h: 2 },
+    { n: "events", h: 96 },
+    { n: "refunds", h: 3 },
+  ];
+  return (
+    <Figure
+      label="One table has not loaded for days while every job reports success."
+      caption="Nothing failed. The job simply never ran, so there is no error anywhere — which is why freshness is the check people add last and need first."
+      viewBox="0 0 380 120"
+    >
+      {tables.map((t, i) => (
+        <g key={t.n}>
+          <Label x={0} y={30 + i * 24} size={9}>{t.n}</Label>
+          <rect x={78} y={19 + i * 24} width={260} height={15} rx={2} fill={FILL} stroke={LINE} />
+          <rect
+            x={78}
+            y={19 + i * 24}
+            width={Math.min(t.h * 2.6, 260)}
+            height={15}
+            rx={2}
+            fill={t.h > 24 ? WARN : BRAND}
+            opacity={0.85}
+          />
+          <Label x={346} y={30 + i * 24} size={8} colour={t.h > 24 ? WARN : FAINT}>
+            {t.h}h
+          </Label>
+        </g>
+      ))}
+      <line x1={140} y1={12} x2={140} y2={116} stroke={WARN} strokeDasharray="4 3" />
+      <Label x={146} y={112} size={8} colour={WARN}>24h threshold</Label>
+    </Figure>
+  );
+}
+
+function Masking() {
+  return (
+    <Figure
+      label="Row-level security hides rows a viewer may not see; column-level security hides fields within the rows they may."
+      caption="They answer different questions. Row-level decides which records exist for you; column-level decides how much of a record you can read. Most real policies need both."
+      viewBox="0 0 380 120"
+    >
+      {["region", "customer", "email", "amount"].map((h, i) => (
+        <Label key={h} x={8 + i * 92} y={14} size={8} bold>{h}</Label>
+      ))}
+      {[
+        { r: "NG", hidden: false },
+        { r: "NG", hidden: false },
+        { r: "PT", hidden: true },
+        { r: "SG", hidden: true },
+      ].map((row, i) => (
+        <g key={i} opacity={row.hidden ? 0.25 : 1}>
+          {[0, 1, 2, 3].map((c) => (
+            <g key={c}>
+              <rect
+                x={c * 92}
+                y={22 + i * 22}
+                width={84}
+                height={17}
+                rx={2}
+                fill={c === 2 && !row.hidden ? WARN : FILL}
+                opacity={c === 2 && !row.hidden ? 0.75 : 1}
+                stroke={LINE}
+              />
+              {c === 2 && !row.hidden ? (
+                <Label x={42 + c * 92} y={34 + i * 22} anchor="middle" size={8} colour="#1a1204" bold>
+                  ••••••
+                </Label>
+              ) : null}
+            </g>
+          ))}
+          {row.hidden ? (
+            <Label x={344} y={34 + i * 22} anchor="end" size={8} colour={FAINT}>hidden</Label>
+          ) : null}
+        </g>
+      ))}
+      <Label x={0} y={112} size={9} colour={FAINT}>rows filtered by region · the email column masked</Label>
+    </Figure>
+  );
+}
+
+function BackfillBatches() {
+  return (
+    <Figure
+      label="A long backfill is split into small batches with a limit on how many run at once."
+      caption="Two years as one statement competes with tonight's production run and cannot be stopped halfway. Batched by date with a concurrency cap, it can be paused, resumed and reasoned about."
+      viewBox="0 0 380 110"
+    >
+      <rect x={0} y={16} width={360} height={18} rx={3} fill={WARN} opacity={0.75} />
+      <Label x={180} y={29} anchor="middle" size={9} colour="#1a1204" bold>one statement, 730 days</Label>
+      <Label x={0} y={48} size={9} colour={WARN}>competes with production, cannot be paused</Label>
+
+      {Array.from({ length: 12 }).map((_, i) => (
+        <rect
+          key={i}
+          x={i * 30}
+          y={62}
+          width={26}
+          height={18}
+          rx={3}
+          fill={i < 3 ? BRAND : FILL}
+          opacity={i < 3 ? 0.9 : 1}
+          stroke={i < 3 ? "none" : LINE}
+        />
+      ))}
+      <Label x={0} y={98} size={9} colour={BRAND}>batched by date, three in flight, resumable</Label>
+    </Figure>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 
 /**
@@ -591,6 +1269,26 @@ export const DIAGRAMS = {
   "small-files": SmallFiles,
   "grain": Grain,
   "parquet-vs-csv": ParquetVsCsv,
+  idempotency: Idempotency,
+  "incremental-vs-full": IncrementalVsFull,
+  "cdc-vs-polling": CdcVsPolling,
+  "dead-letter": DeadLetter,
+  "dag-order": DagOrder,
+  "retry-backoff": RetryBackoff,
+  "join-types": JoinTypes,
+  "window-vs-groupby": WindowVsGroupBy,
+  "rank-functions": RankFunctions,
+  "gaps-and-islands": GapsAndIslands,
+  funnel: Funnel,
+  cohorts: Cohorts,
+  sessionise: Sessionise,
+  "null-logic": NullLogic,
+  "bridge-table": BridgeTable,
+  "narrow-vs-wide": NarrowVsWide,
+  "lambda-kappa": LambdaKappa,
+  freshness: Freshness,
+  masking: Masking,
+  "backfill-batches": BackfillBatches,
 } as const;
 
 export type DiagramKey = keyof typeof DIAGRAMS;

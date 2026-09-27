@@ -486,6 +486,7 @@ assert source == {"a": {"b": 1}}, "do not mutate the input"
     title: "Group events into sessions",
     category: "python-data",
     difficulty: "hard",
+    diagram: "sessionise",
     prompt: [
       "Product analytics wants sessions, and all you have is a stream of individual events. This is the most commonly asked Python question in data interviews, because almost every event table needs it eventually.",
       "Write `sessionise(events, gap_minutes)` grouping each user's events into sessions.",

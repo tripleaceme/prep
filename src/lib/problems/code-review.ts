@@ -112,6 +112,7 @@ ORDER BY total_mrr DESC, c.name`,
     title: "The filter that lost the rows",
     category: "data-quality",
     difficulty: "medium",
+    diagram: "null-logic",
     prompt: [
       "A reconciliation query was written to count orders that are not cancelled. It has been reporting fewer orders than the source system for months and nobody could work out where they went.",
       "Fix it so it returns `status` and `orders` for every non-cancelled status, including the orders whose status was never recorded, ordered by `orders` descending then `status`.",
@@ -166,6 +167,7 @@ export const CODE_REVIEW_DBT: DbtProblem[] = [
     title: "Rewrite a colleague's model",
     category: "dbt-modelling",
     difficulty: "hard",
+    diagram: "fan-out",
     prompt: [
       "You have inherited `mart_customer_revenue` from someone who has left. It compiles and it runs, and two of its numbers are wrong.",
       "Rewrite it to return `customer_id`, `name`, `region` and `revenue` — the total each customer has paid — for every customer including those who have paid nothing, ordered by `customer_id`.",
@@ -233,6 +235,7 @@ export const CODE_REVIEW_DESIGN: ArchitectureProblem[] = [
     title: "Review this loader before it goes to production",
     category: "pipeline-etl",
     difficulty: "hard",
+    diagram: "dead-letter",
     prompt: [
       "A colleague has opened a pull request with the loader below. It works on their machine against a sample file. It is scheduled to run nightly over roughly 40 million rows.",
       "Tell them everything you can about this code.",

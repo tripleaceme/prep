@@ -26,6 +26,7 @@ export const DIMENSIONAL_PROBLEMS: ArchitectureProblem[] = [
     title: "State the grain before you draw anything",
     category: "dimensional-modelling",
     difficulty: "medium",
+    diagram: "grain",
     prompt: [
       "You are designing the analytics warehouse for a ride-hailing company. The business wants to answer questions about trips, drivers, riders, fares, promotions and cancellations.",
       "Before you draw a single table: what is the grain of your core fact table? Say what one row represents, then justify it.",
@@ -55,6 +56,7 @@ export const DIMENSIONAL_PROBLEMS: ArchitectureProblem[] = [
     title: "The total goes up when you add a join",
     category: "dimensional-modelling",
     difficulty: "medium",
+    diagram: "fan-out",
     prompt: [
       "You have two tables: `customers`, one row per customer, and `subscriptions`, with several rows per customer over time.",
       "Someone writes a query to get total revenue per customer, joining customers to subscriptions and also to a `payments` table that has many rows per subscription.",
@@ -83,6 +85,7 @@ export const DIMENSIONAL_PROBLEMS: ArchitectureProblem[] = [
     title: "March's report has to keep saying March",
     category: "dimensional-modelling",
     difficulty: "hard",
+    diagram: "scd2",
     prompt: [
       "A customer moves from the North sales region to the South in April.",
       "Sales commission is reported monthly. When someone re-runs the March report in June, it has to show that customer in North — because that is who was paid for it — while the April report onwards shows South.",
@@ -113,6 +116,7 @@ export const DIMENSIONAL_PROBLEMS: ArchitectureProblem[] = [
     title: "One visit, several diagnoses",
     category: "dimensional-modelling",
     difficulty: "hard",
+    diagram: "bridge-table",
     prompt: [
       "A hospital records patient visits. One visit can carry several diagnoses, and one diagnosis code appears across many visits.",
       "Finance needs cost per visit. Clinical analytics needs counts and outcomes per diagnosis.",
@@ -147,6 +151,7 @@ export const DIMENSIONAL_PROBLEMS: ArchitectureProblem[] = [
     title: "Why not just use the id the source gave you?",
     category: "dimensional-modelling",
     difficulty: "medium",
+    diagram: "star-vs-snowflake",
     prompt: [
       "You are building `dim_product`. The source system already has a `product_code` that is unique and stable, and a colleague argues that generating a separate surrogate key is pointless indirection — it adds a join, it means nothing to anyone, and the source code is right there.",
       "Make the case either way, and be specific about what actually goes wrong.",

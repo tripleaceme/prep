@@ -26,6 +26,7 @@ export const PERFORMANCE_PROBLEMS: ArchitectureProblem[] = [
     title: "This query scans 500GB to return 12 rows",
     category: "performance",
     difficulty: "medium",
+    diagram: "partition-vs-cluster",
     prompt: [
       "A daily dashboard query reads a 500GB events table and returns twelve rows. It costs more than the rest of the warehouse put together, and the finance team has started asking about it.",
       "The table is partitioned by event date. The query filters on a date, joins to a dimension, and aggregates.",
@@ -86,6 +87,7 @@ export const PERFORMANCE_PROBLEMS: ArchitectureProblem[] = [
     title: "The Spark job takes six hours and two tasks do all the work",
     category: "performance",
     difficulty: "hard",
+    diagram: "skew",
     prompt: [
       "A nightly Spark job that used to take forty minutes now takes six hours. Looking at the Spark UI, one stage has 200 tasks: 198 finish in under a minute, two run for hours.",
       "What is happening, and what would you do about it?",

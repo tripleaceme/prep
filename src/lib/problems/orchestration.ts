@@ -351,6 +351,7 @@ assert missing_days("2024-05-05", "2024-05-01", []) == [], "a reversed range is 
     title: "Make the rerun safe",
     category: "orchestration",
     difficulty: "hard",
+    diagram: "idempotency",
     prompt: [
       "The most valuable property a task can have is that running it twice leaves the same result as running it once. Without it, every retry is a decision and every backfill is a risk.",
       "Write `merge_partition(existing, incoming, key)` returning the table's state after loading `incoming` into `existing`.",

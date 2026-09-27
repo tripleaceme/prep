@@ -70,6 +70,7 @@ export const ARCHITECTURE_PROBLEMS: ArchitectureProblem[] = [
     title: "Do they actually need streaming?",
     category: "architecture",
     difficulty: "medium",
+    diagram: "lambda-kappa",
     prompt: [
       "A stakeholder asks for real-time dashboards. Your current pipeline runs hourly.",
       "How do you handle the request?",
@@ -150,6 +151,7 @@ export const ARCHITECTURE_PROBLEMS: ArchitectureProblem[] = [
     title: "Case study: analysts need the data, compliance says no",
     category: "architecture",
     difficulty: "hard",
+    diagram: "masking",
     prompt: [
       "A health-adjacent product holds customer names, phone numbers, addresses and appointment notes. Analysts want to build retention models; compliance will not let personal data sit in the analytics warehouse.",
       "Both positions are reasonable. Design something that lets the analysis happen.",

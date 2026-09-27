@@ -58,6 +58,7 @@ export const PIPELINE_DESIGN_PROBLEMS: ArchitectureProblem[] = [
     title: "Backfill two years without breaking today",
     category: "pipeline-etl",
     difficulty: "hard",
+    diagram: "backfill-batches",
     prompt: [
       "A bug in a transform means two years of a daily table are wrong. It has to be reprocessed.",
       "The same pipeline runs every night for the current day, the warehouse is shared with everyone else's jobs, and the table feeds dashboards people are using right now.",
@@ -89,6 +90,7 @@ export const PIPELINE_DESIGN_PROBLEMS: ArchitectureProblem[] = [
     title: "Where do the bad rows go?",
     category: "pipeline-etl",
     difficulty: "medium",
+    diagram: "dead-letter",
     prompt: [
       "Your ingestion pipeline processes a few million records a night from an external partner. About 0.1% of them are malformed — missing required fields, unparseable dates, foreign keys pointing at nothing.",
       "Right now the job fails on the first bad record and someone fixes it by hand in the morning.",
@@ -120,6 +122,7 @@ export const PIPELINE_DESIGN_PROBLEMS: ArchitectureProblem[] = [
     title: "Now do it at a hundred times the volume",
     category: "pipeline-etl",
     difficulty: "hard",
+    diagram: "lambda-kappa",
     prompt: [
       "A small e-commerce business wants analytics. A few thousand orders a day, one Postgres database, one analyst. Design the data infrastructure.",
       "Then redesign it three times, as the interviewer escalates:",
