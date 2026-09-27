@@ -1,0 +1,113 @@
+import { concept } from "./build";
+
+/**
+ * SQL and metrics concept questions.
+ *
+ * The SQL ones are the verbal layer of the SQL round — asked between coding
+ * problems, and often more revealing than the code. One interviewer's note in
+ * the research: "It is amazing how many people don't know what ranking/window
+ * functions are. Even more amazing, they know them but cannot come up with
+ * real life examples why they need to use them." So these ask for the use
+ * case, not the syntax.
+ *
+ * The metrics ones exist because that is where hard questions actually live.
+ * Interview Query's own definition: a hard question is one where the metric is
+ * not specified, so you have to define it before you can write anything.
+ */
+export const SQL_CONCEPTS = [
+  concept("sql-fundamentals", "easy", "The order SQL actually executes in",
+    "SQL is written SELECT, FROM, WHERE, GROUP BY. What order does it actually execute in, and what does that explain?"),
+  concept("sql-fundamentals", "easy", "WHERE or HAVING?",
+    "What's the difference between WHERE and HAVING? Give me a case where using the wrong one gives a wrong answer rather than an error."),
+  concept("sql-fundamentals", "easy", "What NULL really means",
+    "What does NULL mean in SQL, and why doesn't it equal anything — including another NULL?"),
+  concept("sql-fundamentals", "medium", "The NOT IN trap",
+    "Why does NOT IN against a subquery return nothing as soon as the subquery contains a NULL, and what do you use instead?"),
+  concept("sql-fundamentals", "easy", "DISTINCT versus GROUP BY",
+    "What's the difference between SELECT DISTINCT and GROUP BY? When does reaching for DISTINCT mean you have a modelling problem?"),
+  concept("sql-fundamentals", "easy", "COUNT(*), COUNT(col) and COUNT(DISTINCT col)",
+    "Explain the difference between COUNT(*), COUNT(column) and COUNT(DISTINCT column). Where does the difference bite?"),
+  concept("joins-aggregation", "easy", "The join types",
+    "Walk me through the join types and what each one keeps. When would you choose a full outer join?"),
+  concept("joins-aggregation", "medium", "What is a fan-out?",
+    "What is a fan-out join, and why does it inflate a SUM without producing an error?"),
+  concept("joins-aggregation", "hard", "Fan traps and chasm traps",
+    "What's the difference between a fan trap and a chasm trap, and which one does a BI tool partially protect you from?"),
+  concept("joins-aggregation", "medium", "Filtering in the ON clause",
+    "Why does putting a filter in the ON clause of a LEFT JOIN behave differently from putting it in the WHERE clause?"),
+  concept("joins-aggregation", "medium", "When is a self-join the answer?",
+    "When do you need a self-join? Give me a real example rather than a definition."),
+  concept("joins-aggregation", "hard", "An anti-join three ways",
+    "There are at least three ways to find rows in A with no match in B. Name them and say which you'd use and why."),
+  concept("window-functions", "medium", "Why window functions exist",
+    "What do window functions let you do that GROUP BY can't? Give me a case from real work."),
+  concept("window-functions", "medium", "RANK, DENSE_RANK and ROW_NUMBER",
+    "Explain RANK, DENSE_RANK and ROW_NUMBER. Give me a question where choosing the wrong one gives the wrong answer."),
+  concept("window-functions", "hard", "Replicating LAG without a window function",
+    "Some interviews restrict you to ANSI SQL with no window functions. How would you replicate LAG with a self-join, and what does it cost?"),
+  concept("window-functions", "hard", "ROWS versus RANGE",
+    "What's the difference between ROWS and RANGE in a window frame, and when does it change your answer?"),
+  concept("window-functions", "medium", "Deduplicating with a window function",
+    "How do you keep only the latest row per key using a window function, and what do you do about ties?"),
+  concept("window-functions", "hard", "Gaps and islands",
+    "Explain the gaps-and-islands technique. What's the trick, and what problems does it solve beyond streaks?"),
+  concept("sql-fundamentals", "medium", "CTE or subquery?",
+    "When do you use a CTE over a subquery? Is there a performance difference, and does it depend on the engine?"),
+  concept("sql-fundamentals", "hard", "When a recursive CTE is the right tool",
+    "What is a recursive CTE, and what problem justifies one?"),
+  concept("sql-fundamentals", "medium", "Pivoting without a PIVOT operator",
+    "How do you pivot rows into columns in an engine with no PIVOT operator?"),
+  concept("sql-fundamentals", "medium", "Conditional aggregation",
+    "What is conditional aggregation, and why would you prefer it over several UNIONed queries?"),
+  concept("sql-fundamentals", "medium", "Calculating a median in SQL",
+    "SQL has no median operator in most engines. How do you calculate one?"),
+  concept("sql-fundamentals", "medium", "Integer division",
+    "Why does a percentage calculation sometimes come out as zero, and how do you avoid it?"),
+  concept("sql-fundamentals", "hard", "Reading an execution plan",
+    "How do you read a query execution plan? What are the first two things you look for?"),
+  concept("sql-fundamentals", "hard", "A query that was fast and now isn't",
+    "A query that used to run in two seconds now takes four minutes, and nothing about the query changed. Where do you look?"),
+];
+
+export const METRICS_CONCEPTS = [
+  concept("metrics-logic", "medium", "Defining an active user",
+    "The business asks for active users. Before you write any SQL, what do you need to pin down?"),
+  concept("metrics-logic", "medium", "DAU, WAU and MAU",
+    "How do you define daily, weekly and monthly active users, and why isn't MAU just the sum of DAUs?"),
+  concept("metrics-logic", "hard", "Retention, properly",
+    "How do you define retention? Distinguish the versions — day-N, rolling, bounded — and say which you'd report to a board."),
+  concept("metrics-logic", "hard", "Cohort analysis",
+    "What is a cohort analysis, and what decisions does it support that a headline number doesn't?"),
+  concept("metrics-logic", "medium", "Defining churn",
+    "How do you define churn for a subscription product, and how does the definition change for a product with no subscription?"),
+  concept("metrics-logic", "hard", "Gross versus net revenue retention",
+    "What's the difference between gross and net revenue retention, and why do companies report both?"),
+  concept("metrics-logic", "hard", "Funnel conversion and its denominator",
+    "In a funnel analysis, how do you choose the denominator? What different stories do step-to-step and overall conversion tell?"),
+  concept("metrics-logic", "hard", "Sessionisation",
+    "What is sessionisation, and how do you choose the inactivity gap that ends a session?"),
+  concept("metrics-logic", "hard", "First-touch and last-touch attribution",
+    "Explain first-touch, last-touch and multi-touch attribution. What is each one actually good for?"),
+  concept("metrics-logic", "hard", "A conversion lands days later",
+    "A conversion arrives four days after the impression that drove it. What does your attribution model have to do to keep credit correct?"),
+  concept("metrics-logic", "medium", "Month-over-month and year-over-year",
+    "When would you report month-over-month growth versus year-over-year, and what does each one hide?"),
+  concept("metrics-logic", "hard", "A metric drops ten percent",
+    "A key metric dropped ten percent week on week. Walk me through how you find out why."),
+  concept("metrics-logic", "hard", "Is it a real drop or a data problem?",
+    "How do you tell the difference between a metric that genuinely moved and a metric that broke?"),
+  concept("metrics-logic", "hard", "Defining metrics for a new product",
+    "A PM asks whether their product area is healthy. Define the metrics, prioritise them, and tell me what you'd do if the top one dropped next week."),
+  concept("metrics-logic", "hard", "A metric definition changed",
+    "Explain to someone who preferred the old number why last quarter's churn metric was redefined."),
+  concept("metrics-logic", "hard", "Vanity metrics",
+    "What makes a metric a vanity metric, and how do you push back when someone wants one on a dashboard?"),
+  concept("metrics-logic", "hard", "Leading and lagging indicators",
+    "What's the difference between a leading and a lagging indicator? Give me a pair from a business you know."),
+  concept("metrics-logic", "hard", "Reading an A/B test result",
+    "A group of tables shows the results of an A/B test. How would you decide whether it succeeded?"),
+  concept("metrics-logic", "hard", "Why averages mislead",
+    "Why is an average often the wrong summary statistic for a business metric, and what would you use instead?"),
+  concept("metrics-logic", "hard", "A ratio that can't be averaged",
+    "Someone has averaged a conversion rate across regions and reported it. What's wrong with that number, and how do you compute it properly?"),
+];

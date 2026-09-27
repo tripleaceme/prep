@@ -309,3 +309,63 @@ export interface StudyResource {
   why: string;
   searchQuery: string;
 }
+
+/** The verdict returned when the AI marks a concept answer. */
+export interface ConceptEvaluation {
+  score: number;
+  verdict: "strong" | "partial" | "weak";
+  covered: string[];
+  missed: string[];
+  followUp: string;
+  note: string;
+}
+
+/**
+ * Marks a spoken-style answer to a concept question.
+ *
+ * The model works out what a strong answer covers before looking at the
+ * candidate's, and is told to do it in that order for a reason: shown the
+ * answer first, a model tends to rationalise whatever it was given as
+ * reasonable, and everything scores 75.
+ *
+ * It is also told to mark against what an interviewer would accept out loud
+ * rather than against a textbook. These answers are spoken in a room under
+ * time pressure, so an answer that is correct and slightly informal is a pass,
+ * and an answer that recites a definition without knowing when it applies is
+ * not.
+ */
+export function buildConceptEvaluationPrompt(
+  question: string,
+  answer: string,
+): string {
+  return `You are marking a candidate's answer to a technical interview question for a data or analytics engineering role.
+
+QUESTION
+${question}
+
+CANDIDATE'S ANSWER
+${answer}
+
+Work in this order.
+
+1. Before reading their answer again, decide for yourself what a strong answer to this question covers — the three to six things a senior engineer would expect to hear.
+2. Compare their answer against that.
+
+Mark it the way an interviewer would, not the way a textbook would:
+- This was spoken under time pressure. Informal phrasing, a missing piece of jargon, or a slightly rambling structure are not faults if the understanding is there.
+- Reciting a definition without showing when it applies or what it trades away is a weak answer even when every word is correct.
+- Naming a trade-off, a failure mode, or a case where the usual answer is wrong is what separates a strong answer from an adequate one.
+- If they say something factually wrong, that matters more than anything they left out. Say so plainly in "note".
+
+Return JSON only, with this exact shape:
+{
+  "score": 0-100,
+  "verdict": "strong" | "partial" | "weak",
+  "covered": ["what they got right, in your words, one short phrase each"],
+  "missed": ["what a strong answer would have added, one short phrase each"],
+  "followUp": "the single question a real interviewer would ask next, given what they said",
+  "note": "one or two sentences of direct feedback, addressed to them as 'you'"
+}
+
+Use "strong" for 75 and above, "partial" for 45 to 74, "weak" below 45. Keep "covered" and "missed" to at most four entries each. If the answer is empty or unserious, score it 0 and say so.`;
+}

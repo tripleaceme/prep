@@ -132,7 +132,28 @@ export interface ArchitectureProblem extends BaseProblem {
   modelAnswer: string[];
 }
 
+/**
+ * A concept question: the verbal layer of every round.
+ *
+ * Deliberately carries no model answer. The candidate says what they think and
+ * the AI evaluates that answer against the question, which is both how the
+ * real round works and the only thing that scales — the published banks run to
+ * thousands of these, and hand-writing an answer for each would cap the
+ * library at a few dozen.
+ *
+ * It also grades the right thing. A written model answer can only be
+ * self-marked, and self-marking measures whether you recognise a good answer.
+ * Recognition is not the skill that fails people in interviews; production
+ * under questioning is.
+ *
+ * The trade is that these need an API key, where the coding problems do not.
+ */
+export interface ConceptProblem extends BaseProblem {
+  kind: "concept";
+}
+
 export type Problem =
+  | ConceptProblem
   | SqlProblem
   | DbtProblem
   | PythonProblem

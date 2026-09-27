@@ -6,6 +6,7 @@ import { groupOfCategory, getGroup, type Problem } from "@/lib/problems";
 import { ProblemBrief } from "./ProblemBrief";
 import { CodeWorkspace } from "./CodeWorkspace";
 import { ArchitectureWorkspace } from "./ArchitectureWorkspace";
+import { ConceptWorkspace } from "./ConceptWorkspace";
 
 /** Brief on the left, the right kind of workspace on the right. */
 export function Workspace({ problem }: { problem: Problem }) {
@@ -30,7 +31,9 @@ export function Workspace({ problem }: { problem: Problem }) {
       <div className="mt-4 grid min-h-0 flex-1 gap-8 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)]">
         <ProblemBrief problem={problem} />
 
-        {problem.kind === "architecture" ? (
+        {problem.kind === "concept" ? (
+          <ConceptWorkspace problem={problem} />
+        ) : problem.kind === "architecture" ? (
           <ArchitectureWorkspace problem={problem} />
         ) : (
           <CodeWorkspace problem={problem} />

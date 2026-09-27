@@ -181,6 +181,7 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
     <section className="flex min-h-0 flex-col">
       <h1 className="text-[22px] font-bold leading-tight">{problem.title}</h1>
 
+      {tabs.length > 1 ? (
       <div
         role="tablist"
         aria-label="Problem details"
@@ -211,6 +212,7 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
           </button>
         ))}
       </div>
+      ) : null}
 
       {/* The one scrolling region in this column. Everything above it is
           fixed, so the panel's height never depends on the tab. */}
