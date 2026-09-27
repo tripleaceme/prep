@@ -80,7 +80,7 @@ First, turn on hidden files — **Settings** (top right) → tick **Show Hidden
 Files (dotfiles)** → Save. Without this you cannot see or create `.htaccess`
 or `.env`.
 
-**Upload all thirteen files, including both folders.** `index.php` on its own
+**Upload all fourteen files, including both folders.** `index.php` on its own
 does nothing but crash: its first job is to `require` the files in `lib/` and
 `routes/`, and a missing one is a fatal error that returns an empty HTTP 500
 with no message explaining why.
@@ -103,6 +103,7 @@ When you are finished the folder must look exactly like this:
     ├── .htaccess
     ├── account.php
     ├── analytics.php
+    ├── cv.php
     ├── auth.php
     ├── interviews.php
     └── profile.php
@@ -207,6 +208,12 @@ ALTER TABLE users ADD COLUMN avatar_url VARCHAR(255) NULL AFTER display_name;
 -- 002: who can open /analytics
 ALTER TABLE users ADD COLUMN is_admin TINYINT(1) NOT NULL DEFAULT 0 AFTER email_verified_at;
 ```
+
+003 adds a table rather than a column, so run the whole of
+`db/migrations/003_add_cv_revamps.sql` — it keeps a history of CV revamps the
+way interviews are kept. Note what it stores: the rewritten CV, which is
+personal data. It cascades from `users`, so deleting an account removes it,
+and the Past revamps drawer can clear it on request.
 
 Both are in `db/migrations/`. Running one twice is harmless — MySQL refuses a
 duplicate column rather than doing anything destructive.

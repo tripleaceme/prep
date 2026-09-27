@@ -28,6 +28,7 @@ require __DIR__ . '/routes/auth.php';
 require __DIR__ . '/routes/account.php';
 require __DIR__ . '/routes/profile.php';
 require __DIR__ . '/routes/interviews.php';
+require __DIR__ . '/routes/cv.php';
 require __DIR__ . '/routes/analytics.php';
 
 // No browser should ever reach this API directly, so there is no CORS policy
@@ -117,6 +118,20 @@ match (true) {
 
     $method === 'GET'  && $path === 'history'
         => prep_route_ai_history(prep_actor()),
+
+    // CV revamps. Same shape as the interview history: the work happens in
+    // the browser, only the result is stored.
+    $method === 'GET'  && $path === 'cv'
+        => prep_route_list_cv_revamps(prep_actor()),
+
+    $method === 'POST' && $path === 'cv'
+        => prep_route_save_cv_revamp(prep_actor(), $body),
+
+    $method === 'POST' && $path === 'cv/clear'
+        => prep_route_clear_cv_revamps(prep_actor()),
+
+    $method === 'GET'  && preg_match('#^cv/([0-9a-f-]{36})$#', $path, $m) === 1
+        => prep_route_get_cv_revamp(prep_actor(), $m[1]),
 
     $method === 'POST' && $path === 'history/clear'
         => prep_route_clear_ai_history(prep_actor()),

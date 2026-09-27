@@ -164,3 +164,29 @@ CREATE TABLE IF NOT EXISTS activity_days (
   CONSTRAINT fk_activity_user FOREIGN KEY (user_id)
     REFERENCES users (id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- CV revamps. See db/migrations/003_add_cv_revamps.sql for the reasoning.
+CREATE TABLE IF NOT EXISTS cv_revamps (
+  id           CHAR(36)     NOT NULL,
+  user_id      CHAR(36)     NOT NULL,
+
+  -- Taken from the first meaningful line of the job post, so the list reads
+  -- as "Senior Analytics Engineer — Monzo" rather than as timestamps.
+  role_title   VARCHAR(255) NULL,
+  -- The uploaded filename, where there was one.
+  source_name  VARCHAR(255) NULL,
+
+  revamped_cv  MEDIUMTEXT   NOT NULL,
+  -- The three lists the model returns, stored as JSON text so the shape can
+  -- change without a migration.
+  changes      MEDIUMTEXT   NULL,
+  missing_keywords TEXT     NULL,
+  honest_gaps  TEXT         NULL,
+
+  created_at   DATETIME     NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+  PRIMARY KEY (id),
+  KEY idx_cv_revamps_user (user_id, created_at),
+  CONSTRAINT fk_cv_revamps_user FOREIGN KEY (user_id)
+    REFERENCES users (id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

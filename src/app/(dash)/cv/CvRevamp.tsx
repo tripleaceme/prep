@@ -1,6 +1,13 @@
 "use client";
 
 import { useRef, useState } from "react";
+import { History } from "lucide-react";
+import { CvHistory } from "./CvHistory";
+import {
+  saveCvRevamp,
+  type CvRevampDetail,
+  type CvRevampSummary,
+} from "@/lib/cvActions";
 import {
   ArrowLeft,
   ArrowRight,
@@ -35,7 +42,22 @@ const inputClass =
 
 const STEPS = ["Your details", "Revamped CV", "What changed"];
 
-export function CvRevamp() {
+/**
+ * Takes a role title from the job post.
+ *
+ * The first line of a pasted job post is almost always the title, which is
+ * enough to make the history list readable. Nothing depends on it being
+ * right — it is a label, not a key — so guessing here beats asking.
+ */
+function roleTitleFrom(jobPost: string): string | null {
+  const line = jobPost
+    .split("\n")
+    .map((l) => l.trim())
+    .find((l) => l.length > 2 && l.length < 120);
+  return line ?? null;
+}
+
+export function CvRevamp({ history = [] }: { history?: CvRevampSummary[] }) {
   const [cvText, setCvText] = useState("");
   const [cvName, setCvName] = useState("");
   const [jobPost, setJobPost] = useState("");
@@ -45,6 +67,7 @@ export function CvRevamp() {
   const [result, setResult] = useState<RevampResult | null>(null);
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState(1);
+  const [historyOpen, setHistoryOpen] = useState(false);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -88,6 +111,17 @@ export function CvRevamp() {
       });
       setResult(data);
       setStep(2);
+
+      // Stored after it is on screen, not before. Saving is a convenience and
+      // must never delay the thing the person actually asked for, or fail it.
+      void saveCvRevamp({
+        role_title: roleTitleFrom(jobPost),
+        source_name: cvName || null,
+        revamped_cv: data.revampedCv,
+        changes: data.changes ?? [],
+        missing_keywords: data.missingKeywords ?? [],
+        honest_gaps: data.honestGaps ?? [],
+      });
     } catch (err) {
       if (err instanceof MissingKeyError) {
         setNeedsKey(true);
@@ -132,7 +166,20 @@ export function CvRevamp() {
     // scrolls in place rather than stretching the page.
     <main className="mx-auto flex h-dvh max-w-[1100px] flex-col px-6 py-8 lg:px-10">
       <header className="flex flex-wrap items-center justify-between gap-4">
-        <h1 className="text-[26px] font-bold">Revamp My CV</h1>
+        <div className="flex items-center gap-3">
+          <h1 className="text-[26px] font-bold">Revamp My CV</h1>
+          <button
+            type="button"
+            onClick={() => setHistoryOpen(true)}
+            className="inline-flex items-center gap-1.5 rounded-[var(--radius-sm)] border border-[var(--border)] px-3 py-1.5 text-sm text-[var(--text-muted)] transition-colors hover:bg-[var(--surface-2)] hover:text-[var(--text)]"
+          >
+            <History className="size-4" />
+            Past revamps
+            {history.length ? (
+              <span className="text-[var(--text-faint)]">{history.length}</span>
+            ) : null}
+          </button>
+        </div>
 
         {/* Steps 2 and 3 stay unreachable until there is something to show,
             rather than being hidden — so the shape of the flow is visible
@@ -395,6 +442,24 @@ export function CvRevamp() {
           </div>
         </section>
       ) : null}
+      <CvHistory
+        entries={history}
+        open={historyOpen}
+        onClose={() => setHistoryOpen(false)}
+        onOpenRevamp={(revamp: CvRevampDetail) => {
+          // Reopening a past revamp lands on the CV itself, which is what
+          // anyone coming back for one actually wants.
+          setResult({
+            revampedCv: revamp.revamped_cv,
+            changes: revamp.changes ?? [],
+            missingKeywords: revamp.missing_keywords ?? [],
+            honestGaps: revamp.honest_gaps ?? [],
+          });
+          setCvName(revamp.source_name ?? "");
+          setStep(2);
+          setError(null);
+        }}
+      />
     </main>
   );
 }
