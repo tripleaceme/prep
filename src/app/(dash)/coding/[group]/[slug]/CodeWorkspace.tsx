@@ -164,15 +164,13 @@ export function CodeWorkspace({
           Reset
         </button>
 
-        <span className="text-xs text-[var(--text-faint)]">
-          {engineReady
-            ? isPython
-              ? "Python ready"
-              : "DuckDB ready"
-            : isPython
-              ? "Loading Python…"
-              : "Loading DuckDB…"}
-        </span>
+        {/* Only while it is still downloading. Once ready there is nothing
+            to say, and a permanent "ready" label is noise. */}
+        {!engineReady ? (
+          <span className="text-xs text-[var(--text-faint)]">
+            {isPython ? "Loading Python…" : "Loading DuckDB…"}
+          </span>
+        ) : null}
       </div>
 
       <div className="mt-1 min-h-0 flex-1 overflow-y-auto">

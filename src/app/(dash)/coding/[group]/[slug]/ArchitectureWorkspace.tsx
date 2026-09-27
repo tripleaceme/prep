@@ -26,7 +26,6 @@ export function ArchitectureWorkspace({
   const [revealed, setRevealed] = useState(false);
   const [marked, setMarked] = useState<"solid" | "review" | null>(null);
 
-  const enough = answer.trim().length > 80;
 
   function mark(verdict: "solid" | "review") {
     setMarked(verdict);
@@ -56,17 +55,12 @@ export function ArchitectureWorkspace({
           <button
             type="button"
             onClick={() => setRevealed(true)}
-            disabled={!enough}
+            disabled={!answer.trim()}
             className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-3)] disabled:text-[var(--text-faint)]"
           >
             <Eye className="size-4" />
             Compare with a strong answer
           </button>
-          <span className="text-xs text-[var(--text-faint)]">
-            {enough
-              ? "Nothing is sent anywhere — this stays in your browser."
-              : "Write your answer first. Reading one before writing teaches recognition, not recall."}
-          </span>
         </div>
       ) : null}
 
@@ -89,10 +83,6 @@ export function ArchitectureWorkspace({
 
           <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)] p-5">
             <h2 className="font-bold">One way to say it</h2>
-            <p className="mt-1.5 text-xs text-[var(--text-faint)]">
-              Not the answer — an answer. Yours can differ entirely and still be
-              stronger.
-            </p>
             {problem.modelAnswer.map((paragraph, i) => (
               <p
                 key={i}

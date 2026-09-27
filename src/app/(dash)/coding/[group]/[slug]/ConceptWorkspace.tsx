@@ -54,8 +54,6 @@ export function ConceptWorkspace({ problem }: { problem: ConceptProblem }) {
   const [answer, setAnswer] = useState("");
   const [state, setState] = useState<State>({ kind: "writing" });
 
-  const enough = answer.trim().length > 40;
-
   async function submit() {
     setState({ kind: "marking" });
     try {
@@ -111,7 +109,7 @@ export function ConceptWorkspace({ problem }: { problem: ConceptProblem }) {
         <button
           type="button"
           onClick={() => void submit()}
-          disabled={!enough || state.kind === "marking"}
+          disabled={!answer.trim() || state.kind === "marking"}
           className="inline-flex items-center gap-2 rounded-[var(--radius)] bg-[var(--brand)] px-6 py-3 font-semibold text-white transition-colors hover:bg-[var(--brand-hover)] disabled:cursor-not-allowed disabled:bg-[var(--surface-3)] disabled:text-[var(--text-faint)]"
         >
           {state.kind === "marking" ? (
@@ -133,11 +131,6 @@ export function ConceptWorkspace({ problem }: { problem: ConceptProblem }) {
           </button>
         ) : null}
 
-        {!enough ? (
-          <span className="text-xs text-[var(--text-faint)]">
-            Say a little more first.
-          </span>
-        ) : null}
       </div>
 
       <div className="mt-5 min-h-0 flex-1 overflow-y-auto">
