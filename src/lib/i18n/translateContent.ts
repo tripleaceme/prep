@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useI18n } from "./context";
 import { callInteractionJson } from "@/lib/gemini/client";
+import CONTENT_FR from "./content-fr.json";
+import CONTENT_DE from "./content-de.json";
 
 /**
  * Translating the question library.
@@ -38,6 +40,20 @@ type Cache = Record<string, string>;
 
 const EMPTY: Cache = {};
 
+/**
+ * Translations generated ahead of time by scripts/pretranslate.mjs and
+ * committed.
+ *
+ * This is the primary source and the reason the questions translate for
+ * everyone. Depending on the reader's own API key for something as basic as
+ * "choosing French translates the app" was the wrong design: for anyone
+ * without a key the interface switched and the questions silently did not.
+ */
+const SHIPPED: Record<string, Cache> = {
+  fr: CONTENT_FR as Cache,
+  de: CONTENT_DE as Cache,
+};
+
 /** Per-language cache, held at module scope so identity is stable. */
 const stores: Record<string, Cache> = {};
 const listeners = new Set<() => void>();
@@ -55,7 +71,12 @@ function readCache(lang: string): Cache {
 
 function getStore(lang: string): Cache {
   if (lang === "en") return EMPTY;
-  if (!stores[lang]) stores[lang] = readCache(lang);
+  if (!stores[lang]) {
+    // Shipped first, then anything this browser has translated since — so a
+    // question added after the last pretranslate run still resolves once
+    // somebody with a key has opened it.
+    stores[lang] = { ...(SHIPPED[lang] ?? {}), ...readCache(lang) };
+  }
   return stores[lang];
 }
 

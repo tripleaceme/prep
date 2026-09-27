@@ -48,7 +48,7 @@ export const PYTHON_CONCEPTS = [
     "How would you structure a Python project for data pipelines so that someone else can test and run it?"),
   concept("python-data", "medium", "Reproducible environments",
     "How do you manage dependencies so a pipeline that runs today still runs in six months?"),
-  concept("python-data", "hard", "Testing a transformation",
+  concept("python-data", "hard", "Testing a transformation in Python",
     "How do you test a data transformation in Python? What do you use for fixtures?"),
   concept("python-data", "hard", "Profiling slow Python",
     "A Python job is slower than it should be. How do you find out where the time is going?"),

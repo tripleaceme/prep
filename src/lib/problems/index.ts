@@ -46,11 +46,17 @@ export function problemsByGroup(group: Group): Problem[] {
 
 /**
  * Concept question slugs are derived from their titles rather than typed, so a
- * duplicate title would silently shadow a question — the router would resolve
- * one and the other would be unreachable from its own list entry. Asserting it
- * here means a clash fails the build rather than hiding.
+ * duplicate title silently shadows a question: the router resolves one, and
+ * the other is unreachable from its own list entry.
+ *
+ * This runs in production too, not only in development. It was originally
+ * guarded by a NODE_ENV check and so never ran during `next build` — a real
+ * clash ("Testing a transformation", used for both a data quality question
+ * and a Python one) shipped and was only found when a script happened to
+ * import the library outside Next. One pass over a few hundred slugs at
+ * module load is not worth the hole.
  */
-if (process.env.NODE_ENV !== "production") {
+{
   const seen = new Set<string>();
   const clashes = PROBLEMS.map((p) => p.slug).filter((slug) => {
     if (seen.has(slug)) return true;
