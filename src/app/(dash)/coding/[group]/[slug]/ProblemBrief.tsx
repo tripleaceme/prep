@@ -7,6 +7,8 @@ import { parseFixture } from "@/lib/problems/fixtures";
 import { runQuery, type QueryResult } from "@/lib/duckdb";
 import { DataTable } from "./DataTable";
 import { Diagram } from "@/components/diagrams";
+import { useTranslatedProblem } from "@/lib/i18n/translateContent";
+import { useT } from "@/lib/i18n/context";
 
 /** Renders the `backticked` identifiers in a prompt as inline code. */
 function formatPrompt(text: string): string {
@@ -161,26 +163,30 @@ type Tab = "question" | "tables" | "expected" | "example" | "hint";
  * panel is exactly as tall whichever tab you are on.
  */
 export function ProblemBrief({ problem }: { problem: Problem }) {
+  const t = useT();
+  // Titles, prompts, notes, hints. Never the fixture SQL or the starter code:
+  // a translated identifier makes the problem unsolvable.
+  const { content } = useTranslatedProblem(problem);
   const hasTables = problem.kind === "sql" || problem.kind === "dbt";
   const [tab, setTab] = useState<Tab>("question");
 
   const tabs: { value: Tab; label: string }[] = [
-    { value: "question", label: "Question" },
+    { value: "question", label: t("Question") },
     ...(hasTables
       ? [
-          { value: "tables" as const, label: "Tables" },
-          { value: "expected" as const, label: "Expected" },
+          { value: "tables" as const, label: t("Tables") },
+          { value: "expected" as const, label: t("Expected") },
         ]
       : []),
-    ...(problem.example ? [{ value: "example" as const, label: "Example" }] : []),
+    ...(problem.example ? [{ value: "example" as const, label: t("Example") }] : []),
     ...(problem.hint || problem.gotcha
-      ? [{ value: "hint" as const, label: "Hint" }]
+      ? [{ value: "hint" as const, label: t("Hint") }]
       : []),
   ];
 
   return (
     <section className="flex min-h-0 flex-col">
-      <h1 className="text-[22px] font-bold leading-tight">{problem.title}</h1>
+      <h1 className="text-[22px] font-bold leading-tight">{content.title}</h1>
 
       {tabs.length > 1 ? (
       <div
@@ -220,7 +226,7 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
       <div className="mt-4 min-h-0 flex-1 overflow-y-auto pr-1">
         {tab === "question" ? (
           <div className="space-y-3.5">
-            {problem.prompt.map((paragraph, i) => (
+            {content.prompt.map((paragraph, i) => (
               <p
                 key={i}
                 className="leading-relaxed text-[var(--text-muted)]"
@@ -232,13 +238,13 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
                 make the shape obvious before you start answering. */}
             {problem.diagram ? <Diagram name={problem.diagram} /> : null}
 
-            {problem.notes?.length ? (
+            {content.notes?.length ? (
               <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4">
                 <p className="text-[11px] font-semibold tracking-[0.14em] text-[var(--text-faint)]">
                   ASSUME
                 </p>
                 <ul className="mt-2 space-y-1.5">
-                  {problem.notes.map((note, i) => (
+                  {content.notes.map((note, i) => (
                     <li
                       key={i}
                       className="text-sm leading-relaxed text-[var(--text-muted)]"
@@ -278,7 +284,7 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
           <ExpectedOutput
             setup={problem.setup}
             solution={problem.solution}
-            explanation={problem.explanation}
+            explanation={content.explanation}
           />
         ) : null}
 
@@ -317,7 +323,7 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
           <div className="space-y-4">
             {problem.hint ? (
               <p className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4 text-sm leading-relaxed text-[var(--text-muted)]">
-                {problem.hint}
+                {content.hint}
               </p>
             ) : null}
 
@@ -330,7 +336,7 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
                   WHERE PEOPLE GO WRONG
                 </p>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--text-muted)]">
-                  {problem.gotcha}
+                  {content.gotcha}
                 </p>
               </div>
             ) : null}

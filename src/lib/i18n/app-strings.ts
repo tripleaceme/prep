@@ -165,6 +165,39 @@ export const APP_FR: Dictionary = {
     "Diagnostiquer le goulet d'étranglement avant de l'optimiser.",
   "System design, scalability, and maintainability.":
     "Conception système, passage à l'échelle et maintenabilité.",
+
+  // Practice categories, difficulty labels and the problem tabs
+  "SQL Fundamentals": "Fondamentaux SQL",
+  "Joins & Aggregation": "Jointures et agrégation",
+  "Window Functions": "Fonctions de fenêtrage",
+  "dbt Modelling": "Modélisation dbt",
+  "Dimensional Modelling": "Modélisation dimensionnelle",
+  "Filtering, shaping and grouping.": "Filtrer, mettre en forme et regrouper.",
+  "Getting the grain right when more than one table is involved.":
+    "Obtenir la bonne granularité dès que plusieurs tables sont en jeu.",
+  "Running totals, ranking, period-over-period and deduplication.":
+    "Cumuls, classements, comparaisons de périodes et déduplication.",
+  "Write the model.": "Écrivez le modèle.",
+  "Retention, funnels, cohorts and streaks.":
+    "Rétention, entonnoirs, cohortes et séries.",
+  "Grain, facts and dimensions, and reading history out of an SCD.":
+    "Granularité, faits et dimensions, et lecture de l'historique d'une SCD.",
+  "Understanding the logic of data cleaning.":
+    "Comprendre la logique du nettoyage des données.",
+  "Incremental loads, idempotency, backfills and retries.":
+    "Chargements incrémentaux, idempotence, reprises et relances.",
+  "Write the check that catches it. Duplicates, nulls, broken keys, stale tables and numbers that drifted.":
+    "Écrivez le contrôle qui le détecte. Doublons, valeurs nulles, clés orphelines, tables obsolètes et chiffres qui ont dérivé.",
+  easy: "facile",
+  medium: "moyen",
+  hard: "difficile",
+  Question: "Question",
+  Tables: "Tables",
+  Expected: "Attendu",
+  Example: "Exemple",
+  Hint: "Indice",
+  "All subjects": "Tous les sujets",
+  problem: "exercice",
 };
 
 export const APP_DE: Dictionary = {
@@ -312,4 +345,37 @@ export const APP_DE: Dictionary = {
     "Erst den Engpass diagnostizieren, dann optimieren.",
   "System design, scalability, and maintainability.":
     "Systemdesign, Skalierbarkeit und Wartbarkeit.",
+
+  // Practice categories, difficulty labels and the problem tabs
+  "SQL Fundamentals": "SQL-Grundlagen",
+  "Joins & Aggregation": "Joins & Aggregation",
+  "Window Functions": "Fensterfunktionen",
+  "dbt Modelling": "dbt-Modellierung",
+  "Dimensional Modelling": "Dimensionale Modellierung",
+  "Filtering, shaping and grouping.": "Filtern, formen und gruppieren.",
+  "Getting the grain right when more than one table is involved.":
+    "Die richtige Granularität finden, sobald mehrere Tabellen beteiligt sind.",
+  "Running totals, ranking, period-over-period and deduplication.":
+    "Laufende Summen, Rangfolgen, Periodenvergleiche und Deduplizierung.",
+  "Write the model.": "Schreiben Sie das Modell.",
+  "Retention, funnels, cohorts and streaks.":
+    "Bindung, Funnels, Kohorten und Serien.",
+  "Grain, facts and dimensions, and reading history out of an SCD.":
+    "Granularität, Fakten und Dimensionen, und wie man Historie aus einer SCD liest.",
+  "Understanding the logic of data cleaning.":
+    "Die Logik der Datenbereinigung verstehen.",
+  "Incremental loads, idempotency, backfills and retries.":
+    "Inkrementelle Ladungen, Idempotenz, Nachladen und Wiederholungen.",
+  "Write the check that catches it. Duplicates, nulls, broken keys, stale tables and numbers that drifted.":
+    "Schreiben Sie die Prüfung, die es findet. Duplikate, NULL-Werte, verwaiste Schlüssel, veraltete Tabellen und abgedriftete Zahlen.",
+  easy: "leicht",
+  medium: "mittel",
+  hard: "schwer",
+  Question: "Frage",
+  Tables: "Tabellen",
+  Expected: "Erwartet",
+  Example: "Beispiel",
+  Hint: "Hinweis",
+  "All subjects": "Alle Themen",
+  problem: "Aufgabe",
 };

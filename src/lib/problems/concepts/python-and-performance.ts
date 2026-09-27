@@ -82,7 +82,7 @@ export const PERFORMANCE_CONCEPTS = [
     "small-files"),
   concept("performance", "medium", "Parquet over CSV",
     "Why Parquet rather than CSV for an analytical workload? Be specific about what you gain.",
-    "row-vs-columnar"),
+    "parquet-vs-csv"),
   concept("performance", "hard", "Parquet, ORC, Avro, Iceberg, Delta",
     "Compare Parquet, Avro and the table formats like Iceberg and Delta. What layer does each operate at?"),
   concept("performance", "medium", "When does an index help?",

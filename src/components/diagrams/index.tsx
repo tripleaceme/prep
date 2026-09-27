@@ -513,6 +513,65 @@ function Grain() {
   );
 }
 
+
+function ParquetVsCsv() {
+  return (
+    <Figure
+      label="A CSV file is rows of text read end to end; a Parquet file stores each column separately with statistics, so most of it can be skipped."
+      caption="A CSV has to be read from the start and parsed as text. A Parquet file stores each column as its own compressed chunk with min and max recorded, so the reader skips chunks that cannot match and decodes only the columns asked for."
+      viewBox="0 0 380 150"
+    >
+      <Label x={0} y={12} bold>products.csv</Label>
+      {Array.from({ length: 6 }).map((_, i) => (
+        <g key={i}>
+          <rect x={0} y={22 + i * 15} width={160} height={11} rx={1.5} fill={FILL} stroke={LINE} />
+          <Label x={5} y={31 + i * 15} size={7}>
+            id,name,category,price,stock
+          </Label>
+        </g>
+      ))}
+      <Label x={0} y={128} colour={WARN} size={9}>every byte read and parsed as text</Label>
+      <Label x={0} y={141} colour={FAINT} size={9}>no types, no statistics, no skipping</Label>
+
+      <Label x={215} y={12} bold>products.parquet</Label>
+      {[
+        { n: "id", on: false },
+        { n: "name", on: false },
+        { n: "category", on: true },
+        { n: "price", on: true },
+        { n: "stock", on: false },
+      ].map((c, i) => (
+        <g key={c.n}>
+          <rect
+            x={215 + i * 31}
+            y={22}
+            width={26}
+            height={62}
+            rx={2}
+            fill={c.on ? BRAND : FILL}
+            opacity={c.on ? 0.9 : 1}
+            stroke={LINE}
+          />
+          <Label
+            x={228 + i * 31}
+            y={95}
+            anchor="middle"
+            size={7}
+            colour={c.on ? BRAND : FAINT}
+          >
+            {c.n}
+          </Label>
+          <Label x={228 + i * 31} y={106} anchor="middle" size={6} colour={FAINT}>
+            min/max
+          </Label>
+        </g>
+      ))}
+      <Label x={215} y={128} colour={BRAND} size={9}>only the two columns are decoded</Label>
+      <Label x={215} y={141} colour={FAINT} size={9}>typed and compressed per column</Label>
+    </Figure>
+  );
+}
+
 /* ------------------------------------------------------------------ */
 
 /**
@@ -531,6 +590,7 @@ export const DIAGRAMS = {
   "broadcast-vs-shuffle": BroadcastVsShuffle,
   "small-files": SmallFiles,
   "grain": Grain,
+  "parquet-vs-csv": ParquetVsCsv,
 } as const;
 
 export type DiagramKey = keyof typeof DIAGRAMS;

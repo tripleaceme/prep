@@ -9,6 +9,8 @@ import {
   CircleDot,
 } from "lucide-react";
 import type { Difficulty } from "@/lib/problems";
+import { useT } from "@/lib/i18n/context";
+import { useTranslatedTitles } from "@/lib/i18n/translateContent";
 
 export interface AccordionProblem {
   slug: string;
@@ -47,6 +49,12 @@ export function CategoryAccordion({
   sections: AccordionSection[];
 }) {
   const [open, setOpen] = useState(sections[0]?.value ?? "");
+  const t = useT();
+
+  // Every title on the page in one request rather than one request per row.
+  const titles = useTranslatedTitles(
+    sections.flatMap((section) => section.problems.map((p) => p.title)),
+  );
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3">
@@ -73,10 +81,10 @@ export function CategoryAccordion({
               className="flex shrink-0 items-center gap-4 px-5 py-4 text-left transition-colors hover:bg-[var(--surface-2)]"
             >
               <span className="min-w-0 flex-1">
-                <span className="block font-bold">{section.label}</span>
+                <span className="block font-bold">{t(section.label)}</span>
                 {section.blurb ? (
                   <span className="mt-0.5 block truncate text-sm text-[var(--text-muted)]">
-                    {section.blurb}
+                    {t(section.blurb)}
                   </span>
                 ) : null}
               </span>
@@ -109,13 +117,13 @@ export function CategoryAccordion({
                       )}
 
                       <span className="min-w-0 flex-1 truncate font-medium">
-                        {problem.title}
+                        {titles[problem.title] ?? problem.title}
                       </span>
 
                       <span
                         className={`shrink-0 rounded-full px-2.5 py-1 text-xs font-bold uppercase ${DIFFICULTY_STYLE[problem.difficulty]}`}
                       >
-                        {problem.difficulty}
+                        {t(problem.difficulty)}
                       </span>
                     </Link>
                   </li>

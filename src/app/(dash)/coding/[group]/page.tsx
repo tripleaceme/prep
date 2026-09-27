@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { T } from "@/components/T";
 import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { callApi } from "@/lib/api";
@@ -80,17 +81,19 @@ export default async function GroupPage({
           className="inline-flex items-center gap-2 text-sm font-semibold text-[var(--text-muted)] hover:text-[var(--text)]"
         >
           <ArrowLeft className="size-4" />
-          All subjects
+          <T>All subjects</T>
         </Link>
 
         <div className="mt-5 flex flex-wrap items-baseline justify-between gap-x-6 gap-y-2">
-          <h1 className="text-[28px] font-bold">{group.label}</h1>
+          <h1 className="text-[28px] font-bold">
+            <T>{group.label}</T>
+          </h1>
           <p className="text-sm text-[var(--text-faint)]">
-            {total} problem{total === 1 ? "" : "s"}
+            {total} <T>{total === 1 ? "problem" : "problems"}</T>
           </p>
         </div>
         <p className="mt-2 max-w-[70ch] leading-relaxed text-[var(--text-muted)]">
-          {group.blurb}
+          <T>{group.blurb}</T>
         </p>
       </div>
 
