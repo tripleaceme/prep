@@ -32,7 +32,7 @@ export const metadata: Metadata = {
     siteName: "Prep",
     title: "Prep — Mock Interview Practice for Data & Analytics Roles",
     description:
-      "Practice the interview before it costs you the offer. Free, no credits, bring your own AI key.",
+      "Practice the interview before it costs you the offer.",
     images: ["/og-image.png"],
   },
   twitter: {

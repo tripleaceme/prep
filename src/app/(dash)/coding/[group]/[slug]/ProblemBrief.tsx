@@ -6,6 +6,7 @@ import type { Problem } from "@/lib/problems";
 import { parseFixture } from "@/lib/problems/fixtures";
 import { runQuery, type QueryResult } from "@/lib/duckdb";
 import { DataTable } from "./DataTable";
+import { Diagram } from "@/components/diagrams";
 
 /** Renders the `backticked` identifiers in a prompt as inline code. */
 function formatPrompt(text: string): string {
@@ -226,6 +227,10 @@ export function ProblemBrief({ problem }: { problem: Problem }) {
                 dangerouslySetInnerHTML={{ __html: formatPrompt(paragraph) }}
               />
             ))}
+
+            {/* Above the notes, below the question: the picture is there to
+                make the shape obvious before you start answering. */}
+            {problem.diagram ? <Diagram name={problem.diagram} /> : null}
 
             {problem.notes?.length ? (
               <div className="rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] p-4">

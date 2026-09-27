@@ -39,8 +39,7 @@ export default async function ReportsPage() {
     <main className="mx-auto max-w-[1000px] px-6 py-10 lg:px-10">
       <h1 className="text-[34px] font-bold">My Reports</h1>
       <p className="mt-3 text-[var(--text-muted)]">
-        Every interview you&apos;ve completed — revisit the full feedback and
-        the gaps it found.
+        Every interview you&apos;ve completed and the gaps it found.
       </p>
 
       {failed ? (

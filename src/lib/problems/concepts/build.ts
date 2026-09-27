@@ -1,3 +1,4 @@
+import type { DiagramKey } from "@/components/diagrams";
 import type { Category, ConceptProblem, Difficulty } from "../types";
 
 /**
@@ -17,6 +18,8 @@ export function concept(
   title: string,
   /** The question, worded as an interviewer would actually say it. */
   prompt: string,
+  /** A diagram from the shared library, where one makes the shape obvious. */
+  diagram?: DiagramKey,
 ): ConceptProblem {
   return {
     kind: "concept",
@@ -25,6 +28,7 @@ export function concept(
     category,
     difficulty,
     prompt: [prompt],
+    ...(diagram ? { diagram } : {}),
   };
 }
 

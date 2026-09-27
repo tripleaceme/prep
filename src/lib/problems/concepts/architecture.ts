@@ -14,7 +14,8 @@ import { concept } from "./build";
 export const ARCHITECTURE_CONCEPTS = [
   // ---- Storage and platform ----------------------------------------------
   concept("architecture", "easy", "Data lake, warehouse, lakehouse",
-    "What is the difference between a data lake, a data warehouse and a lakehouse? What does each one actually solve?"),
+    "What is the difference between a data lake, a data warehouse and a lakehouse? What does each one actually solve?",
+    "medallion"),
   concept("architecture", "medium", "What is a data mart?",
     "What is a data mart, and when is having one a good idea rather than duplication?"),
   concept("architecture", "hard", "Choosing storage for a new platform",

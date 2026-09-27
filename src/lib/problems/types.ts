@@ -19,6 +19,8 @@
  * section — it is the part of Prep that works when you have neither.
  */
 
+import type { DiagramKey } from "@/components/diagrams";
+
 export type Difficulty = "easy" | "medium" | "hard";
 
 export type Category =
@@ -83,6 +85,15 @@ interface BaseProblem {
   explanation?: string;
   /** The single most common wrong answer, and why it is wrong. */
   gotcha?: string;
+  /**
+   * A small diagram, by name from the shared library.
+   *
+   * Keyed by idea rather than by question, so one drawing serves every
+   * question that turns on the same shape — the fan-out picture answers the
+   * fan-trap question, the bridge-table question and the code review that
+   * plants the bug.
+   */
+  diagram?: DiagramKey;
   /**
    * A worked example, for problems with no fixture tables to show.
    *
