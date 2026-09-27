@@ -65,12 +65,40 @@ export function Sidebar({
 }) {
   const pathname = usePathname();
   const t = useT();
-  const [open, setOpen] = useState(
-    pathname.startsWith("/mock") || pathname.startsWith("/coding"),
-  );
 
+  /**
+   * Prefix matching, not equality. A problem lives at /coding/sql/some-slug,
+   * so an exact comparison against /coding highlights nothing and the sidebar
+   * stops telling you where you are the moment you open anything.
+   */
   const isActive = (href: string) =>
     pathname === href || pathname.startsWith(`${href}/`);
+
+  const sectionActive = NAV.some((item) =>
+    item.children?.some((child) => isActive(child.href)),
+  );
+
+  /**
+   * Open follows the route unless you have said otherwise.
+   *
+   * Navigating into the section has to reveal it, or the highlight sits inside
+   * a collapsed group where nobody can see it. But collapsing it by hand while
+   * you are inside must still work, so a manual choice overrides the route —
+   * until you cross the section boundary, at which point it is cleared and the
+   * route takes over again.
+   *
+   * Adjusted during render rather than in an effect: this is derived state,
+   * and an effect would render once with the wrong value and then correct it.
+   */
+  const [override, setOverride] = useState<boolean | null>(null);
+  const [wasActive, setWasActive] = useState(sectionActive);
+
+  if (wasActive !== sectionActive) {
+    setWasActive(sectionActive);
+    setOverride(null);
+  }
+
+  const open = override ?? sectionActive;
 
   return (
     <aside className="flex h-dvh w-[260px] shrink-0 flex-col border-r border-[var(--border)] bg-[var(--surface)]">
@@ -96,7 +124,7 @@ export function Sidebar({
                 <li key={item.href}>
                   <button
                     type="button"
-                    onClick={() => setOpen((o) => !o)}
+                    onClick={() => setOverride(!open)}
                     aria-expanded={open}
                     className={[
                       "flex w-full items-center gap-3 rounded-[var(--radius-sm)] px-3 py-2.5 text-[15px] font-medium transition-colors",
@@ -122,7 +150,7 @@ export function Sidebar({
                             href={child.href}
                             className={[
                               "flex items-center gap-2 rounded-[var(--radius-sm)] px-3 py-2 text-sm transition-colors",
-                              pathname === child.href
+                              isActive(child.href)
                                 ? "border-l-2 border-[var(--brand-bright)] bg-[var(--surface-2)] text-[var(--brand-bright)]"
                                 : "text-[var(--text-muted)] hover:bg-[var(--surface-2)] hover:text-[var(--text)]",
                             ].join(" ")}

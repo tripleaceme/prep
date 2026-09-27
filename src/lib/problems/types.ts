@@ -167,7 +167,7 @@ export const CATEGORIES: {
   {
     value: "sql-fundamentals",
     label: "SQL Fundamentals",
-    blurb: "Filtering, shaping and grouping — the questions that open a screen.",
+    blurb: "Filtering, shaping and grouping.",
   },
   {
     value: "joins-aggregation",
@@ -183,13 +183,13 @@ export const CATEGORIES: {
     value: "dbt-modelling",
     label: "dbt Modelling",
     blurb:
-      "Write the model. Your ref() calls resolve against real tables and the SQL actually runs.",
+      "Write the model.",
   },
   {
     value: "metrics-logic",
     label: "Metrics & Business Logic",
     blurb:
-      "Retention, funnels, cohorts and streaks — where the hard part is defining the metric, not writing the query.",
+      "Retention, funnels, cohorts and streaks.",
   },
   {
     value: "dimensional-modelling",
@@ -200,19 +200,19 @@ export const CATEGORIES: {
     value: "python-data",
     label: "Python for Data",
     blurb:
-      "Standard-library Python over messy records: parsing, flattening, deduplicating, sessionising.",
+      "Understanding the logic of data cleaning.",
   },
   {
     value: "pipeline-etl",
     label: "Pipelines & ETL",
     blurb:
-      "Incremental loads, idempotency, backfills and retries — plus pipelines producing wrong numbers.",
+      "Incremental loads, idempotency, backfills and retries.",
   },
   {
     value: "performance",
     label: "Performance & Optimisation",
     blurb:
-      "A query or a job is too slow or too expensive. Diagnose it before you tune it.",
+      "Diagnose the bottleneck, then tune it.",
   },
   {
     value: "data-quality",
@@ -224,13 +224,13 @@ export const CATEGORIES: {
     value: "orchestration",
     label: "Orchestration",
     blurb:
-      "Dependencies, schedules, retries and backfills — the logic a scheduler runs on.",
+      "Dependencies, schedules, retries and backfills. The logic underneath a DAG.",
   },
   {
     value: "architecture",
     label: "Architecture & Design",
     blurb:
-      "The questions with no single right answer — where the interviewer is listening for trade-offs.",
+      "System design, scalability, and maintainability.",
   },
 ];
 
@@ -264,63 +264,63 @@ export const GROUPS: {
     value: "sql",
     label: "SQL",
     blurb:
-      "From a first filter through to window functions — the questions a screen actually opens with.",
+      "From a first filter through to window functions",
     categories: ["sql-fundamentals", "joins-aggregation", "window-functions"],
   },
   {
     value: "metrics",
     label: "Metrics & Business Logic",
     blurb:
-      "Retention, funnels, cohorts, streaks. The query is the easy half; deciding what the metric means is the interview.",
+      "Retention, funnels, cohorts, streaks.",
     categories: ["metrics-logic"],
   },
   {
     value: "modelling",
     label: "Data Modelling",
     blurb:
-      "dbt models, grain, slowly changing dimensions. Your ref() calls resolve and the SQL runs.",
+      "dbt models, grain, slowly changing dimensions.",
     categories: ["dbt-modelling", "dimensional-modelling"],
   },
   {
     value: "python",
     label: "Python for Data",
     blurb:
-      "Standard library only, over records that are messier than they look. This is the round, not LeetCode.",
+      "Understanding the logic of data cleaning, and how to express it in code.",
     categories: ["python-data"],
   },
   {
     value: "pipelines",
     label: "Pipelines & ETL",
     blurb:
-      "Watermarks, idempotency, backfills and retries — plus a pipeline quietly producing the wrong number.",
+      "Watermarks, idempotency, backfills and retries.",
     categories: ["pipeline-etl"],
   },
   {
     value: "quality",
     label: "Data Quality",
     blurb:
-      "Write the check that catches it — duplicates, orphaned keys, stale tables, numbers that moved.",
+      "Making the data consistent, complete and correct.",
     categories: ["data-quality"],
   },
   {
     value: "orchestration",
     label: "Orchestration",
     blurb:
-      "Dependency order, schedule windows, retries and backfills. The logic underneath a DAG.",
+      "Dependencies, schedules, retries and backfills. The logic underneath a DAG.",
     categories: ["orchestration"],
   },
   {
     value: "performance",
     label: "Performance & Optimisation",
     blurb:
-      "Something is slow or expensive. Interviews test whether you diagnose before you tune.",
+      "Diagnose the bottleneck, then tune it.",
     categories: ["performance"],
   },
   {
     value: "architecture",
     label: "Architecture & Design",
     blurb:
-      "The questions with no single right answer, where the interviewer is listening for trade-offs.",
+      "System design, scalability, and maintainability..",
     categories: ["architecture"],
   },
 ];

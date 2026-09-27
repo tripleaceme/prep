@@ -101,7 +101,7 @@ export function ConceptWorkspace({ problem }: { problem: ConceptProblem }) {
         onChange={(e) => setAnswer(e.target.value)}
         readOnly={state.kind === "marking"}
         rows={10}
-        placeholder="Answer it the way you would out loud. Say what it is, when it applies, and what it costs you."
+        placeholder="Type your answer here."
         className="w-full shrink-0 resize-none rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface-2)] px-4 py-3.5 leading-relaxed outline-none placeholder:text-[var(--text-faint)] focus:border-[var(--brand-bright)]"
       />
 
