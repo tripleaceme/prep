@@ -68,6 +68,7 @@ export function CvRevamp({ history = [] }: { history?: CvRevampSummary[] }) {
   const [copied, setCopied] = useState(false);
   const [step, setStep] = useState(1);
   const [historyOpen, setHistoryOpen] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   const fileRef = useRef<HTMLInputElement>(null);
 
@@ -112,8 +113,13 @@ export function CvRevamp({ history = [] }: { history?: CvRevampSummary[] }) {
       setResult(data);
       setStep(2);
 
-      // Stored after it is on screen, not before. Saving is a convenience and
-      // must never delay the thing the person actually asked for, or fail it.
+      // Stored after it is on screen, not before: saving is a convenience and
+      // must never delay or fail the thing that was actually asked for.
+      //
+      // The result is still checked. An earlier version discarded it, so when
+      // the endpoint was missing the revamp simply never appeared in history
+      // and nothing said why — which is worse than not having history.
+      setSaveError(null);
       void saveCvRevamp({
         role_title: roleTitleFrom(jobPost),
         source_name: cvName || null,
@@ -121,6 +127,8 @@ export function CvRevamp({ history = [] }: { history?: CvRevampSummary[] }) {
         changes: data.changes ?? [],
         missing_keywords: data.missingKeywords ?? [],
         honest_gaps: data.honestGaps ?? [],
+      }).then((saved) => {
+        if (saved.error) setSaveError(saved.error);
       });
     } catch (err) {
       if (err instanceof MissingKeyError) {
@@ -299,6 +307,19 @@ export function CvRevamp({ history = [] }: { history?: CvRevampSummary[] }) {
       ) : null}
 
       {/* ---------------- Step 2: the rewritten CV ---------------- */}
+      {/* A failed save never blocks the CV — it is already on screen and can
+          be copied or downloaded. But it has to be visible, or the revamp
+          silently never reaches history and nobody knows why. */}
+      {step === 2 && saveError ? (
+        <p
+          role="status"
+          className="mt-4 shrink-0 rounded-[var(--radius)] border border-[var(--warn)] bg-[var(--warn-dim)] px-4 py-3 text-sm leading-relaxed text-[var(--text-muted)]"
+        >
+          Your CV is ready below, but it could not be saved to history.{" "}
+          {saveError}
+        </p>
+      ) : null}
+
       {step === 2 && result ? (
         <section className="mt-6 flex min-h-0 flex-1 flex-col overflow-hidden rounded-[var(--radius)] border border-[var(--border)] bg-[var(--surface)]">
           <div className="flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-6 py-4">

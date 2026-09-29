@@ -27,7 +27,12 @@ function prep_route_health(): never
         $dbError = $e->getMessage();
     }
 
-    $expected = ['users', 'auth_tokens', 'interviews', 'reports', 'coding_attempts', 'activity_days'];
+    // Every table the app needs. A migration that was never run shows up
+    // here rather than as a feature that quietly does nothing.
+    $expected = [
+        'users', 'auth_tokens', 'interviews', 'reports',
+        'coding_attempts', 'activity_days', 'cv_revamps',
+    ];
     $missing = array_values(array_diff($expected, $tables));
 
     prep_json([
